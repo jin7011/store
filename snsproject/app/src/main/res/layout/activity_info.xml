@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:backgroundTint="#01030C"
     android:orientation="vertical"
-    tools:context=".Sign_up">
+    tools:context=".SignActivity">
 
     <TextView
         android:id="@+id/textView"

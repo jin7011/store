@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         user = mAuth.getCurrentUser();
 
         if(user == null){
-            Activity(Sign_up.class);
+            Activity(SignActivity.class);
         }else{
             String name = user.getDisplayName();
             if(name == null){
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mAuth.signOut();
-                Activity(Sign_up.class);
+                Activity(SignActivity.class);
             }
         });
     }

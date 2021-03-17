@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingVertical="20dp"
-    tools:context=".Sign_up">
+    tools:context=".SignActivity">
 
     <ScrollView
         android:layout_width="match_parent"
