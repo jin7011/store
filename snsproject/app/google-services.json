@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "100818485920",
+    "project_id": "fleet-parser-306216",
+    "storage_bucket": "fleet-parser-306216.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:100818485920:android:4036d2a9e802ae7199ffc5",
+        "android_client_info": {
+          "package_name": "com.example.sns_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "100818485920-m57l11rg65etgj1qtifqik9b967h84qt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpJwI4Mp8EPVOVAgubEtSUQSpiIJsV-Co"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "100818485920-m57l11rg65etgj1qtifqik9b967h84qt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
