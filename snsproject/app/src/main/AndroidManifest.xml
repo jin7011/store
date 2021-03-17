@@ -11,16 +11,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Snsproject">
-        <activity android:name=".Password_reset" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".Activities.WritePostActivity"></activity>
+        <activity android:name=".Activities.Password_resetActivity" />
+        <activity android:name=".Activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SignActivity" />
-        <activity android:name=".LoginActivity" />
+        <activity android:name=".Activities.SignActivity" />
+        <activity android:name=".Activities.LoginActivity" />
     </application>
 
 </manifest>
