@@ -28,13 +28,6 @@ public class MainActivity extends AppCompatActivity {
 
         if(user == null){
             Activity(SignActivity.class);
-        }else{
-            String name = user.getDisplayName();
-            if(name == null){
-                Activity(InfoActivity.class);
-            }else{
-                Tost("사업자번호: "+name );
-            }
         }
 
         Button logout = findViewById(R.id.logout);

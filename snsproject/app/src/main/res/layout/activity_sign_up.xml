@@ -51,6 +51,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:hint="비밀번호"
+                android:textSize="20sp"
                 android:inputType="textPassword"
                 android:layout_marginBottom="10dp"/>
 
@@ -60,6 +61,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:hint="비밀번호확인"
+                android:textSize="20sp"
                 android:inputType="textPassword"
                 android:layout_marginBottom="10dp"/>
 
@@ -68,6 +70,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
+                android:textSize="20sp"
                 android:ems="10"
                 android:hint="휴대폰번호"
                 android:inputType="textPersonName" />
@@ -78,8 +81,40 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:ems="10"
+                android:textSize="20sp"
                 android:hint="사업장명"
                 android:inputType="textPersonName" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <EditText
+                    android:id="@+id/businessNum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_weight="6"
+                    android:ems="10"
+                    android:hint="사업자등록번호"
+                    android:inputType="textPersonName"
+                    android:textSize="20sp" />
+
+                <Button
+                    android:id="@+id/BN_Check_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.3"
+                    android:text="확인" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="(한번 더!) 해외서버를 사용중임으로 반응이 조금 느릴 수 있습니다. \n한번 더 확인해주세요."
+                android:textColor="#DA29E1"
+                android:textSize="11sp" />
 
             <Spinner
                 android:id="@+id/spinner_location"
