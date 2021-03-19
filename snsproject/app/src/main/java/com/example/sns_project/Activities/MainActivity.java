@@ -13,7 +13,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
-
     ActivityMainBinding binding;
     private FirebaseAuth mAuth;
     private FirebaseUser user;
@@ -57,4 +56,5 @@ public class MainActivity extends AppCompatActivity {
     public void Tost(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
     }
+
 }

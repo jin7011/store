@@ -3,6 +3,7 @@ package com.example.sns_project.Activities;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -18,14 +19,15 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.sns_project.R;
 import com.example.sns_project.Info.UserProfile;
+import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivitySignUpBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
@@ -139,6 +141,8 @@ public class SignActivity extends AppCompatActivity {
     }
 
     public void BusinessNumberUpdate(FirebaseUser user){
+
+        updateUserProfile(user,binding.nickname.getText().toString());
 
         Map<String, Object> data = new HashMap<>();
         data.put(userProfile.ID, user.getUid());
@@ -255,6 +259,23 @@ public class SignActivity extends AppCompatActivity {
         }else
             return false;
 
+    }
+
+    public void updateUserProfile(FirebaseUser user,String str){
+
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName(str)
+                .build();
+
+        user.updateProfile(profileUpdates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d("updateUserProfile", "User profile updated.");
+                        }
+                    }
+                });
     }
 
     public void Tost(String str){

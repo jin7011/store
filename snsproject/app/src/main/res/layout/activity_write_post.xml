@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".Activities.WritePostActivity">
+    android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/TopLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:layout_constrainedHeight="true"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toTopOf="@id/titleLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_min="wrap"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/cancel_btn"
@@ -34,45 +41,114 @@
         <Button
             android:id="@+id/post_btn"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="10dp"
             android:layout_weight="0.1"
             android:backgroundTint="#15315C"
-            android:text="완료" />
+            android:text="완료"
+            android:textSize="10sp" />
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/titleLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constrainedHeight="true"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toTopOf="@id/contentLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_min="wrap"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/TopLayout">
 
         <EditText
             android:id="@+id/title_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="3dp"
             android:layout_marginEnd="10dp"
+            android:layout_weight="1"
             android:ems="10"
             android:hint="제목"
             android:inputType="textPersonName"
+            android:textColorHighlight="#15315C"
+            android:textColorLink="#15315C"
             android:textSize="20sp" />
-
-        <EditText
-            android:id="@+id/content_edit"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
-            android:ems="10"
-            android:gravity="start|top"
-            android:hint="내용을 적어주세요."
-            android:inputType="textMultiLine"
-            android:maxLines="20"
-            android:textSize="15sp" />
 
     </LinearLayout>
 
-</LinearLayout>
+    <ScrollView
+        android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constrainedHeight="true"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toTopOf="@id/imageContainerLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_max="wrap"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titleLayout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/content_edit"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="0dp"
+                android:layout_weight="15"
+                android:ems="10"
+                android:gravity="start|top"
+                android:hint="안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'"
+                android:inputType="textMultiLine"
+                android:textColorHighlight="#15315C"
+                android:textColorLink="#FFFFFF"
+                android:textSize="15sp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/imageContainerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:visibility="invisible"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toTopOf="@id/addImageLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/contentLayout" />
+
+    <LinearLayout
+        android:id="@+id/addImageLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="vertical"
+        app:layout_constrainedHeight="true"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_min="wrap"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageContainerLayout">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/addImage_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:backgroundTint="#FFFFFF"
+            app:elevation="0dp"
+            app:fabSize="mini"
+            app:srcCompat="@android:drawable/ic_dialog_map" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
