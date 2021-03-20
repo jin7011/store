@@ -1,7 +1,7 @@
 package com.example.sns_project.Activities;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -9,10 +9,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.sns_project.Adapter.AddImageAdapter;
+import com.example.sns_project.Info.ImageList;
 import com.example.sns_project.Info.WritePost;
-import com.example.sns_project.View.Post_ImageView;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -33,12 +36,16 @@ public class WritePostActivity extends AppCompatActivity {
     private WritePost writePost = new WritePost();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final int REQ_PICK_IMAGE_VIDEO = 1;
+//    private ArrayList<Uri> ImageList = new ArrayList<>();
+    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityWritePostBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.hide();
 
         user = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -81,22 +88,17 @@ public class WritePostActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == REQ_PICK_IMAGE_VIDEO) {
             Uri uri = data.getData();
 
-            if (uri.toString().contains("image")) {
-                Uri imageURI = data.getData();
-
-                Post_ImageView post_imageView = new Post_ImageView(this,imageURI);
-                post_imageView.makeImage();
+            if (uri.toString().contains("image")) { //어쨌든 뭐라도 하나 추가했다면, -> visible하게 하고, 아이템 등록
+                imageList.add(uri);
+                Add_and_SetRecyclerView(WritePostActivity.this);
 
             } else if (uri.toString().contains("video")) {
-                Uri imageURI = data.getData();
-
-                Post_ImageView post_imageView = new Post_ImageView(this,imageURI);
-                post_imageView.makeImage();
+                imageList.add(uri);
+                Add_and_SetRecyclerView(WritePostActivity.this);
             }
         }
 
     }
-
 
     private void UploadPost(String uid,String nickname,String title, String content) {
 
@@ -136,20 +138,16 @@ public class WritePostActivity extends AppCompatActivity {
         });
     }
 
+    public void Add_and_SetRecyclerView(Activity activity){
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                   // recyclerInit();
-                    Tost("시작");
-                } else {
-                    Tost("권한을 허락해주세요.");
-                }
-            }
-        }
+        LinearLayoutManager layoutManager = new LinearLayoutManager(WritePostActivity.this);
+        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        binding.ImageRecycler.setLayoutManager(layoutManager);
+
+        AddImageAdapter addImageAdapter = new AddImageAdapter(WritePostActivity.this);
+        binding.ImageRecycler.setAdapter(addImageAdapter);
     }
+
 
     public void Tost(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();

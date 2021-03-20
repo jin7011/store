@@ -25,7 +25,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.GalleryActivity" />
         <activity
             android:name=".Activities.WritePostActivity"
             android:windowSoftInputMode="adjustResize" />

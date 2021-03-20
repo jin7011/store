@@ -57,8 +57,8 @@ public class SignActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         String[] arr = getResources().getStringArray(R.array.my_array);
-        ArrayAdapter adapter = new ArrayAdapter(getBaseContext(),R.layout.spinner_item,arr);
-        adapter.setDropDownViewResource(R.layout.spinner_item);
+        ArrayAdapter adapter = new ArrayAdapter(getBaseContext(),R.layout.item_spinner,arr);
+        adapter.setDropDownViewResource(R.layout.item_spinner);
         set_SpinnerAdapter(adapter,arr);
 
         binding.BNCheckBtn.setOnClickListener(new View.OnClickListener() {

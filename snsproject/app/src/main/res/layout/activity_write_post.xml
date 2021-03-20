@@ -70,6 +70,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginTop="3dp"
             android:layout_marginEnd="10dp"
+            android:layout_marginRight="0dp"
             android:layout_weight="1"
             android:ems="10"
             android:hint="제목"
@@ -86,7 +87,7 @@
         android:layout_height="wrap_content"
         app:layout_constrainedHeight="true"
         app:layout_constrainedWidth="true"
-        app:layout_constraintBottom_toTopOf="@id/imageContainerLayout"
+        app:layout_constraintBottom_toTopOf="@id/addImageLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_max="wrap"
         app:layout_constraintStart_toStartOf="parent"
@@ -103,7 +104,6 @@
                 android:layout_height="match_parent"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
-                android:layout_marginBottom="0dp"
                 android:layout_weight="15"
                 android:ems="10"
                 android:gravity="start|top"
@@ -112,25 +112,27 @@
                 android:textColorHighlight="#15315C"
                 android:textColorLink="#FFFFFF"
                 android:textSize="15sp" />
+
+            <LinearLayout
+                android:id="@+id/imageContainerLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                app:layout_constrainedWidth="true">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/ImageRecycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/imageContainerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:visibility="invisible"
-        app:layout_constrainedWidth="true"
-        app:layout_constraintBottom_toTopOf="@id/addImageLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/contentLayout" />
 
     <LinearLayout
         android:id="@+id/addImageLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="0dp"
         android:baselineAligned="false"
         android:orientation="vertical"
         app:layout_constrainedHeight="true"
@@ -139,7 +141,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_min="wrap"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageContainerLayout">
+        app:layout_constraintTop_toBottomOf="@id/contentLayout">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/addImage_btn"
@@ -149,6 +151,6 @@
             app:backgroundTint="#FFFFFF"
             app:elevation="0dp"
             app:fabSize="mini"
-            app:srcCompat="@android:drawable/ic_dialog_map" />
+            app:srcCompat="@drawable/ic_baseline_photo_24" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

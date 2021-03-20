@@ -23,6 +23,7 @@ public class Post_ImageView {
     public void makeImage(){
 
         //여기 건드려야함 3/20일 컨테이너 내부에 사진이 있는지 없는지 체크하면서 추가하고 visible기능 넣어야함.
+        //리사이클러뷰를 이용해서 옆으로 넘기는 레이아웃으로써 파일을 리스트에 넣고 관리하고 싶음.
         RequestOptions option_circle = new RequestOptions().circleCrop();
 
         LinearLayout parent = activity.findViewById(R.id.imageContainerLayout);
