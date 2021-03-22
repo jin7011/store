@@ -2,9 +2,12 @@ package com.example.sns_project.Activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,7 +18,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.sns_project.Adapter.AddImageAdapter;
 import com.example.sns_project.Info.ImageList;
+import com.example.sns_project.Info.PostInfo;
 import com.example.sns_project.Info.WritePost;
+import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -26,18 +31,29 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class WritePostActivity extends AppCompatActivity {
     ActivityWritePostBinding binding;
+
+    private final int REQ_PICK_IMAGE_VIDEO = 1;
     private FirebaseUser user;
     private WritePost writePost = new WritePost();
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final int REQ_PICK_IMAGE_VIDEO = 1;
-//    private ArrayList<Uri> ImageList = new ArrayList<>();
-    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageList();
+    private FirebaseFirestore db;
+    private int fileNum;
+    private PostInfo postInfo;
+    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
+    private RelativeLayout loaderView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +62,12 @@ public class WritePostActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
+        loaderView = findViewById(R.id.loaderLyaout);
 
+        //인증init
         user = FirebaseAuth.getInstance().getCurrentUser();
+        db = FirebaseFirestore.getInstance();
+
 
         binding.cancelBtn.setOnClickListener(new View.OnClickListener() { //뒤로가기
             @Override
@@ -63,7 +83,7 @@ public class WritePostActivity extends AppCompatActivity {
                 String content = binding.contentEdit.getText().toString();
 
                 if(title.length() >= 2 && content.length() >= 2){
-                    UploadPost(user.getUid(),user.getDisplayName(),title,content);
+                    UploadStorage(user.getUid(),user.getDisplayName(),title,content);
                 }else{
                  Tost("제목 및 내용을 2글자 이상 입력해주세요.");
                 }
@@ -78,7 +98,6 @@ public class WritePostActivity extends AppCompatActivity {
                 startActivityForResult(intent, REQ_PICK_IMAGE_VIDEO);
             }
         });
-
     }
 
     @Override
@@ -88,7 +107,7 @@ public class WritePostActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == REQ_PICK_IMAGE_VIDEO) {
             Uri uri = data.getData();
 
-            if (uri.toString().contains("image")) { //어쨌든 뭐라도 하나 추가했다면, -> visible하게 하고, 아이템 등록
+            if (uri.toString().contains("image")) { //어쨌든 뭐라도 하나 추가했다면, -> 아이템 등록
                 imageList.add(uri);
                 Add_and_SetRecyclerView(WritePostActivity.this);
 
@@ -97,45 +116,103 @@ public class WritePostActivity extends AppCompatActivity {
                 Add_and_SetRecyclerView(WritePostActivity.this);
             }
         }
-
     }
 
-    private void UploadPost(String uid,String nickname,String title, String content) {
+    public void UploadStorage(String uid, String nickname, String title, String content) {
+        loaderView.setVisibility(View.VISIBLE);
 
-        Map<String, Object> data = new HashMap<>();
-        data.put(writePost.ID, uid);
-        data.put(writePost.nickname, nickname);
-        data.put(writePost.title, title);
-        data.put(writePost.content, content);
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageRef = storage.getReference();
 
-        DocumentReference docRef = db.collection("USER").document(uid);
+        DocumentReference locationDoc = db.collection("USER").document(uid);
 
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        locationDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
 
-                    if (document.exists()) {
-                        String location = document.getString("location"); //데이터베이스의 uid를 찾아서 location을 추출한 후에
-                        db.collection(location).add(data) //location을 collection으로 저장하여 게시판 세분화
-                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                    @Override
-                                    public void onSuccess(DocumentReference documentReference) {
-                                       //메인으로 다시 이동할 예정.
-                                         Tost("게시글이 작성되었습니다.");
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Tost("문제가 발생하였습니다.");
-                            }
+                    if (document.exists()) { //USER에서 location을 찾는 것은 비동기적이기떄문에 함수화 못했꼬, 그래서 우선적으로 지역을 찾고 찾았다면, 포스트를 올리기로.
 
-                        });
+                        String location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
+                        Log.d("지격탐색",location);
+
+                        final DocumentReference documentReference = postInfo == null ? db.collection(location).document() : db.collection(location).document(postInfo.getId());
+                        final Date date = postInfo == null ? new Date() : postInfo.getCreatedAt();
+                        final ArrayList<String> formatList = new ArrayList<>();
+
+                        if(imageList.getImageList().size() !=0) {
+                            for (int x = 0; x < imageList.getImageList().size(); x++) {
+                                fileNum++; //1부터 시작 (파일 1개, 2개 ,3개...)  // try문 밖에서 사용함으로써 안정적으로 숫자를 카운트가능 (이전에 try안에 넣어서 오류났었음)
+                                try {
+                                    String[] pathArray = getPathFromUri(imageList.getImageList().get(x)).split("\\.");
+                                    final StorageReference mountainImagesRef = storageRef.child(location+"/"+ documentReference.getId() + "/" + x + "." + pathArray[pathArray.length - 1]);
+                                    InputStream stream = new FileInputStream(new File(getPathFromUri(imageList.getImageList().get(x)))); //경로
+                                    StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("index", "" + fileNum).build();
+                                    UploadTask uploadTask = mountainImagesRef.putStream(stream,metadata);
+
+                                    uploadTask.addOnFailureListener(new OnFailureListener() { //storage에 업로드 리스너
+                                        @Override
+                                        public void onFailure(@NonNull Exception exception) {
+                                            Tost("어라..? 망;");
+                                            loaderView.setVisibility(View.GONE);
+                                        }
+                                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                        @Override
+                                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                            Log.d("사진업로드","일단 성공이고 index: "+fileNum);
+
+                                            if (fileNum == imageList.getImageList().size()) {
+                                                Log.d("포멧올리는 과정","size: "+imageList.getImageList().size());
+                                                docking(formatList);
+                                                PostInfo postInfo = new PostInfo(uid, nickname, title, content, formatList, date);
+                                                UploadPost(documentReference, postInfo);
+                                            }
+                                        }
+                                    });
+                                } catch (FileNotFoundException e) {
+                                    loaderView.setVisibility(View.GONE);
+                                    e.printStackTrace();
+                                }
+                            }
+                        }else{ //파일없이 글만 올리는 경우
+                            PostInfo postInfo = new PostInfo(uid, nickname, title, content, date);
+                            UploadPost(documentReference, postInfo);
+                        }
                     }
+
                 }
             }
         });
+    }
+
+    public void docking(ArrayList<String> formatList){
+        for(int x=0; x<imageList.getImageList().size(); x++){
+            formatList.add(imageList.getImageList().get(x).toString());
+        }
+    }
+
+    private void UploadPost(DocumentReference documentReference,final PostInfo postInfo) {
+
+        documentReference.set(postInfo.getPostInfo())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Tost("성공적으로 게시되었습니다.");
+                        loaderView.setVisibility(View.GONE);
+                        finish();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Tost("업로드에 실패하였습니다.");
+                        loaderView.setVisibility(View.GONE);
+                        finish();
+                    }
+                });
+
+
     }
 
     public void Add_and_SetRecyclerView(Activity activity){
@@ -146,11 +223,27 @@ public class WritePostActivity extends AppCompatActivity {
 
         AddImageAdapter addImageAdapter = new AddImageAdapter(WritePostActivity.this);
         binding.ImageRecycler.setAdapter(addImageAdapter);
+
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        imageList.clear();
+    } // 글쓰기 종료시 저장한 사진데이터 모두 클리어.
 
     public void Tost(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
+    }
+
+    public String getPathFromUri(Uri uri){
+
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null );
+        cursor.moveToNext();
+        String path = cursor.getString( cursor.getColumnIndex( "_data" ) );
+        cursor.close();
+
+        return path;
     }
 
 

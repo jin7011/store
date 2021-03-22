@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -47,6 +48,7 @@ public class SignActivity extends AppCompatActivity {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String location;
     private ActivitySignUpBinding binding;
+    private RelativeLayout loader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +56,9 @@ public class SignActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         binding = ActivitySignUpBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        loader = findViewById(R.id.loaderLyaout);
+
+        //init
         mAuth = FirebaseAuth.getInstance();
 
         String[] arr = getResources().getStringArray(R.array.my_array);
@@ -123,6 +128,8 @@ public class SignActivity extends AppCompatActivity {
 
     public void join(String m, String p) {
 
+        loader.setVisibility(View.VISIBLE);
+
         mAuth.createUserWithEmailAndPassword(m, p)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -132,8 +139,10 @@ public class SignActivity extends AppCompatActivity {
                             FirebaseUser user = mAuth.getCurrentUser();
                             BusinessNumberUpdate(user);
                             MainActivity();
+                            loader.setVisibility(View.GONE);
                         } else {
-                           Tost("이메일형식/비밀번호를 확인해주세요.");
+                           Tost("이메일형식이 아니거나 이미 가입된 이메일입니다.");
+                            loader.setVisibility(View.GONE);
                         }
                         // ...
                     }

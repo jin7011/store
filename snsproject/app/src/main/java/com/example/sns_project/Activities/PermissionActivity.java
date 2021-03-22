@@ -30,7 +30,7 @@ public class PermissionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_permission);
 
-        if (!isGrantedPermission()) { //퍼미션 모두 허가하면 액티비티 실행안되는 것까지 했음..
+        if (!isGrantedPermission()) {
             createPermissionDialog();
         } else {
             Activity(MainActivity.class);
@@ -39,9 +39,10 @@ public class PermissionActivity extends AppCompatActivity {
     }
 
     public void Activity(Class c){
-        Intent intent = new Intent(this,c);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
+        Intent i = new Intent(this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        this.startActivity(i);
+        this.finish();
     }
 
     public boolean isGrantedPermission() {

@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingVertical="20dp"
     tools:context=".Activities.SignActivity">
 
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -49,31 +49,31 @@
                 android:id="@+id/pass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:ems="10"
                 android:hint="비밀번호"
-                android:textSize="20sp"
                 android:inputType="textPassword"
-                android:layout_marginBottom="10dp"/>
+                android:textSize="20sp" />
 
             <EditText
                 android:id="@+id/pass_check"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:ems="10"
                 android:hint="비밀번호확인"
-                android:textSize="20sp"
                 android:inputType="textPassword"
-                android:layout_marginBottom="10dp"/>
+                android:textSize="20sp" />
 
             <EditText
                 android:id="@+id/phoneNum"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:textSize="20sp"
                 android:ems="10"
                 android:hint="휴대폰번호"
-                android:inputType="textPersonName" />
+                android:inputType="textPersonName"
+                android:textSize="20sp" />
 
             <EditText
                 android:id="@+id/storeName"
@@ -81,9 +81,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:ems="10"
-                android:textSize="20sp"
                 android:hint="사업장명"
-                android:inputType="textPersonName" />
+                android:inputType="textPersonName"
+                android:textSize="20sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -130,16 +130,16 @@
                 android:id="@+id/signup_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:backgroundTint="#15315C"
-                android:text="sign up"
-                android:layout_marginBottom="10dp"/>
+                android:text="sign up" />
 
             <Button
                 android:id="@+id/gologin_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="로그인하러"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="10dp"
+                android:text="로그인하러" />
 
             <CheckBox
                 android:id="@+id/checkBox_agree"
@@ -167,5 +167,15 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <include
+        layout="@layout/view_loader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

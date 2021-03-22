@@ -18,7 +18,7 @@ import com.example.sns_project.R;
 
 public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddImageHolder> {
 
-    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageList();
+    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
     private Activity activity;
 
     public AddImageAdapter(Activity activity) {
@@ -41,8 +41,6 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
 
         ImageView imageView = (ImageView)LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
         final AddImageHolder addImageHolder = new AddImageHolder(imageView);
-
-
 
         return addImageHolder;
     }
@@ -67,7 +65,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
 //                                notifyItemRemoved(addImageHolder.getAdapterPosition());
 //                                notifyItemRangeChanged(addImageHolder.getAdapterPosition(), imageList.getImageList().size());
 
-                                imageList.getImageList().remove(position);
+                                imageList.getImageList().remove(position); //해당 포지션의 공용데이터리스트를 제거
                                 notifyItemRemoved(position);
                                 notifyItemRangeChanged(position, imageList.getImageList().size());
                             }

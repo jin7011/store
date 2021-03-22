@@ -14,12 +14,16 @@ public class ImageList { //싱글톤으로 객체를 내부에서 생성함으�
         public static final ImageList imageList = new ImageList();
     }
 
-    public static ImageList getimageList() {
+    public static ImageList getimageListInstance() {
         return LazyHolder.imageList;
     }
 
     public  void add(Uri uri){
         ImageList.add(uri);
+    }
+
+    public void clear(){
+        ImageList.clear();
     }
 
     public  ArrayList<Uri> getImageList() {
