@@ -48,6 +48,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
     @Override
     public void onBindViewHolder(@NonNull AddImageHolder holder, int position) { //포지션에 맞게 이미지 셋업
         RequestOptions option_circle = new RequestOptions().circleCrop();
+
         ImageView imageView = holder.imageView;
         Glide.with(activity).load(imageList.getImageList().get(position)).override(500).apply(option_circle).into(imageView);
 

@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.sns_project.Adapter.AddImageAdapter;
 import com.example.sns_project.Info.ImageList;
 import com.example.sns_project.Info.PostInfo;
-import com.example.sns_project.Info.WritePost;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -48,7 +47,6 @@ public class WritePostActivity extends AppCompatActivity {
 
     private final int REQ_PICK_IMAGE_VIDEO = 1;
     private FirebaseUser user;
-    private WritePost writePost = new WritePost();
     private FirebaseFirestore db;
     private int fileNum;
     private PostInfo postInfo;
@@ -245,6 +243,5 @@ public class WritePostActivity extends AppCompatActivity {
 
         return path;
     }
-
 
 }
