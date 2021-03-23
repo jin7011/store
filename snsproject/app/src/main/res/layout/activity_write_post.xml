@@ -10,44 +10,20 @@
         android:id="@+id/TopLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         app:layout_constrainedHeight="true"
         app:layout_constrainedWidth="true"
         app:layout_constraintBottom_toTopOf="@id/titleLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_min="wrap"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" >
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/cancel_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="46dp"
-            android:layout_weight="1"
-            android:clickable="true"
-            app:backgroundTint="#FFFFFF"
-            app:elevation="0dp"
-            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
-
-        <TextView
-            android:id="@+id/writeT"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_weight="500"
-            android:text="글 쓰기"
-            android:textSize="25sp" />
-
-        <Button
-            android:id="@+id/postBtn"
-            android:layout_width="60dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="10dp"
-            android:layout_weight="0.1"
-            android:backgroundTint="#15315C"
-            android:text="완료"
-            android:textSize="10sp" />
+        <include
+            android:id="@+id/write_toolbar"
+            layout="@layout/toolbar_writepost"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
     </LinearLayout>
 
     <LinearLayout

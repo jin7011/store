@@ -12,7 +12,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -58,23 +57,20 @@ public class WritePostActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityWritePostBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
         loaderView = findViewById(R.id.loaderLyaout);
 
         //인증init
         user = FirebaseAuth.getInstance().getCurrentUser();
         db = FirebaseFirestore.getInstance();
 
-
-        binding.cancelBtn.setOnClickListener(new View.OnClickListener() { //뒤로가기
+        binding.writeToolbar.backBtn.setOnClickListener(new View.OnClickListener() { //뒤로가기
             @Override
             public void onClick(View view) {
                 finish();
             }
         });
 
-        binding.postBtn.setOnClickListener(new View.OnClickListener() { //이제 글을 데이터에 등록
+        binding.writeToolbar.postBtn.setOnClickListener(new View.OnClickListener() { //이제 글을 데이터에 등록
             @Override
             public void onClick(View view) {
                 String title = binding.titleEdit.getText().toString();

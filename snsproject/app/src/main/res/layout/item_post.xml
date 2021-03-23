@@ -30,7 +30,7 @@
                 android:maxLines="1"
                 android:text="TextView"
                 android:textColor="#000000"
-                android:textSize="20sp"
+                android:textSize="17.5sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -67,8 +67,8 @@
         android:id="@+id/postImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="1dp"
-        android:layout_weight="2.7"
+        android:layout_weight="2.8"
+        android:adjustViewBounds="true"
         android:scaleType="fitXY"
         android:visibility="visible"
         tools:srcCompat="@tools:sample/avatars" />

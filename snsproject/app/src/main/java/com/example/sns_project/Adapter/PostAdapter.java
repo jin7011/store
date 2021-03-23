@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.example.sns_project.Activities.PostActivity;
 import com.example.sns_project.Info.PostInfo;
 import com.example.sns_project.R;
 
@@ -51,6 +52,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         LinearLayout linearLayout = (LinearLayout) LayoutInflater.from(parent.getContext()).inflate(R.layout.item_post,parent,false);
         final PostAdapter.PostHolder postHolder = new PostAdapter.PostHolder(linearLayout);
 
+        linearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(activity, PostActivity.class);
+                intent.putExtra("postInfo", postList.get(postHolder.getAdapterPosition()));
+                activity.startActivity(intent);
+            }
+        });
+
         return postHolder;
     }
 
@@ -71,18 +81,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 
         if(formats != null){
             imageView.setVisibility(View.VISIBLE);
-            Glide.with(activity).load(formats.get(0)).transform(new CenterCrop(),new RoundedCorners(85)).override(800).thumbnail(0.5f).into(imageView);
+            Glide.with(activity).load(formats.get(0)).transform(new CenterCrop(),new RoundedCorners(85)).override(700,600).thumbnail(0.5f).into(imageView);
         }
         titleT.setText(title);
         contentT.setText(content);
         dateT.setText(new SimpleDateFormat("MM/dd", Locale.getDefault()).format(date).toString());
-
-        holder.linearLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
 
     }
 

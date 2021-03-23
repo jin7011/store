@@ -6,17 +6,14 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.Info.PostInfo;
-import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityMainBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -45,8 +42,6 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(binding.getRoot());
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -66,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });                                                     //로그아웃버튼
 
-        binding.writeBtn.setOnClickListener(new View.OnClickListener() {
+        binding.mainToolbar.postBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Activity(WritePostActivity.class);
@@ -89,8 +84,7 @@ public class MainActivity extends AppCompatActivity {
                         String location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
                         Log.d("지격탐색",location);
 
-                        TextView topT = findViewById(R.id.locationT);
-                        topT.setText(location);
+                        binding.mainToolbar.locationToolbarText.setText(location);
 
                         db.collection(location)
                                .orderBy("createdAt", Query.Direction.DESCENDING)
