@@ -93,19 +93,41 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                                         if (task.isSuccessful()) {
+                                            int fcnt = 0;
+                                            int cnt = 0;
                                             postList = new ArrayList<>();
                                             for (QueryDocumentSnapshot document : task.getResult()) {
                                                 Log.d("가져옴", document.getId() + " => " + document.getData());
-                                                postList.add(new PostInfo(
-                                                        user.getUid(),
-                                                        document.get("publisher").toString(),
-                                                        document.get("title").toString(),
-                                                        document.get("contents").toString(),
-                                                        (ArrayList<String>)document.getData().get("formats"),
-                                                        new Date(document.getDate("createdAt").getTime())
-                                                        )
-                                                );
+
+                                                if(document.getData().get("formats") != null) {
+                                                    postList.add(new PostInfo(
+                                                                    user.getUid(),
+                                                                    document.get("publisher").toString(),
+                                                                    document.get("title").toString(),
+                                                                    document.get("contents").toString(),
+                                                                    (ArrayList<String>) document.getData().get("formats"),
+                                                                    new Date(document.getDate("createdAt").getTime()),
+                                                                    document.getId(),
+                                                                    0, 0
+                                                            )
+                                                    );
+                                                    fcnt++;
+                                                }
+                                                else{
+                                                    postList.add(new PostInfo(
+                                                                    user.getUid(),
+                                                                    document.get("publisher").toString(),
+                                                                    document.get("title").toString(),
+                                                                    document.get("contents").toString(),
+                                                                    new Date(document.getDate("createdAt").getTime()),
+                                                                    document.getId(),
+                                                                    0,0
+                                                            )
+                                                    );
+                                                    cnt++;
+                                                }
                                             }
+                                            Log.d("가져옴", "포멧게시글갯수:"+fcnt+" 걍게시글: "+cnt);
                                             Add_and_SetRecyclerView(MainActivity.this,postList);
                                         } else {
                                             Log.d("실패함", "Error getting documents: ", task.getException());
@@ -118,11 +140,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        init();
-    }
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        init();
+//    }
 
     public void Add_and_SetRecyclerView(Activity activity, ArrayList<PostInfo> postList){
 

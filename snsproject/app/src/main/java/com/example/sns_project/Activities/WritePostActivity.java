@@ -211,11 +211,11 @@ public class WritePostActivity extends AppCompatActivity {
 
     public void Add_and_SetRecyclerView(Activity activity){
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(WritePostActivity.this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         binding.ImageRecycler.setLayoutManager(layoutManager);
 
-        AddImageAdapter addImageAdapter = new AddImageAdapter(WritePostActivity.this);
+        AddImageAdapter addImageAdapter = new AddImageAdapter(activity);
         binding.ImageRecycler.setAdapter(addImageAdapter);
 
     }

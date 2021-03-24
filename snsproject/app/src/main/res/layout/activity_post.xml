@@ -12,57 +12,183 @@
         android:layout_width="match_parent"
         android:layout_height="50dp" />
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/imageView_post"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            tools:srcCompat="@tools:sample/avatars" />
+        android:layout_height="match_parent">
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/nickname_postT"
+            <LinearLayout
+                android:id="@+id/face"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="TextView" />
+                android:layout_margin="10dp"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/date_postT"
+                <ImageView
+                    android:id="@+id/imageView_post"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    tools:srcCompat="@drawable/ic_person_24" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/nickname_postT"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="start|center_vertical"
+                        android:text="TextView" />
+
+                    <TextView
+                        android:id="@+id/date_postT"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.1"
+                        android:text="TextView" />
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/good_post_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="2dp"
+                    android:clickable="true"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/button"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/aaaa"
+                        android:clickable="false"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="left|center_vertical"
+                        android:text="좋아요"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/con"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.1"
-                android:text="TextView" />
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:orientation="vertical">
 
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/title_postT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="제목"
+                    android:textColor="#393636"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/content_postT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="50dp" />
 
-            <ImageButton
-                android:id="@+id/agree_post_btn"
-                android:layout_width="50dp"
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_weight="0"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/ic_goodnum_post_24" />
+
+                <TextView
+                    android:id="@+id/goodNum_postT"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginRight="5dp"
+                    android:text="0" />
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_weight="0"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/ic_commentnum" />
+
+                <TextView
+                    android:id="@+id/commentNum_postT"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="0"
+                    android:text="0" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/formatsLinearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
                 android:layout_weight="1"
-                android:background="@drawable/post_goodbtn"
-                app:srcCompat="@drawable/ic_baseline_plus_one_24" />
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/formatsRecycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/commentLinearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/commentRecycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
         </LinearLayout>
 
-    </LinearLayout>
+    </ScrollView>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"></LinearLayout>
 </LinearLayout>

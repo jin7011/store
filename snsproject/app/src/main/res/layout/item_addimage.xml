@@ -5,8 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
 
     android:id="@+id/addImageLayout"
-    android:layout_width="70dp"
-    android:layout_height="70dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:layout_margin="1dp"
     tools:srcCompat="@tools:sample/avatars">
 

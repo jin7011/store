@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.sns_project.Info.ImageList;
 import com.example.sns_project.R;
@@ -50,7 +51,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
         RequestOptions option_circle = new RequestOptions().circleCrop();
 
         ImageView imageView = holder.imageView;
-        Glide.with(activity).load(imageList.getImageList().get(position)).override(500).apply(option_circle).into(imageView);
+        Glide.with(activity).load(imageList.getImageList().get(position)).transform(new FitCenter()).apply(option_circle).into(imageView);
 
         imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
