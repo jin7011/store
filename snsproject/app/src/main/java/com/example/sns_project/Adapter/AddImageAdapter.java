@@ -51,7 +51,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
         RequestOptions option_circle = new RequestOptions().circleCrop();
 
         ImageView imageView = holder.imageView;
-        Glide.with(activity).load(imageList.getImageList().get(position)).transform(new FitCenter()).apply(option_circle).into(imageView);
+        Glide.with(activity).load(imageList.getImageList().get(position)).transform(new FitCenter()).override(500,500).apply(option_circle).into(imageView);
 
         imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override

@@ -47,10 +47,13 @@ public class WritePostActivity extends AppCompatActivity {
     private final int REQ_PICK_IMAGE_VIDEO = 1;
     private FirebaseUser user;
     private FirebaseFirestore db;
-    private int fileNum;
+    private int fileNum = 0;
     private PostInfo postInfo;
     private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
     private RelativeLayout loaderView;
+    private  FirebaseStorage storage;
+    private StorageReference storageRef;
+    private String location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +65,8 @@ public class WritePostActivity extends AppCompatActivity {
         //인증init
         user = FirebaseAuth.getInstance().getCurrentUser();
         db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReference();
 
         binding.writeToolbar.backBtn.setOnClickListener(new View.OnClickListener() { //뒤로가기
             @Override
@@ -114,9 +119,7 @@ public class WritePostActivity extends AppCompatActivity {
 
     public void UploadStorage(String uid, String nickname, String title, String content) {
         loaderView.setVisibility(View.VISIBLE);
-
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReference();
+        fileNum = 0;
 
         DocumentReference locationDoc = db.collection("USER").document(uid);
 
@@ -128,49 +131,19 @@ public class WritePostActivity extends AppCompatActivity {
 
                     if (document.exists()) { //USER에서 location을 찾는 것은 비동기적이기떄문에 함수화 못했꼬, 그래서 우선적으로 지역을 찾고 찾았다면, 포스트를 올리기로.
 
-                        String location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
+                        location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
                         Log.d("지격탐색",location);
 
                         final DocumentReference documentReference = postInfo == null ? db.collection(location).document() : db.collection(location).document(postInfo.getId());
                         final Date date = postInfo == null ? new Date() : postInfo.getCreatedAt();
                         final ArrayList<String> formatList = new ArrayList<>();
+                        postInfo = new PostInfo(uid, nickname, title, content, date);
 
+                        Log.d("imageList"," 갯수: "+imageList.getImageList().size()+"filenum: "+fileNum);
                         if(imageList.getImageList().size() !=0) {
-                            for (int x = 0; x < imageList.getImageList().size(); x++) {
-                                fileNum++; //1부터 시작 (파일 1개, 2개 ,3개...)  // try문 밖에서 사용함으로써 안정적으로 숫자를 카운트가능 (이전에 try안에 넣어서 오류났었음)
-                                try {
-                                    String[] pathArray = getPathFromUri(imageList.getImageList().get(x)).split("\\.");
-                                    final StorageReference mountainImagesRef = storageRef.child(location+"/"+ documentReference.getId() + "/" + x + "." + pathArray[pathArray.length - 1]);
-                                    InputStream stream = new FileInputStream(new File(getPathFromUri(imageList.getImageList().get(x)))); //경로
-                                    StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("index", "" + fileNum).build();
-                                    UploadTask uploadTask = mountainImagesRef.putStream(stream,metadata);
+                            uploadPosts(imageList.getImageList(),documentReference,formatList,postInfo);
 
-                                    uploadTask.addOnFailureListener(new OnFailureListener() { //storage에 업로드 리스너
-                                        @Override
-                                        public void onFailure(@NonNull Exception exception) {
-                                            Tost("어라..? 망;");
-                                            loaderView.setVisibility(View.GONE);
-                                        }
-                                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                        @Override
-                                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                            Log.d("사진업로드","일단 성공이고 index: "+fileNum);
-
-                                            if (fileNum == imageList.getImageList().size()) {
-                                                Log.d("포멧올리는 과정","size: "+imageList.getImageList().size());
-                                                docking(formatList);
-                                                PostInfo postInfo = new PostInfo(uid, nickname, title, content, formatList, date);
-                                                UploadPost(documentReference, postInfo);
-                                            }
-                                        }
-                                    });
-                                } catch (FileNotFoundException e) {
-                                    loaderView.setVisibility(View.GONE);
-                                    e.printStackTrace();
-                                }
-                            }
                         }else{ //파일없이 글만 올리는 경우
-                            PostInfo postInfo = new PostInfo(uid, nickname, title, content, date);
                             UploadPost(documentReference, postInfo);
                         }
                     }
@@ -180,13 +153,57 @@ public class WritePostActivity extends AppCompatActivity {
         });
     }
 
-    public void docking(ArrayList<String> formatList){
-        for(int x=0; x<imageList.getImageList().size(); x++){
-            formatList.add(imageList.getImageList().get(x).toString());
+    private void uploadPosts(final ArrayList<Uri> mediaUris,DocumentReference documentReference,final ArrayList<String> formatList,PostInfo postInfo) {
+
+        Log.d("imageList"," 갯수: "+mediaUris.size()+"filenum: "+fileNum);
+
+        InputStream stream = null;
+        if(mediaUris.size() != 0 && mediaUris != null)
+        try {
+            stream = new FileInputStream(new File(getPathFromUri(mediaUris.get(fileNum))));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        if(stream != null) {
+            String[] pathArray = getPathFromUri(mediaUris.get(fileNum)).split("\\.");
+            final StorageReference fileRef = storageRef.child(location+"/"+ documentReference.getId() + "/" + fileNum + "." + pathArray[pathArray.length - 1]);
+            StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("index", "" + fileNum).build();
+            final UploadTask uploadTask = fileRef.putStream(stream, metadata);
+
+            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
+                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            Log.d("TAG", "URL = " + uri); //url of each file
+
+                            if(fileNum < mediaUris.size()) {
+                                formatList.add(uri.toString());
+                                uploadPosts(mediaUris, documentReference, formatList, postInfo); //Recursion
+                                Log.d("포멧올리는 과정", "size: " + formatList.size()+"filenum: "+fileNum+"medi size : "+mediaUris);
+                                fileNum++;
+                            }
+                            if (formatList.size() == mediaUris.size()) {
+                                Log.d("한번만 튀어나오면댐", "제발: " + formatList.size());
+                                postInfo.setFormats(formatList);
+                                UploadPost(documentReference, postInfo);
+                                return;
+                            }
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(getApplicationContext(), "Upload failed", Toast.LENGTH_SHORT).show();
+                            Log.e("TAG", "Failed " + e.getCause());
+                        }
+                    });
+                }
+            });
         }
     }
-
-    private void UploadPost(DocumentReference documentReference,final PostInfo postInfo) {
+        private void UploadPost(DocumentReference documentReference,final PostInfo postInfo) {
 
         documentReference.set(postInfo.getPostInfo())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -206,8 +223,52 @@ public class WritePostActivity extends AppCompatActivity {
                     }
                 });
 
-
     }
+
+
+//          for (int x = 0; x < imageList.getImageList().size();) {
+//
+//        fileNum=x; //0부터 시작 (파일 0개, 1개 ...)  // try문 밖에서 사용함으로써 안정적으로 숫자를 카운트가능 (이전에 try안에 넣어서 오류났었음)
+//        String[] pathArray = getPathFromUri(imageList.getImageList().get(x)).split("\\.");
+//        formatList.add(pathArray[pathArray.length - 1]);
+//final StorageReference mountainImagesRef = storageRef.child(location+"/"+ documentReference.getId() + "/" + x + "." + pathArray[pathArray.length - 1]);
+//
+//        try {
+//        Log.d("fileNUm 체크","filenum: " + fileNum);
+//        InputStream stream = new FileInputStream(new File(getPathFromUri(imageList.getImageList().get(x)))); //경로
+//        StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("index", "" + fileNum).build();
+//        UploadTask uploadTask = mountainImagesRef.putStream(stream,metadata);
+//
+//        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() { //storage에 업로드 리스너
+//@Override
+//public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//        Log.d("사진업로드","일단 성공이고 index: "+fileNum);
+//final int index = Integer.parseInt(taskSnapshot.getMetadata().getCustomMetadata("index"));
+//        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//        mountainImagesRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+//@Override
+//public void onSuccess(Uri uri) {
+//        formatList.set(index,uri.toString());
+//        if (fileNum == (imageList.getImageList().size()-1)) {
+//        Log.d("포멧올리는 과정","size: "+imageList.getImageList().size());
+//        PostInfo postInfo = new PostInfo(uid, nickname, title, content, formatList, date);
+//        UploadPost(documentReference, postInfo);
+//        }
+//        }
+//        });
+//        }
+//        }).addOnFailureListener(new OnFailureListener() {
+//@Override
+//public void onFailure(@NonNull Exception exception) {
+//        Tost("어라..? 망;");
+//        loaderView.setVisibility(View.GONE);
+//        }
+//        });
+//        } catch (FileNotFoundException e) {
+//        loaderView.setVisibility(View.GONE);
+//        e.printStackTrace();
+//        }
+//        }
 
     public void Add_and_SetRecyclerView(Activity activity){
 
@@ -241,3 +302,4 @@ public class WritePostActivity extends AppCompatActivity {
     }
 
 }
+

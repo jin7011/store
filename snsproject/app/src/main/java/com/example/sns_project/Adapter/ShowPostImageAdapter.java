@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.sns_project.R;
 
@@ -51,7 +50,7 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
     public void onBindViewHolder(@NonNull ShowPostImageHolder holder, int position) { //포지션에 맞게 이미지 셋업
 
         ImageView imageView = holder.imageView;
-        Glide.with(activity).load(formats.get(position)).transform(new FitCenter(),new RoundedCorners(85)).into(imageView);
+        Glide.with(activity).load(formats.get(position)).transform(new RoundedCorners(85)).override(600,650).into(imageView);
         Log.d("포멧리사이클러뷰","성공: "+position);
 
         imageView.setOnClickListener(new View.OnClickListener() {
