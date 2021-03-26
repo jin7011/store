@@ -86,7 +86,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
             String format = postInfo.getFormats().get(0);
             Log.d("P","foramt: "+format);
             holder.imageView.setVisibility(View.VISIBLE);
-            Glide.with(activity).load(format).transform(new CenterCrop(),new RoundedCorners(85)).override(50,50).into(holder.imageView);
+            Glide.with(activity).load(format).transform(new CenterCrop(),new RoundedCorners(50)).into(holder.imageView);
 
         }
 
