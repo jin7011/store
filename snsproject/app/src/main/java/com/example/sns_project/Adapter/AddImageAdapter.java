@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddImageHolder> {
 
-    //    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
     private Activity activity;
     private ArrayList<Uri> UriFormats = new ArrayList<>();
     private LiveData_WritePost liveData_writePost;
@@ -50,7 +49,6 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
     public AddImageHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
 
         ImageView imageView = (ImageView)LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
-//        liveData_writePost = new ViewModelProvider((ViewModelStoreOwner)activity).get(LiveData_WritePost.class);
         AddImageHolder addImageHolder = new AddImageHolder(imageView);
 
         return addImageHolder;
@@ -103,6 +101,11 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
     @Override
     public int getItemCount() {
         return liveData_writePost.get().getValue().size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position;
     }
 }
 

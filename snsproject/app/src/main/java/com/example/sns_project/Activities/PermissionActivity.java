@@ -35,7 +35,6 @@ public class PermissionActivity extends AppCompatActivity {
         } else {
             Activity(MainActivity.class);
         }
-
     }
 
     public void Activity(Class c){

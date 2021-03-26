@@ -49,9 +49,7 @@ public class WritePostActivity extends AppCompatActivity {
     private final int REQ_PICK_IMAGE_VIDEO = 1;
     private FirebaseUser user;
     private FirebaseFirestore db;
-    private int fileNum = 0;
     private PostInfo postInfo;
-//    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
     private ArrayList<Uri> UriFormats = new ArrayList<>();
     private RelativeLayout loaderView;
     private FirebaseStorage storage;
@@ -127,9 +125,7 @@ public class WritePostActivity extends AppCompatActivity {
                 UriFormats.add(uri);
                 model.get().setValue(UriFormats);
             }
-
         }
-
     }
 
     public void Add_and_SetRecyclerView(Activity activity){
@@ -145,7 +141,6 @@ public class WritePostActivity extends AppCompatActivity {
 
     public void UploadStorage(String uid, String nickname, String title, String content) {
         loaderView.setVisibility(View.VISIBLE);
-        fileNum = 0;
 
         DocumentReference locationDoc = db.collection("USER").document(uid);
 
@@ -163,9 +158,10 @@ public class WritePostActivity extends AppCompatActivity {
                         final DocumentReference documentReference = postInfo == null ? db.collection(location).document() : db.collection(location).document(postInfo.getId());
                         final Date date = postInfo == null ? new Date() : postInfo.getCreatedAt();
                         final ArrayList<String> formatList = new ArrayList<>();
+                        UriFormats = model.get().getValue(); //최종적으로 라이브데이터의 리스트를 가져옴
                         postInfo = new PostInfo(uid, nickname, title, content, date);
 
-                        Log.d("imageList"," 갯수: "+UriFormats.size()+"filenum: "+fileNum);
+                        Log.d("imageList"," 갯수: "+UriFormats.size());
                         if(UriFormats.size() !=0) {
                             uploadPosts(UriFormats,documentReference,formatList,postInfo);
 
@@ -181,36 +177,40 @@ public class WritePostActivity extends AppCompatActivity {
 
     private void uploadPosts(final ArrayList<Uri> mediaUris,DocumentReference documentReference,final ArrayList<String> formatList,PostInfo postInfo) {
 
-        Log.d("imageList"," 갯수: "+mediaUris.size()+"filenum: "+fileNum);
+        if(formatList.size() == mediaUris.size())
+            return;
+
+        Log.d("imageList"," 갯수: "+mediaUris.size()+"formatList.size(): "+formatList.size());
 
         InputStream stream = null;
         if(mediaUris.size() != 0 && mediaUris != null)
         try {
-            stream = new FileInputStream(new File(getPathFromUri(mediaUris.get(fileNum))));
+            stream = new FileInputStream(new File(getPathFromUri(mediaUris.get(formatList.size()))));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         else return;
 
         if(stream != null) {
-            String[] pathArray = getPathFromUri(mediaUris.get(fileNum)).split("\\.");
-            final StorageReference fileRef = storageRef.child(location+"/"+ documentReference.getId() + "/" + fileNum + "." + pathArray[pathArray.length - 1]);
-            StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("index", "" + fileNum).build();
+
+            String[] pathArray = getPathFromUri(mediaUris.get(formatList.size())).split("\\.");
+            final StorageReference fileRef = storageRef.child(location+"/"+ documentReference.getId() + "/" + formatList.size() + "." + pathArray[pathArray.length - 1]);
+            StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("index", "" + formatList.size()).build();
             final UploadTask uploadTask = fileRef.putStream(stream, metadata);
 
             uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
+
                     fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                         @Override
                         public void onSuccess(Uri uri) {
                             Log.d("TAG", "URL = " + uri); //url of each file
 
-                            if(fileNum < mediaUris.size()) {
+                            if(formatList.size() < mediaUris.size()) {
                                 formatList.add(uri.toString());
                                 uploadPosts(mediaUris, documentReference, formatList, postInfo); //Recursion
-                                Log.d("포멧올리는 과정", "size: " + formatList.size()+"filenum: "+fileNum+"medi size : "+mediaUris);
-                                fileNum++;
+                                Log.d("포멧올리는 과정", "size: " + formatList.size()+"medi size : "+mediaUris);
                             }
                             if (formatList.size() == mediaUris.size()) {
                                 Log.d("한번만 튀어나오면댐", "제발: " + formatList.size());
@@ -251,7 +251,6 @@ public class WritePostActivity extends AppCompatActivity {
                 });
 
     }
-
 
 //          for (int x = 0; x < imageList.getImageList().size();) {
 //
