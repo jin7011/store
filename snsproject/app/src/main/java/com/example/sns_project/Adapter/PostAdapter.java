@@ -2,6 +2,7 @@ package com.example.sns_project.Adapter;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,6 +63,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(activity, PostActivity.class);
+                Log.d("포스트어댑터","getapaterPosition"+postHolder.getAdapterPosition()+" postList size"+ postList.get(postHolder.getAdapterPosition()).getFormats().size());
                 intent.putExtra("postInfo", postList.get(postHolder.getAdapterPosition()));
                 activity.startActivity(intent);
             }
@@ -77,11 +79,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 
         holder.titleT.setText(postInfo.getTitle());
         holder.contentT.setText(postInfo.getContents());
-        holder.dateT.setText(new SimpleDateFormat("MM/dd", Locale.getDefault()).format(postInfo.getCreatedAt()).toString());
+        holder.dateT.setText(new SimpleDateFormat("MM/dd", Locale.getDefault()).format(postInfo.getCreatedAt()));
+
         if(postInfo.getFormats() != null){
+
             String format = postInfo.getFormats().get(0);
-//            holder.imageView.setVisibility(View.VISIBLE);
-            Glide.with(activity).load(format).transform(new CenterCrop(),new RoundedCorners(85)).override(700,600).thumbnail(0.5f).into(holder.imageView);
+            Log.d("P","foramt: "+format);
+            holder.imageView.setVisibility(View.VISIBLE);
+            Glide.with(activity).load(format).transform(new CenterCrop(),new RoundedCorners(85)).override(50,50).into(holder.imageView);
+
         }
 
     }

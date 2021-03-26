@@ -2,6 +2,7 @@ package com.example.sns_project.Adapter;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,21 +10,29 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.bumptech.glide.request.RequestOptions;
-import com.example.sns_project.Info.ImageList;
 import com.example.sns_project.R;
+import com.example.sns_project.data.LiveData_WritePost;
+
+import java.util.ArrayList;
 
 public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddImageHolder> {
 
-    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
+//    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
     private Activity activity;
+    private ArrayList<Uri> UriFormats = new ArrayList<>();
+    private LiveData_WritePost liveData_writePost;
 
     public AddImageAdapter(Activity activity) {
+        liveData_writePost = new ViewModelProvider((ViewModelStoreOwner)activity).get(LiveData_WritePost.class);
         this.activity = activity;
+        this.UriFormats = liveData_writePost.get().getValue();
     }
 
     //holder
@@ -41,6 +50,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
     public AddImageHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
 
         ImageView imageView = (ImageView)LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
+//        liveData_writePost = new ViewModelProvider((ViewModelStoreOwner)activity).get(LiveData_WritePost.class);
         final AddImageHolder addImageHolder = new AddImageHolder(imageView);
 
         return addImageHolder;
@@ -51,7 +61,8 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
         RequestOptions option_circle = new RequestOptions().circleCrop();
 
         ImageView imageView = holder.imageView;
-        Glide.with(activity).load(imageList.getImageList().get(position)).transform(new FitCenter()).override(500,500).apply(option_circle).into(imageView);
+        UriFormats = liveData_writePost.get().getValue();
+        Glide.with(activity).load(UriFormats.get(position).toString()).transform(new FitCenter()).override(500,500).apply(option_circle).into(imageView);
 
         imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -63,13 +74,12 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
                 builder.setPositiveButton("예",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-//                                imageList.getImageList().remove(addImageHolder.getAdapterPosition());
-//                                notifyItemRemoved(addImageHolder.getAdapterPosition());
-//                                notifyItemRangeChanged(addImageHolder.getAdapterPosition(), imageList.getImageList().size());
 
-                                imageList.getImageList().remove(position); //해당 포지션의 공용데이터리스트를 제거
+                                UriFormats.remove(position); //해당 포지션의 공용데이터리스트를 제거
                                 notifyItemRemoved(position);
-                                notifyItemRangeChanged(position, imageList.getImageList().size());
+                                notifyItemRangeChanged(position, UriFormats.size());
+                                liveData_writePost.get().setValue(UriFormats);
+
                             }
                         });
                 builder.setNegativeButton("아니오",
@@ -87,8 +97,10 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
 
     @Override
     public int getItemCount() {
-        return imageList.getImageList().size();
+        return UriFormats.size();
     }
+
+
 
 
 }

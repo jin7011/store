@@ -46,15 +46,18 @@ dependencies {
 //    compile 'com.google.firebase:firebase-admin:7.1.0'
 //    implementation 'com.google.firebase:firebase-auth:20.0.3' // 파이어베이스 인증
 //    implementation 'com.firebaseui:firebase-ui-auth:4.2.1' // 파이어베이스 인증2
-    implementation 'com.android.volley:volley:1.1.0'
-    implementation 'com.google.code.gson:gson:2.3.1'
+    implementation 'com.android.volley:volley:1.2.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.github.bumptech.glide:glide:4.12.0'
     implementation 'com.google.firebase:firebase-firestore:22.1.1'
     implementation 'com.google.firebase:firebase-storage:19.2.1'
+    implementation 'com.firebaseui:firebase-ui-storage:6.4.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0' // 글라이드 이미지 로딩2
-    testImplementation 'junit:junit:4.+'
+    testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.3.1'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

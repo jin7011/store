@@ -113,19 +113,15 @@ public class PostInfo implements Serializable {
     public void setDocid(String docid) {
         this.docid = docid;
     }
-
     public int getGood() {
         return good;
     }
-
     public void setGood(int good) {
         this.good = good;
     }
-
     public int getComment() {
         return comment;
     }
-
     public void setComment(int comment) {
         this.comment = comment;
     }

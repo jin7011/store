@@ -53,13 +53,6 @@ public class MainActivity extends AppCompatActivity {
         else{
             init();
         }
-//        binding.logout.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-////                mAuth.signOut();
-////                Activity(SignActivity.class);
-//            }
-//        });                                                     //로그아웃버튼
 
         binding.mainToolbar.postBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                     if (document.exists()) { //USER에서 location을 찾는 것은 비동기적이기떄문에 함수화 못했꼬, 그래서 우선적으로 지역을 찾자
 
                         String location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
-                        Log.d("지격탐색",location);
+                        Log.d("지격탐색(main)",location);
 
                         binding.mainToolbar.locationToolbarText.setText(location);
 
@@ -127,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
                                                     cnt++;
                                                 }
                                             }
-                                            Log.d("가져옴", "포멧게시글갯수:"+fcnt+" 걍게시글: "+cnt);
+                                            Log.d("가져옴", "포멧게시글갯수: "+fcnt+"  걍게시글: "+cnt);
                                             Add_and_SetRecyclerView(MainActivity.this,postList);
                                         } else {
                                             Log.d("실패함", "Error getting documents: ", task.getException());
@@ -152,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         binding.postRecycler.setLayoutManager(layoutManager);
 
-        PostAdapter postAdapter = new PostAdapter(activity, this.postList);
+        PostAdapter postAdapter = new PostAdapter(activity, postList);
         binding.postRecycler.setAdapter(postAdapter);
 
     }

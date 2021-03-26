@@ -13,12 +13,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.sns_project.Adapter.AddImageAdapter;
-import com.example.sns_project.Info.ImageList;
 import com.example.sns_project.Info.PostInfo;
 import com.example.sns_project.R;
+import com.example.sns_project.data.LiveData_WritePost;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -49,11 +51,13 @@ public class WritePostActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private int fileNum = 0;
     private PostInfo postInfo;
-    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
+//    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
+    private ArrayList<Uri> UriFormats = new ArrayList<>();
     private RelativeLayout loaderView;
     private  FirebaseStorage storage;
     private StorageReference storageRef;
     private String location;
+    private LiveData_WritePost model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +71,15 @@ public class WritePostActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference();
+
+        //라이브데이터
+        model = new ViewModelProvider(this).get(LiveData_WritePost.class);
+        model.get().observe(this, new Observer<ArrayList<Uri>>() {
+            @Override
+            public void onChanged(ArrayList<Uri> uris) {
+                Add_and_SetRecyclerView(WritePostActivity.this);
+            }
+        });
 
         binding.writeToolbar.backBtn.setOnClickListener(new View.OnClickListener() { //뒤로가기
             @Override
@@ -105,16 +118,20 @@ public class WritePostActivity extends AppCompatActivity {
 
         if (resultCode == RESULT_OK && requestCode == REQ_PICK_IMAGE_VIDEO) {
             Uri uri = data.getData();
-
-            if (uri.toString().contains("image")) { //어쨌든 뭐라도 하나 추가했다면, -> 아이템 등록
-                imageList.add(uri);
-                Add_and_SetRecyclerView(WritePostActivity.this);
-
-            } else if (uri.toString().contains("video")) {
-                imageList.add(uri);
-                Add_and_SetRecyclerView(WritePostActivity.this);
-            }
+            UriFormats.add(uri);
+           model.get().setValue(UriFormats);
         }
+    }
+
+    public void Add_and_SetRecyclerView(Activity activity){
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        binding.ImageRecycler.setLayoutManager(layoutManager);
+
+        AddImageAdapter addImageAdapter = new AddImageAdapter(activity);
+        binding.ImageRecycler.setAdapter(addImageAdapter);
+
     }
 
     public void UploadStorage(String uid, String nickname, String title, String content) {
@@ -139,9 +156,9 @@ public class WritePostActivity extends AppCompatActivity {
                         final ArrayList<String> formatList = new ArrayList<>();
                         postInfo = new PostInfo(uid, nickname, title, content, date);
 
-                        Log.d("imageList"," 갯수: "+imageList.getImageList().size()+"filenum: "+fileNum);
-                        if(imageList.getImageList().size() !=0) {
-                            uploadPosts(imageList.getImageList(),documentReference,formatList,postInfo);
+                        Log.d("imageList"," 갯수: "+UriFormats.size()+"filenum: "+fileNum);
+                        if(UriFormats.size() !=0) {
+                            uploadPosts(UriFormats,documentReference,formatList,postInfo);
 
                         }else{ //파일없이 글만 올리는 경우
                             UploadPost(documentReference, postInfo);
@@ -164,6 +181,7 @@ public class WritePostActivity extends AppCompatActivity {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        else return;
 
         if(stream != null) {
             String[] pathArray = getPathFromUri(mediaUris.get(fileNum)).split("\\.");
@@ -270,22 +288,11 @@ public class WritePostActivity extends AppCompatActivity {
 //        }
 //        }
 
-    public void Add_and_SetRecyclerView(Activity activity){
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        binding.ImageRecycler.setLayoutManager(layoutManager);
-
-        AddImageAdapter addImageAdapter = new AddImageAdapter(activity);
-        binding.ImageRecycler.setAdapter(addImageAdapter);
-
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        imageList.clear();
-    } // 글쓰기 종료시 저장한 사진데이터 모두 클리어.
+        UriFormats.clear();
+    } // 글쓰기 종료시 저장한 사진데이터 모두 클리어. 이따가 뷰모델 사용을 권장
 
     public void Tost(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();

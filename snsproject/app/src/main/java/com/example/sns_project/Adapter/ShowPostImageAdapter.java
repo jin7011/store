@@ -3,7 +3,6 @@ package com.example.sns_project.Adapter;
 import android.app.Activity;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
@@ -11,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.sns_project.R;
 
@@ -41,7 +41,8 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
     public ShowPostImageAdapter.ShowPostImageHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
 
         ImageView imageView = (ImageView) LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
-        final ShowPostImageAdapter.ShowPostImageHolder showPostImageHolder = new ShowPostImageAdapter.ShowPostImageHolder(imageView);
+        ShowPostImageHolder showPostImageHolder = new ShowPostImageHolder(imageView);
+        Log.d("holder","holder: "+showPostImageHolder.getAdapterPosition());
 
         return showPostImageHolder;
     }
@@ -50,15 +51,16 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
     public void onBindViewHolder(@NonNull ShowPostImageHolder holder, int position) { //포지션에 맞게 이미지 셋업
 
         ImageView imageView = holder.imageView;
-        Glide.with(activity).load(formats.get(position)).transform(new RoundedCorners(85)).override(600,650).into(imageView);
-        Log.d("포멧리사이클러뷰","성공: "+position);
+        Glide.with(activity).load(formats.get(position)).transform(new CenterCrop(), new RoundedCorners(85)).override(50,50).into(imageView);
+        Log.d("포멧리사이클러뷰","성공: "+position+ "url: " +formats.get(position));
 
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
 
-            }
-        });
+//        imageView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//
+//            }
+//        });
     }
 
     @Override
