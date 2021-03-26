@@ -104,9 +104,5 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
     public int getItemCount() {
         return liveData_writePost.get().getValue().size();
     }
-
-
-
-
 }
 
