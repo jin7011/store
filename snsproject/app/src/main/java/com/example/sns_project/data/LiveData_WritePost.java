@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class LiveData_WritePost extends ViewModel {
 
-    private MutableLiveData<ArrayList<Uri>> liveData;
+     MutableLiveData<ArrayList<Uri>> liveData;
 
 //    public LiveData_WritePost () { }
 //
@@ -27,6 +27,5 @@ public class LiveData_WritePost extends ViewModel {
         }
         return liveData;
     }
-
 
 }

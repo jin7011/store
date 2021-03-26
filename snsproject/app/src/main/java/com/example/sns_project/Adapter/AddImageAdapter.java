@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddImageHolder> {
 
-//    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
+    //    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
     private Activity activity;
     private ArrayList<Uri> UriFormats = new ArrayList<>();
     private LiveData_WritePost liveData_writePost;
@@ -51,20 +51,25 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
 
         ImageView imageView = (ImageView)LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
 //        liveData_writePost = new ViewModelProvider((ViewModelStoreOwner)activity).get(LiveData_WritePost.class);
-        final AddImageHolder addImageHolder = new AddImageHolder(imageView);
+        AddImageHolder addImageHolder = new AddImageHolder(imageView);
 
         return addImageHolder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull AddImageHolder holder, int position) { //포지션에 맞게 이미지 셋업
+        setPostData(holder, position);
+    }
+
+    private void setPostData(AddImageHolder holder, int position) {
         RequestOptions option_circle = new RequestOptions().circleCrop();
+        Glide.with(activity).load(UriFormats.get(position).toString()).transform(new FitCenter()).override(500,500).apply(option_circle).into(holder.imageView);
+        setClickListenerOnHolder(holder, position);
+    }
 
-        ImageView imageView = holder.imageView;
-        UriFormats = liveData_writePost.get().getValue();
-        Glide.with(activity).load(UriFormats.get(position).toString()).transform(new FitCenter()).override(500,500).apply(option_circle).into(imageView);
+    private void setClickListenerOnHolder(AddImageHolder holder, int position) {
 
-        imageView.setOnLongClickListener(new View.OnLongClickListener() {
+        holder.imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
 
@@ -97,7 +102,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
 
     @Override
     public int getItemCount() {
-        return UriFormats.size();
+        return liveData_writePost.get().getValue().size();
     }
 
 

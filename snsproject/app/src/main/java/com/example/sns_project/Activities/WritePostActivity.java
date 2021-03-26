@@ -54,7 +54,7 @@ public class WritePostActivity extends AppCompatActivity {
 //    private com.example.sns_project.Info.ImageList imageList = ImageList.getimageListInstance();
     private ArrayList<Uri> UriFormats = new ArrayList<>();
     private RelativeLayout loaderView;
-    private  FirebaseStorage storage;
+    private FirebaseStorage storage;
     private StorageReference storageRef;
     private String location;
     private LiveData_WritePost model;
@@ -73,10 +73,11 @@ public class WritePostActivity extends AppCompatActivity {
         storageRef = storage.getReference();
 
         //라이브데이터
-        model = new ViewModelProvider(this).get(LiveData_WritePost.class);
+        model = new ViewModelProvider(WritePostActivity.this).get(LiveData_WritePost.class);
         model.get().observe(this, new Observer<ArrayList<Uri>>() {
             @Override
             public void onChanged(ArrayList<Uri> uris) {
+                Tost(uris.size()+"");
                 Add_and_SetRecyclerView(WritePostActivity.this);
             }
         });
@@ -118,9 +119,17 @@ public class WritePostActivity extends AppCompatActivity {
 
         if (resultCode == RESULT_OK && requestCode == REQ_PICK_IMAGE_VIDEO) {
             Uri uri = data.getData();
-            UriFormats.add(uri);
-           model.get().setValue(UriFormats);
+            if(model.get().getValue() != null) {
+                UriFormats = model.get().getValue();
+                UriFormats.add(uri);
+                model.get().setValue(UriFormats);
+            }else{
+                UriFormats.add(uri);
+                model.get().setValue(UriFormats);
+            }
+
         }
+
     }
 
     public void Add_and_SetRecyclerView(Activity activity){
@@ -287,12 +296,6 @@ public class WritePostActivity extends AppCompatActivity {
 //        e.printStackTrace();
 //        }
 //        }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        UriFormats.clear();
-    } // 글쓰기 종료시 저장한 사진데이터 모두 클리어. 이따가 뷰모델 사용을 권장
 
     public void Tost(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
