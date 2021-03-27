@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
                                                 if(document.getData().get("formats") != null) {
                                                     postList.add(new PostInfo(
-                                                                    user.getUid(),
+                                                                    document.get("id").toString(),
                                                                     document.get("publisher").toString(),
                                                                     document.get("title").toString(),
                                                                     document.get("contents").toString(),
@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
                                                 }
                                                 else{
                                                     postList.add(new PostInfo(
-                                                                    user.getUid(),
+                                                                    document.get("id").toString(),
                                                                     document.get("publisher").toString(),
                                                                     document.get("title").toString(),
                                                                     document.get("contents").toString(),

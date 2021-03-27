@@ -63,7 +63,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(activity, PostActivity.class);
-                Log.d("포스트어댑터","getapaterPosition"+postHolder.getAdapterPosition()+" postList size"+ postList.get(postHolder.getAdapterPosition()).getFormats().size());
+                Log.d("포스트어댑터","uid: "+postList.get(postHolder.getAdapterPosition()).getId());
                 intent.putExtra("postInfo", postList.get(postHolder.getAdapterPosition()));
                 activity.startActivity(intent);
             }

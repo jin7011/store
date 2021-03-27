@@ -155,7 +155,7 @@ public class SignActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.toString(),
+                            myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.getText().toString(),
                                     binding.phoneNum.getText().toString(),BUSINESSNUMBER);
                             db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge());
                             Log.d("updateUserProfile", "User profile updated.");

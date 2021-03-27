@@ -17,9 +17,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.sns_project.Adapter.ShowPostImageAdapter;
-import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityPostBinding;
+import com.example.sns_project.info.PostInfo;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -60,7 +60,6 @@ public class PostActivity extends AppCompatActivity {
         postInfo = (PostInfo) getIntent().getSerializableExtra("postInfo");
         setPost(postInfo);
         setToolbar();
-
     }
 
     public void setToolbar(){
@@ -94,8 +93,7 @@ public class PostActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.delete:
-                int delcnt = 0;
-                PostDelete(delcnt);
+                PostDelete(0);
                 break;
             case R.id.scrap:
                 break;
