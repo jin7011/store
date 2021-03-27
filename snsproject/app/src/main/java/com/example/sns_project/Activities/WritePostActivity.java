@@ -18,7 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.sns_project.Adapter.AddImageAdapter;
-import com.example.sns_project.Info.PostInfo;
+import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_WritePost;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
@@ -55,7 +55,7 @@ public class WritePostActivity extends AppCompatActivity {
     private FirebaseStorage storage;
     private StorageReference storageRef;
     private String location;
-    private LiveData_WritePost model;
+    private LiveData_WritePost Postmodel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +71,8 @@ public class WritePostActivity extends AppCompatActivity {
         storageRef = storage.getReference();
 
         //라이브데이터
-        model = new ViewModelProvider(WritePostActivity.this).get(LiveData_WritePost.class);
-        model.get().observe(this, new Observer<ArrayList<Uri>>() {
+        Postmodel = new ViewModelProvider(WritePostActivity.this).get(LiveData_WritePost.class);
+        Postmodel.get().observe(this, new Observer<ArrayList<Uri>>() {
             @Override
             public void onChanged(ArrayList<Uri> uris) {
                 Toast(uris.size()+"");
@@ -117,13 +117,13 @@ public class WritePostActivity extends AppCompatActivity {
 
         if (resultCode == RESULT_OK && requestCode == REQ_PICK_IMAGE_VIDEO) {
             Uri uri = data.getData();
-            if(model.get().getValue() != null) {
-                UriFormats = model.get().getValue();
+            if(Postmodel.get().getValue() != null) {
+                UriFormats = Postmodel.get().getValue();
                 UriFormats.add(uri);
-                model.get().setValue(UriFormats);
+                Postmodel.get().setValue(UriFormats);
             }else{
                 UriFormats.add(uri);
-                model.get().setValue(UriFormats);
+                Postmodel.get().setValue(UriFormats);
             }
         }
     }
@@ -159,11 +159,11 @@ public class WritePostActivity extends AppCompatActivity {
                         final Date date = postInfo == null ? new Date() : postInfo.getCreatedAt();
                         final ArrayList<String> formatList = new ArrayList<>();
                         final ArrayList<String> storagePath = new ArrayList<>();
-                        UriFormats = model.get().getValue(); //최종적으로 라이브데이터의 리스트를 가져옴
+                        UriFormats = Postmodel.get().getValue(); //최종적으로 라이브데이터의 리스트를 가져옴
                         postInfo = new PostInfo(uid, nickname, title, content,date,documentReference.getId(),location);
 
-                        Log.d("imageList"," 갯수: "+UriFormats.size());
-                        if(UriFormats.size() !=0) {
+                        if(UriFormats != null) {
+                            Log.d("imageList"," 갯수: "+UriFormats.size());
                             uploadPosts(UriFormats,documentReference,formatList,storagePath,postInfo);
 
                         }else{ //파일없이 글만 올리는 경우

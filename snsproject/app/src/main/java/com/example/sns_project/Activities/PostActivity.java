@@ -17,7 +17,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.sns_project.Adapter.ShowPostImageAdapter;
-import com.example.sns_project.Info.PostInfo;
+import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityPostBinding;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -59,14 +59,17 @@ public class PostActivity extends AppCompatActivity {
 
         postInfo = (PostInfo) getIntent().getSerializableExtra("postInfo");
         setPost(postInfo);
+        setToolbar();
 
-        toolbar = findViewById(R.id.toolbar);
+    }
+
+    public void setToolbar(){
+        toolbar = findViewById(R.id.toolbar_post);
         setSupportActionBar(toolbar);
         actionBar = getSupportActionBar();
         actionBar.setDisplayShowCustomEnabled(true);
         actionBar.setDisplayShowTitleEnabled(false);//기본 제목을 없애줍니다.
         actionBar.setDisplayHomeAsUpEnabled(true);
-
     }
 
     @Override

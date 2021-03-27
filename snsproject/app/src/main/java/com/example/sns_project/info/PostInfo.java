@@ -1,4 +1,4 @@
-package com.example.sns_project.Info;
+package com.example.sns_project.info;
 
 import java.io.Serializable;
 import java.util.ArrayList;

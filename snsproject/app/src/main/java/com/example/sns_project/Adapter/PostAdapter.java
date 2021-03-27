@@ -16,7 +16,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.sns_project.Activities.PostActivity;
-import com.example.sns_project.Info.PostInfo;
+import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.R;
 
 import java.text.SimpleDateFormat;

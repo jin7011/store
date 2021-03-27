@@ -20,9 +20,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.sns_project.Info.UserProfile;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivitySignUpBinding;
+import com.example.sns_project.info.MyAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -35,20 +35,17 @@ import com.google.firebase.firestore.SetOptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class SignActivity extends AppCompatActivity {
     private String BUSINESSNUMBER = "";
     final String[] ANSWER = new String[1];
     private boolean businessNumCheck;
     private long backKeyPressedTime = 0;
     private FirebaseAuth mAuth;
-    private UserProfile userProfile = new UserProfile();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String location;
     private ActivitySignUpBinding binding;
     private RelativeLayout loader;
+    private MyAccount myAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +73,7 @@ public class SignActivity extends AppCompatActivity {
                     if (ANSWER[0] != null) {
                         if (BN_CheckString(ANSWER[0])) {
                             businessNumCheck = true;
+                            binding.businessNum.setFocusableInTouchMode(false);
                             BUSINESSNUMBER = businessNum;
                         }
                     }
@@ -135,11 +133,8 @@ public class SignActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            Tost("가입되었습니다!");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            BusinessNumberUpdate(user);
-                            MainActivity();
-                            loader.setVisibility(View.GONE);
+                            updateUserProfile(user,binding.nickname.getText().toString());
                         } else {
                            Tost("이메일형식이 아니거나 이미 가입된 이메일입니다.");
                             loader.setVisibility(View.GONE);
@@ -149,18 +144,26 @@ public class SignActivity extends AppCompatActivity {
                 });
     }
 
-    public void BusinessNumberUpdate(FirebaseUser user){
+    public void updateUserProfile(FirebaseUser user,String nickname){
 
-        updateUserProfile(user,binding.nickname.getText().toString());
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName(nickname)
+                .build();
 
-        Map<String, Object> data = new HashMap<>();
-        data.put(userProfile.ID, user.getUid());
-        data.put(userProfile.location, location);
-        data.put(userProfile.phone, binding.phoneNum.getText().toString());
-        data.put(userProfile.store, binding.storeName.getText().toString());
-        data.put(userProfile.BusinessNumber, BUSINESSNUMBER);
-        db.collection(userProfile.USER).document(user.getUid()).set(data, SetOptions.merge());
-
+        user.updateProfile(profileUpdates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.toString(),
+                                    binding.phoneNum.getText().toString(),BUSINESSNUMBER);
+                            db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge());
+                            Log.d("updateUserProfile", "User profile updated.");
+                            loader.setVisibility(View.GONE);
+                            MainActivity(myAccount);
+                        }
+                    }
+                });
     }
 
     public boolean inputcheck(String m, String p, String pc, String nickname, String phone, String store,String location){
@@ -270,23 +273,6 @@ public class SignActivity extends AppCompatActivity {
 
     }
 
-    public void updateUserProfile(FirebaseUser user,String str){
-
-        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                .setDisplayName(str)
-                .build();
-
-        user.updateProfile(profileUpdates)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Log.d("updateUserProfile", "User profile updated.");
-                        }
-                    }
-                });
-    }
-
     public void Tost(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
     }
@@ -296,11 +282,13 @@ public class SignActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void MainActivity(){
+    public void MainActivity(MyAccount myAccount){
         Intent intent = new Intent(this,MainActivity.class);
+        intent.putExtra("myAccount",myAccount);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
+        startActivityForResult(intent,101);
     }
+
 
     @Override
     public void onBackPressed() {

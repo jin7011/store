@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<!--    <item-->
+<!--        android:id="@+id/toolbar_main_location"-->
+<!--        android:title="포스트지역"-->
+<!--        app:showAsAction="ifRoom">-->
+<!--    </item>-->
+    <item
+        android:id="@+id/toolbar_main_write_post_btn"
+        android:title="글쓰기버튼"
+        android:icon="@drawable/ic_write_btn"
+        app:showAsAction="ifRoom">
+    </item>
+</menu>
