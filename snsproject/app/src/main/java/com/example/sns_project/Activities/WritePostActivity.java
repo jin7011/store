@@ -75,7 +75,7 @@ public class WritePostActivity extends AppCompatActivity {
         model.get().observe(this, new Observer<ArrayList<Uri>>() {
             @Override
             public void onChanged(ArrayList<Uri> uris) {
-                Tost(uris.size()+"");
+                Toast(uris.size()+"");
                 Add_and_SetRecyclerView(WritePostActivity.this);
             }
         });
@@ -96,7 +96,7 @@ public class WritePostActivity extends AppCompatActivity {
                 if(title.length() >= 2 && content.length() >= 2){
                     UploadStorage(user.getUid(),user.getDisplayName(),title,content);
                 }else{
-                 Tost("제목 및 내용을 2글자 이상 입력해주세요.");
+                 Toast("제목 및 내용을 2글자 이상 입력해주세요.");
                 }
             }
         });
@@ -158,12 +158,13 @@ public class WritePostActivity extends AppCompatActivity {
                         final DocumentReference documentReference = postInfo == null ? db.collection(location).document() : db.collection(location).document(postInfo.getId());
                         final Date date = postInfo == null ? new Date() : postInfo.getCreatedAt();
                         final ArrayList<String> formatList = new ArrayList<>();
+                        final ArrayList<String> storagePath = new ArrayList<>();
                         UriFormats = model.get().getValue(); //최종적으로 라이브데이터의 리스트를 가져옴
-                        postInfo = new PostInfo(uid, nickname, title, content, date);
+                        postInfo = new PostInfo(uid, nickname, title, content,date,documentReference.getId(),location);
 
                         Log.d("imageList"," 갯수: "+UriFormats.size());
                         if(UriFormats.size() !=0) {
-                            uploadPosts(UriFormats,documentReference,formatList,postInfo);
+                            uploadPosts(UriFormats,documentReference,formatList,storagePath,postInfo);
 
                         }else{ //파일없이 글만 올리는 경우
                             UploadPost(documentReference, postInfo);
@@ -175,7 +176,7 @@ public class WritePostActivity extends AppCompatActivity {
         });
     }
 
-    private void uploadPosts(final ArrayList<Uri> mediaUris,DocumentReference documentReference,final ArrayList<String> formatList,PostInfo postInfo) {
+    private void uploadPosts(final ArrayList<Uri> mediaUris, DocumentReference documentReference, final ArrayList<String> formatList, ArrayList<String> storagePath, PostInfo postInfo) {
 
         if(formatList.size() == mediaUris.size())
             return;
@@ -194,7 +195,8 @@ public class WritePostActivity extends AppCompatActivity {
         if(stream != null) {
 
             String[] pathArray = getPathFromUri(mediaUris.get(formatList.size())).split("\\.");
-            final StorageReference fileRef = storageRef.child(location+"/"+ documentReference.getId() + "/" + formatList.size() + "." + pathArray[pathArray.length - 1]);
+            String storagepath = location+"/"+ documentReference.getId() + "/" + formatList.size() + "." + pathArray[pathArray.length - 1];
+            final StorageReference fileRef = storageRef.child(storagepath);
             StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("index", "" + formatList.size()).build();
             final UploadTask uploadTask = fileRef.putStream(stream, metadata);
 
@@ -208,13 +210,15 @@ public class WritePostActivity extends AppCompatActivity {
                             Log.d("TAG", "URL = " + uri); //url of each file
 
                             if(formatList.size() < mediaUris.size()) {
-                                formatList.add(uri.toString());
-                                uploadPosts(mediaUris, documentReference, formatList, postInfo); //Recursion
+                                formatList.add(uri.toString()); //다운로드를 위한 uri
+                                storagePath.add(storagepath); //이후에 storage 수정과 삭제를 위한 storage경로
+                                uploadPosts(mediaUris, documentReference, formatList, storagePath, postInfo); //Recursion
                                 Log.d("포멧올리는 과정", "size: " + formatList.size()+"medi size : "+mediaUris);
                             }
                             if (formatList.size() == mediaUris.size()) {
                                 Log.d("한번만 튀어나오면댐", "제발: " + formatList.size());
                                 postInfo.setFormats(formatList);
+                                postInfo.setStoragePath(storagePath);
                                 UploadPost(documentReference, postInfo);
                                 return;
                             }
@@ -236,7 +240,7 @@ public class WritePostActivity extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Tost("성공적으로 게시되었습니다.");
+                        Toast("성공적으로 게시되었습니다.");
                         loaderView.setVisibility(View.GONE);
                         finish();
                     }
@@ -244,14 +248,13 @@ public class WritePostActivity extends AppCompatActivity {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Tost("업로드에 실패하였습니다.");
+                        Toast("업로드에 실패하였습니다.");
                         loaderView.setVisibility(View.GONE);
                         finish();
                     }
                 });
 
     }
-
 //          for (int x = 0; x < imageList.getImageList().size();) {
 //
 //        fileNum=x; //0부터 시작 (파일 0개, 1개 ...)  // try문 밖에서 사용함으로써 안정적으로 숫자를 카운트가능 (이전에 try안에 넣어서 오류났었음)
@@ -286,7 +289,7 @@ public class WritePostActivity extends AppCompatActivity {
 //        }).addOnFailureListener(new OnFailureListener() {
 //@Override
 //public void onFailure(@NonNull Exception exception) {
-//        Tost("어라..? 망;");
+//        Toast("어라..? 망;");
 //        loaderView.setVisibility(View.GONE);
 //        }
 //        });
@@ -296,7 +299,7 @@ public class WritePostActivity extends AppCompatActivity {
 //        }
 //        }
 
-    public void Tost(String str){
+    public void Toast(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
     }
 

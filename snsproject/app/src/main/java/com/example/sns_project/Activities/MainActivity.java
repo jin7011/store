@@ -101,7 +101,8 @@ public class MainActivity extends AppCompatActivity {
                                                                     (ArrayList<String>) document.getData().get("formats"),
                                                                     new Date(document.getDate("createdAt").getTime()),
                                                                     document.getId(),
-                                                                    0, 0
+                                                                    0, 0, location,
+                                                                    (ArrayList<String>) document.getData().get("storagepath")
                                                             )
                                                     );
                                                     fcnt++;
@@ -114,12 +115,13 @@ public class MainActivity extends AppCompatActivity {
                                                                     document.get("contents").toString(),
                                                                     new Date(document.getDate("createdAt").getTime()),
                                                                     document.getId(),
-                                                                    0,0
+                                                                    0,0, location
                                                             )
                                                     );
                                                     cnt++;
                                                 }
                                             }
+
                                             Log.d("가져옴", "포멧게시글갯수: "+fcnt+"  걍게시글: "+cnt);
                                             Add_and_SetRecyclerView(MainActivity.this,postList);
                                         } else {
@@ -132,12 +134,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        init();
-//    }
 
     public void Add_and_SetRecyclerView(Activity activity, ArrayList<PostInfo> postList){
 

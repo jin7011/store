@@ -7,10 +7,23 @@
     android:orientation="vertical"
     tools:context=".Activities.PostActivity">
 
-    <include
-        layout="@layout/toolbar_post"
+    <androidx.appcompat.widget.Toolbar
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="50dp" />
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="글 내용"
+            android:textSize="20dp"
+            android:textStyle="bold">
+
+        </TextView>
+    </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
         android:layout_width="match_parent"
