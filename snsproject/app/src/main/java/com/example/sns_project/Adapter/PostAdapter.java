@@ -1,5 +1,6 @@
 package com.example.sns_project.Adapter;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
@@ -39,6 +40,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         TextView titleT ;
         TextView contentT ;
         TextView dateT ;
+        TextView goodNum;
+        TextView commentNum;
         ImageView imageView;
 
         public PostHolder(@NonNull View itemView) {
@@ -47,6 +50,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
             titleT = itemView.findViewById(R.id.titleT);
             contentT = itemView.findViewById(R.id.contentT);
             dateT = itemView.findViewById(R.id.dateT);
+            goodNum = itemView.findViewById(R.id.goodNum_postItem);
+            commentNum = itemView.findViewById(R.id.commentNum_postItem);
             imageView = itemView.findViewById(R.id.postImage);
 
         }
@@ -72,6 +77,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         return postHolder;
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull PostAdapter.PostHolder holder, int position) { //포지션에 맞게 이미지 셋업
 
@@ -80,6 +86,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         holder.titleT.setText(postInfo.getTitle());
         holder.contentT.setText(postInfo.getContents());
         holder.dateT.setText(new SimpleDateFormat("MM/dd", Locale.getDefault()).format(postInfo.getCreatedAt()));
+        holder.goodNum.setText(postInfo.getGood()+"");
+        holder.commentNum.setText(postInfo.getComment()+"");
 
         if(postInfo.getFormats() != null){
 

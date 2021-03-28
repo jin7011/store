@@ -20,16 +20,21 @@ import com.example.sns_project.Adapter.ShowPostImageAdapter;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityPostBinding;
 import com.example.sns_project.info.PostInfo;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 
 //이 곳에서 작성한 글과 파일을 볼 수 있으며 댓글과 좋아요 버튼을 누를 수 있다.
@@ -58,7 +63,7 @@ public class PostActivity extends AppCompatActivity {
         storageRef = storage.getReference();
 
         postInfo = (PostInfo) getIntent().getSerializableExtra("postInfo");
-        setPost(postInfo);
+        setPost();
         setToolbar();
     }
 
@@ -108,7 +113,8 @@ public class PostActivity extends AppCompatActivity {
     }
 
 
-    private void setPost(PostInfo postInfo) {
+    @SuppressLint("SetTextI18n")
+    private void setPost() {
 
         binding.nicknamePostT.setText(postInfo.getPublisher());
         binding.datePostT.setText(new SimpleDateFormat("yyyy/MM/dd hh:mm", Locale.getDefault()).format(postInfo.getCreatedAt()).toString());
@@ -123,6 +129,45 @@ public class PostActivity extends AppCompatActivity {
             Add_and_SetRecyclerView(PostActivity.this,postInfo.getFormats());
         }
 
+    }
+    public void good_up_btn(View view){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
+
+       //postinfo로 해당게시물에 좋아요를 누른 사람 id를 저장해주고,
+        //좋아요 누른 사람이 중복으로 누르지않게 id를 찾아서 있으면 아닌거고 없으면 좋아요+1
+        //좋아요가 0인 게시물은 유저데이터가 null이므로 데이터를 셋해준다.
+        //따라서 null아니면 찾고 null이면 그대로 추가.
+        if(postInfo.getId().equals(user.getUid())){
+            Toast("자신의 게시물에는 좋아요를 누를 수 없습니다.");
+            return;
+        }
+
+        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+
+        docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        HashMap<String,Integer> good_users = (HashMap<String,Integer>) document.getData().get("good_user");
+                        if(good_users.containsKey(user.getUid())) //중복으로 누른다면
+                        {
+                            Toast("이미 눌렀어요!");
+                        }else{ //처음 누른다면
+                            good_users.put(user.getUid(),1);
+                            docref.update("good_user",good_users).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    docref.update("good",good_users.size());
+                                    Toast("좋아요!");
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+        });
     }
 
     public void Add_and_SetRecyclerView(Activity activity, ArrayList<String> formats){
@@ -173,6 +218,7 @@ public class PostActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast("삭제되었습니다.");
+                        finish();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {

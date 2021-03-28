@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         liveDataMyDataMainModel.get().observe(this, new Observer<MyAccount>() {
             @Override
             public void onChanged(MyAccount myAccount) {
-                binding.setMyAccount(myAccount);
+                binding.setMyAccount(myAccount); //툴바에 해당 지역을 나타내는 textview를 데이터바인딩 하였음.
             }
         });
 
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void RecyclerInit() {
+    private void RecyclerInit() {//저장된 db에서 내용을 뽑아오는 로직
 
         DocumentReference locationDoc = db.collection("USER").document(user.getUid());
 
@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                                                                     (ArrayList<String>) document.getData().get("formats"),
                                                                     new Date(document.getDate("createdAt").getTime()),
                                                                     document.getId(),
-                                                                    0, 0, location,
+                                                            Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
                                                                     (ArrayList<String>) document.getData().get("storagepath")
                                                             )
                                                     );
@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                                                                     document.get("contents").toString(),
                                                                     new Date(document.getDate("createdAt").getTime()),
                                                                     document.getId(),
-                                                                    0,0, location
+                                                            Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location
                                                             )
                                                     );
                                                     cnt++;

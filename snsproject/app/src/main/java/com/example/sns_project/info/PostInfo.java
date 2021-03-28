@@ -17,8 +17,10 @@ public class PostInfo implements Serializable {
     private String location;
     private String id;
     private String docid;
-    private int good;
-    private int comment;
+    private int good; //어차피 자동으로 0이므로 post에서는 생성자에서 쓰이지 않았음
+    private int comment; //어차피 자동으로 0이므로 post에서는 생성자에서 쓰이지 않았음
+    private HashMap<String,Integer> good_user = new HashMap<String,Integer>(); //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
+    private ArrayList<CommentInfo> comments= new ArrayList<>();  //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
 
     public PostInfo(String id, String publisher, String title, String contents, ArrayList<String> formats, Date createdAt,String location ){ //글쓰기에서 쓰임(파일포함)
         this.title = title;
@@ -82,6 +84,8 @@ public class PostInfo implements Serializable {
         docData.put("good",good);
         docData.put("comment",comment);
         docData.put("storagepath",storagePath);
+        docData.put("good_user",good_user);
+        docData.put("comments",comments);
         return  docData;
     }
 
@@ -141,5 +145,16 @@ public class PostInfo implements Serializable {
     public String getLocation() {return location;}
     public void setLocation(String location) { this.location = location; }
     public void setComment(int comment) {this.comment = comment; }
-
+    public HashMap<String, Integer> getGood_user() {
+        return good_user;
+    }
+    public void setGood_user(HashMap<String, Integer> good_user) {
+        this.good_user = good_user;
+    }
+    public ArrayList<CommentInfo> getComments() {
+        return comments;
+    }
+    public void setComments(ArrayList<CommentInfo> comments) {
+        this.comments = comments;
+    }
 }
