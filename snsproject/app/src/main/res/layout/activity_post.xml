@@ -90,7 +90,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_weight="1"
-                            android:background="@drawable/aaaa"
+                            android:background="@drawable/ic_good"
                             android:text="Button" />
 
                         <TextView

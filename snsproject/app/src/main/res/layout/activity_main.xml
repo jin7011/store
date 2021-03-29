@@ -11,8 +11,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".Activities.MainActivity">
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:id="@+id/TopLayout"
@@ -20,13 +19,10 @@
             android:layout_height="wrap_content"
             android:baselineAligned="false"
             android:orientation="vertical"
-            app:layout_constrainedHeight="true"
-            app:layout_constrainedWidth="true"
-            app:layout_constraintBottom_toTopOf="@+id/cardView"
+            app:layout_constraintBottom_toTopOf="@id/fragment_frame"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_min="wrap"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" >
+            app:layout_constraintTop_toTopOf="parent">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar_main"
@@ -38,8 +34,9 @@
                     android:id="@+id/toolbar_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{MyAccount.location}"
                     android:layout_gravity="center"
+                    android:text="@{MyAccount.location}"
+                    android:textColor="@color/black"
                     android:textSize="20dp"
                     android:textStyle="bold">
 
@@ -47,29 +44,30 @@
             </androidx.appcompat.widget.Toolbar>
         </LinearLayout>
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardView"
+        <FrameLayout
+            android:id="@+id/fragment_frame"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="10dp"
             app:cardCornerRadius="0dp"
             app:cardElevation="0dp"
             app:cardMaxElevation="0dp"
-            app:layout_constrainedHeight="true"
             app:layout_constrainedWidth="true"
+            app:layout_constrainedHeight="true"
+            app:layout_constraintBottom_toTopOf="@id/bottom_nav"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/TopLayout" />
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_nav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/TopLayout">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/postRecycler"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            </androidx.recyclerview.widget.RecyclerView>
-
-        </androidx.cardview.widget.CardView>
+            app:layout_constraintTop_toBottomOf="@id/fragment_frame"
+            app:labelVisibilityMode="unlabeled"
+            app:menu="@menu/bottom_nav" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

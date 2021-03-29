@@ -11,7 +11,7 @@ public class CommentInfo implements Serializable {
     private Date createdAt;
     private String id;
     private int good;
-    private ArrayList<CommentInfo> comments;
+    private ArrayList<CommentInfo> comments = new ArrayList<>();
 
     public CommentInfo(String contents, String publisher, Date createdAt, String id, int good, ArrayList<CommentInfo> comments) {
         this.contents = contents;

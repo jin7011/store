@@ -73,7 +73,7 @@ public class SignActivity extends AppCompatActivity {
                     if (ANSWER[0] != null) {
                         if (BN_CheckString(ANSWER[0])) {
                             businessNumCheck = true;
-                            binding.businessNum.setFocusableInTouchMode(false);
+                            binding.businessNum.setEnabled(false);
                             BUSINESSNUMBER = businessNum;
                         }
                     }
