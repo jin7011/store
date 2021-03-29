@@ -17,12 +17,13 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.sns_project.Activities.PostActivity;
-import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.R;
+import com.example.sns_project.info.PostInfo;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.Date;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 
@@ -85,7 +86,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 
         holder.titleT.setText(postInfo.getTitle());
         holder.contentT.setText(postInfo.getContents());
-        holder.dateT.setText(new SimpleDateFormat("MM/dd", Locale.getDefault()).format(postInfo.getCreatedAt()));
+//        holder.dateT.setText(new SimpleDateFormat("MM/dd", Locale.getDefault()).format(postInfo.getCreatedAt()));
+        holder.dateT.setText(formatTimeString(postInfo.getCreatedAt()));
         holder.goodNum.setText(postInfo.getGood()+"");
         holder.commentNum.setText(postInfo.getComment()+"");
 
@@ -108,6 +110,56 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
     @Override
     public int getItemViewType(int position) {
         return position;
+    }
+
+    public void clear(){
+        postList.clear();
+    }
+
+    private static class TIME_MAXIMUM{
+        public static final int SEC = 60;
+        public static final int MIN = 60;
+        public static final int HOUR = 24;
+        public static final int DAY = 30;
+        public static final int MONTH = 12;
+    }
+
+    public static String formatTimeString(Date date){
+        SimpleDateFormat compare = new SimpleDateFormat("yyyy년MM월dd일 HH시mm분");
+        String str = compare.format(date);
+        Date regTime = null;
+        try {
+            regTime = compare.parse(str);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        long curTime = System.currentTimeMillis();
+        String str2 = compare.format(curTime);
+        Date ctime = null;
+
+        try { //아무래도 이런 파싱부분을 없애주는게 더 깔끔하게 작동할것같으니까 내일 좀더 알아보자
+            ctime = compare.parse(str2);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        long diffTime = (ctime.getTime() - regTime.getTime()) / 1000;
+        String msg = null;
+
+        if (diffTime < TIME_MAXIMUM.SEC) {
+            msg = "방금 전";
+        } else if ((diffTime /= TIME_MAXIMUM.SEC) < TIME_MAXIMUM.MIN) {
+            msg = diffTime + "분 전";
+        } else if ((diffTime /= TIME_MAXIMUM.MIN) < TIME_MAXIMUM.HOUR) {
+            msg = new SimpleDateFormat("HH:mm").format(date);
+//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
+//            msg = new SimpleDateFormat("HH:mm").format(date);
+//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
+//            msg = (diffTime) + "달 전";
+        } else {
+            msg = new SimpleDateFormat("MM월dd일").format(date);
+        }
+        return msg;
     }
 
 }

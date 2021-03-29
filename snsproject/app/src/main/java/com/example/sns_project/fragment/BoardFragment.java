@@ -11,12 +11,14 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.R;
 import com.example.sns_project.info.PostInfo;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,9 +34,11 @@ public class BoardFragment extends Fragment {
     private FirebaseAuth mAuth;
     private FirebaseUser user;
     private FirebaseFirestore db;
-    private ArrayList<PostInfo> postList;
+    private ArrayList<PostInfo> postList = new ArrayList<>();
     private  RecyclerView recyclerView;
     private String location;
+    private PostAdapter postAdapter;
+    private SwipeRefreshLayout swipe;
 
     public BoardFragment() {}
 
@@ -44,12 +48,12 @@ public class BoardFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_board, container, false);
-
+        swipe = view.findViewById(R.id.swipe);
         RecyclerInit(getActivity(),view);
+        RecyclerView_ScrollListener();
 
         return view;
     }
@@ -64,65 +68,93 @@ public class BoardFragment extends Fragment {
 
         location = bundle.getString("location");
 
+        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(layoutManager);
+
+        postAdapter = new PostAdapter(activity, postList);
+        recyclerView.setAdapter(postAdapter);
+
+        postUpdate();
+
+    }
+
+    public void RecyclerView_ScrollListener(){
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if(!recyclerView.canScrollVertically(1)) { //끝에 도달하면 추가
+                    postUpdate();
+                }
+            }
+        });
+
+        swipe.setColorSchemeResources(
+                R.color.purple_500
+        );
+
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                recyclerView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        postAdapter.clear();
+                        postList.clear();
+                        removeScrollPullUpListener();
+                        postUpdate();
+                        Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
+                        swipe.setRefreshing(false);
+                    }
+                },1000);
+            }
+        });
+    }
+
+    public void postUpdate(){
+
+        Date date = postList.size() == 0 ? new Date() : postList.get(postList.size() - 1).getCreatedAt();
+
         db.collection(location)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt",date)
+                .limit(20)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            int fcnt = 0;
-                            int cnt = 0;
-                            postList = new ArrayList<>();
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d("가져옴", document.getId() + " => " + document.getData());
-
-                                if(document.getData().get("formats") != null) {
-                                    postList.add(new PostInfo(
-                                                    document.get("id").toString(),
-                                                    document.get("publisher").toString(),
-                                                    document.get("title").toString(),
-                                                    document.get("contents").toString(),
-                                                    (ArrayList<String>) document.getData().get("formats"),
-                                                    new Date(document.getDate("createdAt").getTime()),
-                                                    document.getId(),
-                                                    Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                    (ArrayList<String>) document.getData().get("storagepath")
-                                            )
-                                    );
-                                    fcnt++;
-                                }
-                                else{
-                                    postList.add(new PostInfo(
-                                                    document.get("id").toString(),
-                                                    document.get("publisher").toString(),
-                                                    document.get("title").toString(),
-                                                    document.get("contents").toString(),
-                                                    new Date(document.getDate("createdAt").getTime()),
-                                                    document.getId(),
-                                                    Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location
-                                            )
-                                    );
-                                    cnt++;
-                                }
+                                postList.add(new PostInfo(
+                                                document.get("id").toString(),
+                                                document.get("publisher").toString(),
+                                                document.get("title").toString(),
+                                                document.get("contents").toString(),
+                                                (ArrayList<String>) document.getData().get("formats"),
+                                                new Date(document.getDate("createdAt").getTime()),
+                                                document.getId(),
+                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
+                                                (ArrayList<String>) document.getData().get("storagepath")
+                                        )
+                                );
                             }
-
-                            Log.d("가져옴", "포멧게시글갯수: "+fcnt+"  걍게시글: "+cnt);
-                            Add_and_SetRecyclerView(activity,postList);
+                            postAdapter.notifyDataSetChanged();
                         } else {
                             Log.d("실패함", "Error getting documents: ", task.getException());
                         }
                     }
                 });
+
     }
 
-    public void Add_and_SetRecyclerView(Activity activity, ArrayList<PostInfo> postList){
-        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(layoutManager);
-
-        PostAdapter postAdapter = new PostAdapter(activity, postList);
-        recyclerView.setAdapter(postAdapter);
+    private void removeScrollPullUpListener(){
+        recyclerView.removeOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            }
+        });
     }
 
 }

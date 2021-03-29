@@ -73,7 +73,7 @@ public class SignActivity extends AppCompatActivity {
                     if (ANSWER[0] != null) {
                         if (BN_CheckString(ANSWER[0])) {
                             businessNumCheck = true;
-                            binding.businessNum.setEnabled(false);
+                            binding.businessNum.setEnabled(false); //사업자번호가 제대로 등록됬다면 수정불가능하게 만듬.
                             BUSINESSNUMBER = businessNum;
                         }
                     }
