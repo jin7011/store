@@ -20,7 +20,6 @@ import com.example.sns_project.Activities.PostActivity;
 import com.example.sns_project.R;
 import com.example.sns_project.info.PostInfo;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -125,25 +124,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
     }
 
     public static String formatTimeString(Date date){
-        SimpleDateFormat compare = new SimpleDateFormat("yyyy년MM월dd일 HH시mm분");
-        String str = compare.format(date);
-        Date regTime = null;
-        try {
-            regTime = compare.parse(str);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        long curTime = System.currentTimeMillis();
-        String str2 = compare.format(curTime);
-        Date ctime = null;
 
-        try { //아무래도 이런 파싱부분을 없애주는게 더 깔끔하게 작동할것같으니까 내일 좀더 알아보자
-            ctime = compare.parse(str2);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        long ctime = System.currentTimeMillis();
+        long regTime = date.getTime();
 
-        long diffTime = (ctime.getTime() - regTime.getTime()) / 1000;
+        long diffTime = (ctime - regTime) / 1000;
         String msg = null;
 
         if (diffTime < TIME_MAXIMUM.SEC) {
@@ -153,7 +138,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         } else if ((diffTime /= TIME_MAXIMUM.MIN) < TIME_MAXIMUM.HOUR) {
             msg = new SimpleDateFormat("HH:mm").format(date);
 //        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
-//            msg = new SimpleDateFormat("HH:mm").format(date);
+//            msg = (diffTime) + "일 전";
 //        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
 //            msg = (diffTime) + "달 전";
         } else {
