@@ -34,12 +34,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
@@ -55,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private LetterFragment letterFragment;
     private SearchFragment searchFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
+    private String location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,12 +65,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(MyAccount myAccount) { //개인프로필을 변경했을 경우 -> 게시판 지역이동 (툴바이름변경,게시판내용변경)
                 binding.setMyAccount(myAccount); //툴바에 해당 지역을 나타내는 textview를 데이터바인딩 하였음. (툴바이름변경)
-                findLocation(); //게시판 지역에 맞게 재설정 (게시판 내용변경)
+                findLocation_and_setfragment(); //게시판 지역에 맞게 재설정 (게시판 내용변경)
             }
         });
 
         if(AccountInit()){ //계정이 있다면,
-            findLocation();
+            findLocation_and_setfragment();
         }
         else{
             Activity(SignActivity.class);
@@ -89,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void findLocation(){
+    public void findLocation_and_setfragment(){
 
         DocumentReference locationDoc = db.collection("USER").document(user.getUid());
 
@@ -101,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
                     if (document.exists()) { //USER에서 location을 찾는 것은 비동기적이기떄문에 함수화 못했꼬, 그래서 우선적으로 지역을 찾자
 
-                        String location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
+                        location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
                         Log.d("지격탐색(main)", location);
                         setFragment(location);
                     }
@@ -114,13 +111,14 @@ public class MainActivity extends AppCompatActivity {
     public void setFragment(String location){
 
         boardFragment = new BoardFragment();
-        profileFragment = new ProfileFragment();
-        searchFragment = new SearchFragment();
-        letterFragment = new LetterFragment();
 
         Bundle bundle = new Bundle();
         bundle.putString("location",location);
         boardFragment.setArguments(bundle);
+        //리퀘스트같은 번들내용을 줘서 frg에서 상황에 맞게 처리
+        //글쓰기 -> 위로 갱신(새로고침도 위로갱신)
+        //그냥 나옴 -> 전달 없이 finish
+        //게시물삭제 -> 그냥갱신
 
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.fragment_frame, boardFragment).commitAllowingStateLoss();
@@ -130,16 +128,51 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch(item.getItemId()) {
                     case R.id.menu_home:
-                        fragmentManager.beginTransaction().replace(R.id.fragment_frame, boardFragment).commit();
+                        if(boardFragment == null) {
+                            boardFragment = new BoardFragment();
+                            fragmentManager.beginTransaction().add(R.id.fragment_frame, boardFragment).commit();
+                        }
+
+                        if(boardFragment != null) fragmentManager.beginTransaction().show(boardFragment).commit();
+                        if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
+                        if(searchFragment != null) fragmentManager.beginTransaction().hide(searchFragment).commit();
+                        if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
                         return true;
                     case R.id.menu_search:
-                        fragmentManager.beginTransaction().replace(R.id.fragment_frame, profileFragment).commit();
+
+                        if(searchFragment == null) {
+                            searchFragment = new SearchFragment();
+                            fragmentManager.beginTransaction().add(R.id.fragment_frame, searchFragment).commit();
+                        }
+
+                        if(searchFragment!= null) fragmentManager.beginTransaction().show(searchFragment).commit();
+                        if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
+                        if(boardFragment != null) fragmentManager.beginTransaction().hide(boardFragment).commit();
+                        if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
                         return true;
                     case R.id.menu_letter:
-                        fragmentManager.beginTransaction().replace(R.id.fragment_frame, letterFragment).commit();
+
+                        if(letterFragment == null) {
+                            letterFragment = new LetterFragment();
+                            fragmentManager.beginTransaction().add(R.id.fragment_frame, letterFragment).commit();
+                        }
+
+                        if(letterFragment!= null) fragmentManager.beginTransaction().show(letterFragment).commit();
+                        if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
+                        if(searchFragment != null) fragmentManager.beginTransaction().hide(searchFragment).commit();
+                        if(boardFragment!= null) fragmentManager.beginTransaction().hide(boardFragment).commit();
                         return true;
                     case R.id.menu_profile:
-                        fragmentManager.beginTransaction().replace(R.id.fragment_frame, searchFragment).commit();
+
+                        if(profileFragment == null) {
+                            profileFragment = new ProfileFragment();
+                            fragmentManager.beginTransaction().add(R.id.fragment_frame, profileFragment).commit();
+                        }
+
+                        if(profileFragment != null) fragmentManager.beginTransaction().show(profileFragment).commit();
+                        if(boardFragment != null) fragmentManager.beginTransaction().hide(boardFragment).commit();
+                        if(searchFragment != null) fragmentManager.beginTransaction().hide(searchFragment).commit();
+                        if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
                         return true;
                     default:
                         return false;
@@ -148,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
     public boolean AccountInit() {
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -202,94 +236,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-    private void RecyclerInit() {//저장된 db에서 내용을 뽑아오는 로직
-
-        DocumentReference locationDoc = db.collection("USER").document(user.getUid());
-
-        locationDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-
-                    if (document.exists()) { //USER에서 location을 찾는 것은 비동기적이기떄문에 함수화 못했꼬, 그래서 우선적으로 지역을 찾자
-
-                        String location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
-                        Log.d("지격탐색(main)",location);
-
-                        getSupportActionBar().setTitle(location);
-
-                        db.collection(location)
-                               .orderBy("createdAt", Query.Direction.DESCENDING)
-                                .get()
-                                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                        if (task.isSuccessful()) {
-                                            int fcnt = 0;
-                                            int cnt = 0;
-                                            postList = new ArrayList<>();
-                                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                                Log.d("가져옴", document.getId() + " => " + document.getData());
-
-                                                if(document.getData().get("formats") != null) {
-                                                    postList.add(new PostInfo(
-                                                                    document.get("id").toString(),
-                                                                    document.get("publisher").toString(),
-                                                                    document.get("title").toString(),
-                                                                    document.get("contents").toString(),
-                                                                    (ArrayList<String>) document.getData().get("formats"),
-                                                                    new Date(document.getDate("createdAt").getTime()),
-                                                                    document.getId(),
-                                                            Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                                    (ArrayList<String>) document.getData().get("storagepath")
-                                                            )
-                                                    );
-                                                    fcnt++;
-                                                }
-                                                else{
-                                                    postList.add(new PostInfo(
-                                                                    document.get("id").toString(),
-                                                                    document.get("publisher").toString(),
-                                                                    document.get("title").toString(),
-                                                                    document.get("contents").toString(),
-                                                                    new Date(document.getDate("createdAt").getTime()),
-                                                                    document.getId(),
-                                                            Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location
-                                                            )
-                                                    );
-                                                    cnt++;
-                                                }
-                                            }
-
-                                            Log.d("가져옴", "포멧게시글갯수: "+fcnt+"  걍게시글: "+cnt);
-//                                            Add_and_SetRecyclerView(MainActivity.this,postList);
-                                        } else {
-                                            Log.d("실패함", "Error getting documents: ", task.getException());
-                                        }
-                                    }
-                                });
-                    }
-                }
-            }
-        });
-    }
-
-//    public void Add_and_SetRecyclerView(Activity activity, ArrayList<PostInfo> postList){
-//
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-//        binding.postRecycler.setLayoutManager(layoutManager);
-//
-//        PostAdapter postAdapter = new PostAdapter(activity, postList);
-//        binding.postRecycler.setAdapter(postAdapter);
-//
-//    }
-
     public void Activity(Class c){
         Intent intent = new Intent(this,c);
-        startActivity(intent);
+        startActivityForResult(intent,1);
     }
 
     @Override
@@ -299,6 +248,11 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = getIntent();
             myAccount = (MyAccount)intent.getSerializableExtra("myAccount");
             Log.d("onActivity_main","myAccount location: "+myAccount.getLocation());
+        }
+
+        if (resultCode == 1) {
+            Log.d("onActivity_main","requestCode: "+requestCode);
+            boardFragment.postUpdate(1);
         }
     }
 

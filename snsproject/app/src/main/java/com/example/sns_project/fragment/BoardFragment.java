@@ -1,6 +1,7 @@
 package com.example.sns_project.fragment;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,9 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.sns_project.Adapter.PostAdapter;
@@ -35,10 +38,13 @@ public class BoardFragment extends Fragment {
     private FirebaseUser user;
     private FirebaseFirestore db;
     private ArrayList<PostInfo> postList = new ArrayList<>();
-    private  RecyclerView recyclerView;
+    private RecyclerView recyclerView;
     private String location;
     private PostAdapter postAdapter;
     private SwipeRefreshLayout swipe;
+    private static final int DOWN_SROLLED = 0;
+    private static final int UP_SROLLED = 1;
+    private static final int Upload_Limit = 20;
 
     public BoardFragment() {}
 
@@ -48,13 +54,32 @@ public class BoardFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        Log.d("onAttach","onAttach");
+    }
 
-        View view = inflater.inflate(R.layout.fragment_board, container, false);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) { //view가 완전히 완료된 이후에 나오는 메서드라서 이곳에 findby~ 써야 안전함
+        super.onViewCreated(view, savedInstanceState);
+
         swipe = view.findViewById(R.id.swipe);
-        RecyclerInit(getActivity(),view);
+
+        Bundle bundle = getArguments();
+        location = bundle.getString("location");
+
+        if(postList.size() == 0){
+            RecyclerInit(getActivity(),view);
+            Log.d("zz","리사이클러뷰 이닛");
+        }
+
         RecyclerView_ScrollListener();
 
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_board, container, false);
         return view;
     }
 
@@ -64,18 +89,21 @@ public class BoardFragment extends Fragment {
         user = mAuth.getCurrentUser();
         db = FirebaseFirestore.getInstance();
         recyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_frag);
-        Bundle bundle = getArguments();
-
-        location = bundle.getString("location");
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
         recyclerView.setLayoutManager(layoutManager);
-
-        postAdapter = new PostAdapter(activity, postList);
+        postAdapter = new PostAdapter(activity,postList); //처음엔 비어있는 list를 넣어줬음
+//        postAdapter.setHasStableIds(true); 이걸쓰면 게시물 시간이 재사용되서 리셋이 안되는 이슈가 발생
         recyclerView.setAdapter(postAdapter);
 
-        postUpdate();
+        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+        }
+
+        postUpdate(UP_SROLLED); //여기서 리스트를 채우고 갱신 (위로 갱신)
 
     }
 
@@ -83,12 +111,12 @@ public class BoardFragment extends Fragment {
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) { //아래 갱신
                 super.onScrolled(recyclerView, dx, dy);
-                if(!recyclerView.canScrollVertically(1)) { //끝에 도달하면 추가
-                    postUpdate();
-                }
-            }
+                        if (!recyclerView.canScrollVertically(1)) { //끝에 도달하면 추가
+                            postUpdate(DOWN_SROLLED);
+                        }
+                    }
         });
 
         swipe.setColorSchemeResources(
@@ -101,10 +129,12 @@ public class BoardFragment extends Fragment {
                 recyclerView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        postAdapter.clear();
-                        postList.clear();
+                        //swipe 업데이트는 다르게 해줄 필요가 있는게 당기면 위로 정보가 업데이트 되어야 하는데 지금같은 경운 date를 기반으로 아래로 새로고침되니까 새로운 글이 나오지않음
+                        //swipe를 할경우 기존의 List의 뒷부분은 다 지우고 앞부분부터 새로 받아와야함
+                        //반면에 삭제는 가지고 있는 리스트를 그대로 유지하고 내가 쓴 글의 position만 지우고 갱신함.
                         removeScrollPullUpListener();
-                        postUpdate();
+                        postUpdate(UP_SROLLED);
+
                         Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
                         swipe.setRefreshing(false);
                     }
@@ -113,13 +143,65 @@ public class BoardFragment extends Fragment {
         });
     }
 
-    public void postUpdate(){
+    public void postUpdate(int request){
+
+        if(request == DOWN_SROLLED)
+            DownScrolled();
+        else
+            UpScrolled();
+
+    }
+
+    private void UpScrolled() {
+
+        Date date = new Date();
+        ArrayList<PostInfo> newPosts = new ArrayList<>();
+
+        db.collection(location)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
+                .limit(Upload_Limit)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d("가져옴", document.getId() + " => " + document.getData());
+                                newPosts.add(new PostInfo(
+                                                document.get("id").toString(),
+                                                document.get("publisher").toString(),
+                                                document.get("title").toString(),
+                                                document.get("contents").toString(),
+                                                (ArrayList<String>) document.getData().get("formats"),
+                                                new Date(document.getDate("createdAt").getTime()),
+                                                document.getId(),
+                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
+                                                (ArrayList<String>) document.getData().get("storagepath")
+                                        )
+                                );
+                            }
+                            if(newPosts.size() < Upload_Limit){
+                                newPosts.addAll(postList);
+                            }
+                            postAdapter.PostInfoDiffUtil(newPosts);
+                            recyclerView.smoothScrollToPosition(0);
+                            postList.clear();
+                            postList.addAll(newPosts);
+                        } else {
+                            Log.d("실패함", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+
+    }
+
+    public void DownScrolled(){
 
         Date date = postList.size() == 0 ? new Date() : postList.get(postList.size() - 1).getCreatedAt();
 
         db.collection(location)
-                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt",date)
-                .limit(20)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
+                .limit(Upload_Limit)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -140,13 +222,13 @@ public class BoardFragment extends Fragment {
                                         )
                                 );
                             }
-                            postAdapter.notifyDataSetChanged();
+
+                            postAdapter.PostInfoDiffUtil(postList);
                         } else {
                             Log.d("실패함", "Error getting documents: ", task.getException());
                         }
                     }
                 });
-
     }
 
     private void removeScrollPullUpListener(){

@@ -18,10 +18,10 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.sns_project.Adapter.AddImageAdapter;
-import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_WritePost;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
+import com.example.sns_project.info.PostInfo;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -115,7 +115,7 @@ public class WritePostActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == RESULT_OK && requestCode == REQ_PICK_IMAGE_VIDEO) {
+        if (resultCode == RESULT_OK && requestCode == REQ_PICK_IMAGE_VIDEO) { //갤러리 선택에서 온 request
             Uri uri = data.getData();
             if(Postmodel.get().getValue() != null) {
                 UriFormats = Postmodel.get().getValue();
@@ -126,6 +126,7 @@ public class WritePostActivity extends AppCompatActivity {
                 Postmodel.get().setValue(UriFormats);
             }
         }
+
     }
 
     public void Add_and_SetRecyclerView(Activity activity){
@@ -242,7 +243,7 @@ public class WritePostActivity extends AppCompatActivity {
                     public void onSuccess(Void aVoid) {
                         Toast("성공적으로 게시되었습니다.");
                         loaderView.setVisibility(View.GONE);
-                        finish();
+                        toMain(1);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -250,11 +251,17 @@ public class WritePostActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Exception e) {
                         Toast("업로드에 실패하였습니다.");
                         loaderView.setVisibility(View.GONE);
-                        finish();
                     }
                 });
 
     }
+
+    public void toMain(int request){
+        Intent intent = new Intent();
+        setResult(request,intent);
+        finish();
+    }
+
 //          for (int x = 0; x < imageList.getImageList().size();) {
 //
 //        fileNum=x; //0부터 시작 (파일 0개, 1개 ...)  // try문 밖에서 사용함으로써 안정적으로 숫자를 카운트가능 (이전에 try안에 넣어서 오류났었음)
