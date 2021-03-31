@@ -40,7 +40,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public PostAdapter(Activity activity,ArrayList<PostInfo> postList) {
+    public PostAdapter(Activity activity) {
         this.activity = activity;
     }
 
@@ -53,10 +53,12 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         TextView goodNum;
         TextView commentNum;
         ImageView imageView;
+        TextView nicknameT;
 
         public PostHolder(@NonNull View itemView) {
             super(itemView);
 
+            nicknameT = itemView.findViewById(R.id.nicknameT);
             titleT = itemView.findViewById(R.id.titleT);
             contentT = itemView.findViewById(R.id.contentT);
             dateT = itemView.findViewById(R.id.dateT);
@@ -99,6 +101,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         holder.dateT.setText(formatTimeString(postInfo.getCreatedAt(),new Date()));
         holder.goodNum.setText(postInfo.getGood()+"");
         holder.commentNum.setText(postInfo.getComment()+"");
+        holder.nicknameT.setText(postInfo.getPublisher());
 
         if(postInfo.getFormats() != null){
 

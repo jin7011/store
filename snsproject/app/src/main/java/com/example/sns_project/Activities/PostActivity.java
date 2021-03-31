@@ -106,7 +106,7 @@ public class PostActivity extends AppCompatActivity {
                 break;
             case R.id.submission:
                 break;
-            case android.R.id.home:
+            case android.R.id.home://////////////////////////////////////////////////////////////////////////////////////백버튼 기능추가 요망
                 //select back button
                 finish();
                 break;
@@ -136,8 +136,6 @@ public class PostActivity extends AppCompatActivity {
 
        //postinfo로 해당게시물에 좋아요를 누른 사람 id를 저장해주고,
         //좋아요 누른 사람이 중복으로 누르지않게 id를 찾아서 있으면 아닌거고 없으면 좋아요+1
-        //좋아요가 0인 게시물은 유저데이터가 null이므로 데이터를 셋해준다.
-        //따라서 null아니면 찾고 null이면 그대로 추가.
         if(postInfo.getId().equals(user.getUid())){
             Toast("자신의 게시물에는 좋아요를 누를 수 없습니다.");
             return;
@@ -160,9 +158,23 @@ public class PostActivity extends AppCompatActivity {
                             docref.update("good_user",good_users).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
-                                    docref.update("good",good_users.size());
-                                    GOOD_ACTION = true;
-                                    Toast("좋아요!");
+                                    docref.update("good",good_users.size()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        //좋아요가 db에 올라간 이후
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            GOOD_ACTION = true;
+                                            ////////////////////////////////////////////////////////////////////////////////////////////////게시글에서 바로 좋아요가 갱신되는 걸 나타내야함.
+                                            docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                //다시 게시물을 가져와서 굳이?라고 할법하지만 그냥 +1이 아니라 동시사용자가 있기때문에 현재상황 반영
+                                                @Override
+                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                    DocumentSnapshot document = task.getResult();
+                                                    binding.goodNumPostT.setText(document.get("good").toString());
+                                                    Toast("좋아요!");
+                                                }
+                                            });
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -240,7 +252,7 @@ public class PostActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+//        super.onBackPressed();
 
         if (GOOD_ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
             toMain();

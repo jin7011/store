@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginStart="7dp"
     android:layout_marginEnd="7dp"
-    android:background="@drawable/get_outline"
+    android:background="@drawable/get_outline_postitem"
     android:orientation="horizontal"
     android:paddingBottom="4dp">
 
@@ -54,9 +54,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
-                android:layout_weight="1"
                 android:maxLines="1"
                 android:text="TextView"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/nicknameT"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:maxLines="1"
+                android:text="TextView"
+                android:textColor="@color/maincolor"
                 android:textSize="10sp" />
         </LinearLayout>
 

@@ -263,52 +263,6 @@ public class WritePostActivity extends AppCompatActivity {
         finish();
     }
 
-//          for (int x = 0; x < imageList.getImageList().size();) {
-//
-//        fileNum=x; //0부터 시작 (파일 0개, 1개 ...)  // try문 밖에서 사용함으로써 안정적으로 숫자를 카운트가능 (이전에 try안에 넣어서 오류났었음)
-//        String[] pathArray = getPathFromUri(imageList.getImageList().get(x)).split("\\.");
-//        formatList.add(pathArray[pathArray.length - 1]);
-//final StorageReference mountainImagesRef = storageRef.child(location+"/"+ documentReference.getId() + "/" + x + "." + pathArray[pathArray.length - 1]);
-//
-//        try {
-//        Log.d("fileNUm 체크","filenum: " + fileNum);
-//        InputStream stream = new FileInputStream(new File(getPathFromUri(imageList.getImageList().get(x)))); //경로
-//        StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("index", "" + fileNum).build();
-//        UploadTask uploadTask = mountainImagesRef.putStream(stream,metadata);
-//
-//        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() { //storage에 업로드 리스너
-//@Override
-//public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//        Log.d("사진업로드","일단 성공이고 index: "+fileNum);
-//final int index = Integer.parseInt(taskSnapshot.getMetadata().getCustomMetadata("index"));
-//        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//        mountainImagesRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//@Override
-//public void onSuccess(Uri uri) {
-//        formatList.set(index,uri.toString());
-//        if (fileNum == (imageList.getImageList().size()-1)) {
-//        Log.d("포멧올리는 과정","size: "+imageList.getImageList().size());
-//        PostInfo postInfo = new PostInfo(uid, nickname, title, content, formatList, date);
-//        UploadPost(documentReference, postInfo);
-//        }
-//        }
-//        });
-//        }
-//        }).addOnFailureListener(new OnFailureListener() {
-//@Override
-//public void onFailure(@NonNull Exception exception) {
-//        Toast("어라..? 망;");
-//        loaderView.setVisibility(View.GONE);
-//        }
-//        });
-//        } catch (FileNotFoundException e) {
-//        loaderView.setVisibility(View.GONE);
-//        e.printStackTrace();
-//        }
-//        }
-
-
-
     public String getPathFromUri(Uri uri){
 
         Cursor cursor = getContentResolver().query(uri, null, null, null, null );
@@ -329,9 +283,7 @@ public class WritePostActivity extends AppCompatActivity {
         }
         if (System.currentTimeMillis() <= backKeyPressedTime + 1500) {
             //아래 3줄은 프로세스 종료
-            moveTaskToBack(true);
-            android.os.Process.killProcess(android.os.Process.myPid());
-            System.exit(1);
+            finish();
         }
 
     }

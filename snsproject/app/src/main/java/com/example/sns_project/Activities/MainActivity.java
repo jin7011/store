@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (resultCode == 2) {
             Log.d("PostActivity","requestCode: "+requestCode);
-            boardFragment.postUpdate(1);
+            boardFragment.postUpdate(2);
         }
 
     }

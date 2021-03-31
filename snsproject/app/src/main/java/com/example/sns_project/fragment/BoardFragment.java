@@ -1,7 +1,6 @@
 package com.example.sns_project.fragment;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,6 +43,7 @@ public class BoardFragment extends Fragment {
     private SwipeRefreshLayout swipe;
     private static final int DOWN_SROLLED = 0;
     private static final int UP_SROLLED = 1;
+    private static final int GOOD_PRESSED = 2;
     private static final int Upload_Limit = 20;
 
     public BoardFragment() {}
@@ -51,12 +51,6 @@ public class BoardFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        Log.d("onAttach","onAttach");
     }
 
     @Override
@@ -94,8 +88,9 @@ public class BoardFragment extends Fragment {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
         recyclerView.setLayoutManager(layoutManager);
-        postAdapter = new PostAdapter(activity,postList); //처음엔 비어있는 list를 넣어줬음
+        postAdapter = new PostAdapter(activity); //처음엔 비어있는 list를 넣어줬음
 //        postAdapter.setHasStableIds(true); 이걸쓰면 게시물 시간이 재사용되서 리셋이 안되는 이슈가 발생
+//        postAdapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         recyclerView.setAdapter(postAdapter);
 
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
@@ -147,12 +142,57 @@ public class BoardFragment extends Fragment {
 
         if(request == DOWN_SROLLED)
             DownScrolled();
-        else
+        else if(request == UP_SROLLED)
             UpScrolled();
+        else if(request == GOOD_PRESSED)
+            GoodPressed();
 
     }
 
-    private void UpScrolled() {
+    private void GoodPressed() { //(좋아요 누르고 나옴) 스크롤을 가능한 유지하고, 리스트 상태를 새로 고침. 아무래도 리셋할거 없이 해당 포지션을 어댑터에서 전달하고 그걸actvity에서 받아와서 수정한다음 이쪽으로
+        //넘겨주고 그것만 처리하는게 깔끔할 듯. 그 이후에 diffutil사용
+
+        Date date = new Date();
+        ArrayList<PostInfo> newPosts = new ArrayList<>();
+
+        db.collection(location)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
+                .limit(Upload_Limit)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d("가져옴", document.getId() + " => " + document.getData());
+                                newPosts.add(new PostInfo(
+                                                document.get("id").toString(),
+                                                document.get("publisher").toString(),
+                                                document.get("title").toString(),
+                                                document.get("contents").toString(),
+                                                (ArrayList<String>) document.getData().get("formats"),
+                                                new Date(document.getDate("createdAt").getTime()),
+                                                document.getId(),
+                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
+                                                (ArrayList<String>) document.getData().get("storagepath")
+                                        )
+                                );
+                            }
+                            if(newPosts.size() < Upload_Limit){
+                                newPosts.addAll(postList);
+                            }
+                            postAdapter.PostInfoDiffUtil(newPosts);
+                            postList.clear();
+                            postList.addAll(newPosts);
+                        } else {
+                            Log.d("실패함", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+
+    }
+
+    private void UpScrolled() { // (삭제/글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
 
         Date date = new Date();
         ArrayList<PostInfo> newPosts = new ArrayList<>();
