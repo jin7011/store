@@ -35,11 +35,11 @@ public class PostInfoDiffUtil extends DiffUtil.Callback{
     }
 
     @Override
-    public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+    public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) { //item이 같아도 수정된다면 내용이 다르다는 것을 인식시켜줘야 내용이 바뀜
         final PostInfo oldpost = oldPosts.get(oldItemPosition);
         final PostInfo newpost = newPosts.get(newItemPosition);
 
-        return oldpost.getDocid().equals(newpost.getDocid());
+        return oldpost.getDocid().equals(newpost.getDocid()) && oldpost.getGood() == newpost.getGood() && oldpost.getComment() == newpost.getComment();
     }
 
 }

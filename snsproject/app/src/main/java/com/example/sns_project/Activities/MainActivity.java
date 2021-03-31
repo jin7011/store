@@ -254,6 +254,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d("onActivity_main","requestCode: "+requestCode);
             boardFragment.postUpdate(1);
         }
+
+        if (resultCode == 2) {
+            Log.d("PostActivity","requestCode: "+requestCode);
+            boardFragment.postUpdate(1);
+        }
+
     }
 
     public void Tost(String str){

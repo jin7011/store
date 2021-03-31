@@ -46,6 +46,7 @@ import java.util.Date;
 public class WritePostActivity extends AppCompatActivity {
     ActivityWritePostBinding binding;
 
+    private long backKeyPressedTime = 0;
     private final int REQ_PICK_IMAGE_VIDEO = 1;
     private FirebaseUser user;
     private FirebaseFirestore db;
@@ -306,9 +307,7 @@ public class WritePostActivity extends AppCompatActivity {
 //        }
 //        }
 
-    public void Toast(String str){
-        Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
-    }
+
 
     public String getPathFromUri(Uri uri){
 
@@ -320,5 +319,25 @@ public class WritePostActivity extends AppCompatActivity {
         return path;
     }
 
+    @Override
+    public void onBackPressed() {
+        // 마지막으로 뒤로가기 버튼을 눌렀던 시간 저장
+        if (System.currentTimeMillis() > backKeyPressedTime + 1500) {
+            backKeyPressedTime = System.currentTimeMillis();
+            Toast("\'뒤로\' 버튼을 한번 더 누르시면 종료됩니다.");
+            return;
+        }
+        if (System.currentTimeMillis() <= backKeyPressedTime + 1500) {
+            //아래 3줄은 프로세스 종료
+            moveTaskToBack(true);
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(1);
+        }
+
+    }
+
+    public void Toast(String str){
+        Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
+    }
 }
 

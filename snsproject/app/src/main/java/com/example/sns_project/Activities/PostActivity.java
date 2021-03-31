@@ -2,6 +2,7 @@ package com.example.sns_project.Activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -50,6 +51,7 @@ public class PostActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private Toolbar toolbar;
     private ActionBar actionBar;
+    private boolean GOOD_ACTION = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,6 +161,7 @@ public class PostActivity extends AppCompatActivity {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     docref.update("good",good_users.size());
+                                    GOOD_ACTION = true;
                                     Toast("좋아요!");
                                 }
                             });
@@ -218,7 +221,7 @@ public class PostActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast("삭제되었습니다.");
-                        finish();
+                        toMain();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -227,6 +230,24 @@ public class PostActivity extends AppCompatActivity {
                         Toast("삭제 실패하였습니다. :db");
                     }
                 });
+    }
+
+    public void toMain(){
+        Intent intent = new Intent();
+        setResult(2,intent);
+        finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        if (GOOD_ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
+            toMain();
+        }else{
+            finish();
+        }
+
     }
 
     public void Toast(String str){
