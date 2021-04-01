@@ -21,6 +21,7 @@ import com.example.sns_project.Adapter.ShowPostImageAdapter;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityPostBinding;
 import com.example.sns_project.info.PostInfo;
+import com.example.sns_project.util.Named;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -38,6 +39,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
+import static com.example.sns_project.util.Named.DeleteResult;
+import static com.example.sns_project.util.Named.GoodResult;
+import static com.example.sns_project.util.Named.WriteResult;
+
 //이 곳에서 작성한 글과 파일을 볼 수 있으며 댓글과 좋아요 버튼을 누를 수 있다.
 //        작성한 글 db에서 내용을 가져옴으로써 구현하고,
 //        댓글과 좋아요 버튼을 누르면 해당 게시글db에 내용이 추가로 입력되도록한다.
@@ -51,6 +56,7 @@ public class PostActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private Toolbar toolbar;
     private ActionBar actionBar;
+    private Named named = new Named();
     private boolean GOOD_ACTION = false;
 
     @Override
@@ -233,7 +239,7 @@ public class PostActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast("삭제되었습니다.");
-                        toMain();
+                        toMain(DeleteResult,postInfo.getDocid());
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -244,18 +250,18 @@ public class PostActivity extends AppCompatActivity {
                 });
     }
 
-    public void toMain(){
+    public void toMain(int result,String docid){ //게시물번호를 넘겨주고 frag에서 처리하기위함.
         Intent intent = new Intent();
-        setResult(2,intent);
+        intent.putExtra("docid",docid);
+        setResult(WriteResult,intent);
         finish();
     }
 
     @Override
     public void onBackPressed() {
-//        super.onBackPressed();
 
         if (GOOD_ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
-            toMain();
+            toMain(GoodResult,postInfo.getDocid());
         }else{
             finish();
         }

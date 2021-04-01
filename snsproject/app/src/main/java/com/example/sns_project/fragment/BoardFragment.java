@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
@@ -17,7 +19,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.R;
+import com.example.sns_project.data.LiveData_PostList;
 import com.example.sns_project.info.PostInfo;
+import com.example.sns_project.util.Named;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
@@ -31,6 +35,13 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.util.Named.DOWN_SROLLED;
+import static com.example.sns_project.util.Named.DeleteResult;
+import static com.example.sns_project.util.Named.GoodResult;
+import static com.example.sns_project.util.Named.UP_SROLLED;
+import static com.example.sns_project.util.Named.Upload_Limit;
+import static com.example.sns_project.util.Named.WriteResult;
+
 public class BoardFragment extends Fragment {
 
     private FirebaseAuth mAuth;
@@ -41,10 +52,9 @@ public class BoardFragment extends Fragment {
     private String location;
     private PostAdapter postAdapter;
     private SwipeRefreshLayout swipe;
-    private static final int DOWN_SROLLED = 0;
-    private static final int UP_SROLLED = 1;
-    private static final int GOOD_PRESSED = 2;
-    private static final int Upload_Limit = 20;
+    private LiveData_PostList PostListModel;
+    private Observer<ArrayList<PostInfo>> PostList_Observer;
+    private Named named = new Named();
 
     public BoardFragment() {}
 
@@ -67,14 +77,91 @@ public class BoardFragment extends Fragment {
             Log.d("zz","리사이클러뷰 이닛");
         }
 
+        //라이브데이터
+        PostListModel = new ViewModelProvider(getActivity()).get(LiveData_PostList.class);
+        PostList_Observer = new Observer<ArrayList<PostInfo>>() { // 따로 라이프사이클없이 계속돌아가게 해놨음
+            @Override
+            public void onChanged(ArrayList<PostInfo> postInfos) {
+                postAdapter.PostInfoDiffUtil(postInfos);
+            }
+        };
+        PostListModel.get().observeForever(PostList_Observer);
+
         RecyclerView_ScrollListener();
 
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        PostListModel.get().removeObserver(PostList_Observer); //fragment destroy되었을 때는 livedata의 옵저버를 해체시켜주자 (따로 라이프사이클없이 계속돌아가게 해놨음)
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_board, container, false);
+
         return view;
+    }
+
+    //추가
+    //삭제
+    //댓글/좋아요
+    //새로고침(이전꺼좋으니까 수정만)
+    public void postUpdate(int request,String docid){
+
+        if(request == DOWN_SROLLED) //아래로 새로고침할 때
+            DownScrolled();
+        else if(request == UP_SROLLED || request == WriteResult) //위로 새로고침하거나 글쓰고 왔을 때
+            UpScrolled();
+        else if(request == GoodResult) // 다른 게시물에 좋아요버튼 누르고 왔을 때
+            GoodPressed(docid);
+        else if(request == DeleteResult){ // 내 게시물을 삭제하고 왔을 때
+            Deleted(docid);
+        }
+
+    }
+
+    private void Deleted(String docid) { //삭제
+        //(todo)삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
+        boolean flag = false;
+
+        for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
+            if(postList.get(x).getDocid() == docid){
+                postList.remove(x);
+                PostListModel.get().setValue(postList);
+                flag = true;
+                break;
+            }
+        }
+
+        if(!flag) //삭제한 게시글이 당장 리스트에 보이지 않는다면(아마도 올린지 좀 된 글의 경우 -> 보통 검색으로 자신의 게시물을 찾아서 삭제한경우) 그냥 리셋 4/1일버전에서는 작동할 일이 없을 것으로 보임.
+            UpScrolled();
+    }
+
+    private void GoodPressed(String docid) { //좋아요
+
+        //(좋아요 누르고 나옴) 스크롤을 가능한 유지하고, 리스트 상태를 새로 고침.
+        //아무래도 리셋할거 없이 해당 포지션을 어댑터에서 전달하고 그걸actvity에서 받아와서 수정한다음 이쪽으로
+        //넘겨주고 그것만 처리하는게 깔끔할 듯. 그 이후에 diffutil사용
+
+        boolean flag = false;
+
+        for(int x =0; x<postList.size(); x++){
+            // 좋아요의 경우 보이기엔 그냥 +1로 해주자 새로 갱신해줄만큼 가치있지않음
+            // 보통 좋아요 누르면 +1 되는거보고 그냥 가니까, 그게 아니라 궁금하면 새로고침했을 때 db에서 좋아요 불러오므로 확실하게 확인가능.
+            //(todo)삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
+            PostInfo postInfo = postList.get(x);
+            if(postInfo.getDocid() == docid){
+                postInfo.setGood(postInfo.getGood()+1);
+                PostListModel.get().setValue(postList);
+                flag = true;
+                break;
+            }
+        }
+
+        if(!flag) //게시물을 검색해서 찾은 경우 그냥 리셋해주는게 좋다
+            UpScrolled();
     }
 
     private void RecyclerInit(Activity activity,View view) {//저장된 db에서 내용을 뽑아오는 로직
@@ -98,7 +185,7 @@ public class BoardFragment extends Fragment {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
         }
 
-        postUpdate(UP_SROLLED); //여기서 리스트를 채우고 갱신 (위로 갱신)
+        UpScrolled(); //여기서 리스트를 채우고 갱신 (위로 갱신)
 
     }
 
@@ -109,7 +196,7 @@ public class BoardFragment extends Fragment {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) { //아래 갱신
                 super.onScrolled(recyclerView, dx, dy);
                         if (!recyclerView.canScrollVertically(1)) { //끝에 도달하면 추가
-                            postUpdate(DOWN_SROLLED);
+                            DownScrolled();
                         }
                     }
         });
@@ -128,7 +215,7 @@ public class BoardFragment extends Fragment {
                         //swipe를 할경우 기존의 List의 뒷부분은 다 지우고 앞부분부터 새로 받아와야함
                         //반면에 삭제는 가지고 있는 리스트를 그대로 유지하고 내가 쓴 글의 position만 지우고 갱신함.
                         removeScrollPullUpListener();
-                        postUpdate(UP_SROLLED);
+                        UpScrolled();
 
                         Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
                         swipe.setRefreshing(false);
@@ -138,19 +225,7 @@ public class BoardFragment extends Fragment {
         });
     }
 
-    public void postUpdate(int request){
-
-        if(request == DOWN_SROLLED)
-            DownScrolled();
-        else if(request == UP_SROLLED)
-            UpScrolled();
-        else if(request == GOOD_PRESSED)
-            GoodPressed();
-
-    }
-
-    private void GoodPressed() { //(좋아요 누르고 나옴) 스크롤을 가능한 유지하고, 리스트 상태를 새로 고침. 아무래도 리셋할거 없이 해당 포지션을 어댑터에서 전달하고 그걸actvity에서 받아와서 수정한다음 이쪽으로
-        //넘겨주고 그것만 처리하는게 깔끔할 듯. 그 이후에 diffutil사용
+    private void UpScrolled() { // (글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
 
         Date date = new Date();
         ArrayList<PostInfo> newPosts = new ArrayList<>();
@@ -181,52 +256,10 @@ public class BoardFragment extends Fragment {
                             if(newPosts.size() < Upload_Limit){
                                 newPosts.addAll(postList);
                             }
-                            postAdapter.PostInfoDiffUtil(newPosts);
                             postList.clear();
                             postList.addAll(newPosts);
-                        } else {
-                            Log.d("실패함", "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-
-    }
-
-    private void UpScrolled() { // (삭제/글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
-
-        Date date = new Date();
-        ArrayList<PostInfo> newPosts = new ArrayList<>();
-
-        db.collection(location)
-                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
-                .limit(Upload_Limit)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d("가져옴", document.getId() + " => " + document.getData());
-                                newPosts.add(new PostInfo(
-                                                document.get("id").toString(),
-                                                document.get("publisher").toString(),
-                                                document.get("title").toString(),
-                                                document.get("contents").toString(),
-                                                (ArrayList<String>) document.getData().get("formats"),
-                                                new Date(document.getDate("createdAt").getTime()),
-                                                document.getId(),
-                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                (ArrayList<String>) document.getData().get("storagepath")
-                                        )
-                                );
-                            }
-                            if(newPosts.size() < Upload_Limit){
-                                newPosts.addAll(postList);
-                            }
-                            postAdapter.PostInfoDiffUtil(newPosts);
+                            PostListModel.get().setValue(postList);
                             recyclerView.smoothScrollToPosition(0);
-                            postList.clear();
-                            postList.addAll(newPosts);
                         } else {
                             Log.d("실패함", "Error getting documents: ", task.getException());
                         }
@@ -262,8 +295,7 @@ public class BoardFragment extends Fragment {
                                         )
                                 );
                             }
-
-                            postAdapter.PostInfoDiffUtil(postList);
+                            PostListModel.get().setValue(postList);
                         } else {
                             Log.d("실패함", "Error getting documents: ", task.getException());
                         }

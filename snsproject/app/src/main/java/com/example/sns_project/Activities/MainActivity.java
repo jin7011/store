@@ -26,6 +26,7 @@ import com.example.sns_project.fragment.ProfileFragment;
 import com.example.sns_project.fragment.SearchFragment;
 import com.example.sns_project.info.MyAccount;
 import com.example.sns_project.info.PostInfo;
+import com.example.sns_project.util.Named;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -36,6 +37,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+
+import static com.example.sns_project.util.Named.DeleteResult;
+import static com.example.sns_project.util.Named.GoodResult;
+import static com.example.sns_project.util.Named.None;
+import static com.example.sns_project.util.Named.WriteResult;
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
@@ -52,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private SearchFragment searchFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
     private String location;
+    private Named named = new Named();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -247,17 +254,26 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == 101){
             Intent intent = getIntent();
             myAccount = (MyAccount)intent.getSerializableExtra("myAccount");
-            Log.d("onActivity_main","myAccount location: "+myAccount.getLocation());
+            Log.d("From SignActivity","myAccount location: "+myAccount.getLocation());
         }
 
-        if (resultCode == 1) {
-            Log.d("onActivity_main","requestCode: "+requestCode);
-            boardFragment.postUpdate(1);
+        if (resultCode == WriteResult) { //글쓰기 리턴값
+            Log.d("From WriteActivity","requestCode: "+requestCode);
+            boardFragment.postUpdate(WriteResult,None);
         }
 
-        if (resultCode == 2) {
-            Log.d("PostActivity","requestCode: "+requestCode);
-            boardFragment.postUpdate(2);
+        if (resultCode == DeleteResult) { //글삭제 리턴값
+            Log.d("From PostActivity","requestCode: "+requestCode);
+            Intent intent = getIntent();
+            String docid = intent.getStringExtra("docid");
+            boardFragment.postUpdate(DeleteResult,docid);
+        }
+
+        if (resultCode == GoodResult) { //좋아요/삭제/(댓글추가) 리턴값
+            Log.d("From PostActivity","requestCode: "+requestCode);
+            Intent intent = getIntent();
+            String docid = intent.getStringExtra("docid");
+            boardFragment.postUpdate(GoodResult,docid);
         }
 
     }

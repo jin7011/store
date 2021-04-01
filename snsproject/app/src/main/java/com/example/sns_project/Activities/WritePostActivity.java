@@ -22,6 +22,7 @@ import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_WritePost;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
 import com.example.sns_project.info.PostInfo;
+import com.example.sns_project.util.Named;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -43,6 +44,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.util.Named.WriteResult;
+
 public class WritePostActivity extends AppCompatActivity {
     ActivityWritePostBinding binding;
 
@@ -57,6 +60,7 @@ public class WritePostActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private String location;
     private LiveData_WritePost Postmodel;
+    private Named named = new Named();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -244,7 +248,7 @@ public class WritePostActivity extends AppCompatActivity {
                     public void onSuccess(Void aVoid) {
                         Toast("성공적으로 게시되었습니다.");
                         loaderView.setVisibility(View.GONE);
-                        toMain(1);
+                        toMain(WriteResult);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
