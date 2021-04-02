@@ -129,6 +129,7 @@ public class BoardFragment extends Fragment {
         }
 
     }
+    //todo 댓글을 달고오면 리셋 ( 한마디로 포스트내에서 뭔가를 하고 오면 리셋 아니면 굳이 보고온 것만으로는 갱신 x )
 
     private void GoodPressed(String docid) { //좋아요
 
@@ -141,8 +142,7 @@ public class BoardFragment extends Fragment {
         for(int x =0; x<postList.size(); x++){
             // 좋아요의 경우 보이기엔 그냥 +1로 해주자 새로 갱신해줄만큼 가치있지않음
             // 보통 좋아요 누르면 +1 되는거보고 그냥 가니까, 그게 아니라 궁금하면 새로고침했을 때 db에서 좋아요 불러오므로 확실하게 확인가능.
-            //(todo)삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
-            //todo 게시글에 좋아요 안올라가는 버그 발생 -> main에서 docid를 정확하게 받아오면서부터 이상하게 upscroll마저도 좋아요 리셋이 안됌 diff에서 똑같다고 판단함 , 웃긴건 downscroll하면 정상표기됌 아무래도 자료형을 유심히봐야겟음
+            //todo 사용자가 많아지면 포스트에서 어떠한 활동이라도 하고 나오면 해당 게시물만이 아니라 전부 리셋해주는 경우가 필요할 듯 그 경우는 actedOnPost같은 함수 만들어서 하나에 다 집어넣는게 좋을듯
             PostInfo postInfo = postList.get(x);
             if(postInfo.getDocid().equals(docid)){
                 ArrayList<PostInfo> temp;
