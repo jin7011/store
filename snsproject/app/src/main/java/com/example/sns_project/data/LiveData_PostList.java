@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class LiveData_PostList extends ViewModel {
 
     private MutableLiveData<ArrayList<PostInfo>> Mutable_postList = new MutableLiveData<>();
+    private ArrayList<PostInfo> postList = new ArrayList<>();
 
     public MutableLiveData<ArrayList<PostInfo>> get (){
         if(Mutable_postList == null){
@@ -18,4 +19,11 @@ public class LiveData_PostList extends ViewModel {
         return Mutable_postList;
     }
 
+    public void setpostList (ArrayList<PostInfo> newone){
+        this.postList = newone;
+    }
+
+    public ArrayList<PostInfo> getPostList() {
+        return this.postList;
+    }
 }

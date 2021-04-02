@@ -43,17 +43,19 @@ import static com.example.sns_project.util.Named.Upload_Limit;
 import static com.example.sns_project.util.Named.WriteResult;
 
 public class BoardFragment extends Fragment {
+    //리스트를 라이브에서 관리하고 옵저버로 리사이클러뷰와 리스트를 관리함
+    //여러기능에 대해서 깊은복사를 사용해서 기존의 리스트정보를 최대한 유지하면서 수정하는 부분만 건드림으로써
+    //기능을 실행할 때에는 조금 비효율적이지만, 한번 갱신한 자료는 다시 갱신하지 않아도 되고, 스크롤이 유지된다. 4월3일
 
     private FirebaseAuth mAuth;
-    private FirebaseUser user;
     private FirebaseFirestore db;
-    private ArrayList<PostInfo> postList = new ArrayList<>();
+    private ArrayList<PostInfo> postList; //fragment에서 갱신하는 임시리스트
+    private LiveData_PostList PostListModel; //postList 임시리스트를 라이브자료에 넣음으로써 리사이클러뷰를 갱신함
+    private Observer<ArrayList<PostInfo>> PostList_Observer;
     private RecyclerView recyclerView;
     private String location;
     private PostAdapter postAdapter;
     private SwipeRefreshLayout swipe;
-    private LiveData_PostList PostListModel;
-    private Observer<ArrayList<PostInfo>> PostList_Observer;
     private Named named = new Named();
 
     public BoardFragment() {}
@@ -61,34 +63,6 @@ public class BoardFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) { //view가 완전히 완료된 이후에 나오는 메서드라서 이곳에 findby~ 써야 안전함
-        super.onViewCreated(view, savedInstanceState);
-
-        swipe = view.findViewById(R.id.swipe);
-
-        Bundle bundle = getArguments();
-        location = bundle.getString("location");
-
-        if(postList.size() == 0){
-            RecyclerInit(getActivity(),view);
-            Log.d("zz","리사이클러뷰 이닛");
-        }
-
-        //라이브데이터
-        PostListModel = new ViewModelProvider(getActivity()).get(LiveData_PostList.class);
-        PostList_Observer = new Observer<ArrayList<PostInfo>>() { // 따로 라이프사이클없이 계속돌아가게 해놨음
-            @Override
-            public void onChanged(ArrayList<PostInfo> postInfos) {
-                postAdapter.PostInfoDiffUtil(postInfos);
-            }
-        };
-        PostListModel.get().observeForever(PostList_Observer);
-
-        RecyclerView_ScrollListener();
-
     }
 
     @Override
@@ -104,6 +78,40 @@ public class BoardFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) { //view가 완전히 완료된 이후에 나오는 메서드라서 이곳에 findby~ 써야 안전함
+        super.onViewCreated(view, savedInstanceState);
+
+        swipe = view.findViewById(R.id.swipe);
+
+        Bundle bundle = getArguments();
+        location = bundle.getString("location");
+        PostListModel = new ViewModelProvider(getActivity()).get(LiveData_PostList.class);
+        postList = PostListModel.getPostList();
+
+        if(postList.size() == 0){
+            RecyclerInit(getActivity(),view);
+            Log.d("zz","리사이클러뷰 이닛");
+        }
+
+        //라이브데이터
+        PostList_Observer = new Observer<ArrayList<PostInfo>>() { // 따로 라이프사이클없이 계속돌아가게 해놨음
+            @Override
+            public void onChanged(ArrayList<PostInfo> postInfos) {
+                postAdapter.PostInfoDiffUtil(postInfos);
+                PostListModel.setpostList(postInfos);
+                postList.clear();
+                postList.addAll(PostListModel.getPostList());
+                Log.d("zxczxc", "newPosts: " + postInfos.size());
+                Log.d("zxczxc", "PostListModel.getPostList: " + PostListModel.getPostList().size());
+                Log.d("zxczxc", "postList: " + postList.size());
+            }
+        };
+        PostListModel.get().observeForever(PostList_Observer);
+
+        RecyclerView_ScrollListener();
+
+    }
     //추가
     //삭제
     //댓글/좋아요
@@ -120,23 +128,6 @@ public class BoardFragment extends Fragment {
             Deleted(docid);
         }
 
-    }
-
-    private void Deleted(String docid) { //삭제
-        //(todo)삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
-        boolean flag = false;
-
-        for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
-            if(postList.get(x).getDocid().equals(docid)){
-                postList.remove(x);
-                PostListModel.get().setValue(postList);
-                flag = true;
-                break;
-            }
-        }
-
-        if(!flag) //삭제한 게시글이 당장 리스트에 보이지 않는다면(아마도 올린지 좀 된 글의 경우 -> 보통 검색으로 자신의 게시물을 찾아서 삭제한경우) 그냥 리셋 4/1일버전에서는 작동할 일이 없을 것으로 보임.
-            UpScrolled();
     }
 
     private void GoodPressed(String docid) { //좋아요
@@ -158,8 +149,6 @@ public class BoardFragment extends Fragment {
                 temp = deepCopy(postList);
                 temp.get(x).setGood(temp.get(x).getGood()+1);
                 PostListModel.get().setValue(temp);
-                postList.clear();
-                postList.addAll(temp);
                 flag = true;
                 break;
             }
@@ -169,10 +158,146 @@ public class BoardFragment extends Fragment {
             UpScrolled();
     }
 
+    private void Deleted(String docid) { //삭제
+        //(todo)삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
+        boolean flag = false;
+
+        for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
+            if(postList.get(x).getDocid().equals(docid)){
+                ArrayList<PostInfo> temp;
+                temp = deepCopy(postList);
+                temp.remove(x);
+                PostListModel.get().setValue(temp);
+                flag = true;
+                break;
+            }
+        }
+
+        if(!flag) //삭제한 게시글이 당장 리스트에 보이지 않는다면(아마도 올린지 좀 된 글의 경우 -> 보통 검색으로 자신의 게시물을 찾아서 삭제한경우) 그냥 리셋 4/1일버전에서는 작동할 일이 없을 것으로 보임.
+            UpScrolled();
+    }
+
+    private void UpScrolled() { // (글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
+
+        Date newdate = new Date();
+        ArrayList<PostInfo> newPosts = new ArrayList<>();
+
+        if(postList.size() != 0) {
+            //이미 리스트가 있고, 새로받아오는 리스트가 limit미만이라면, 그냥 덧붙이자.
+            Date olddate;
+
+            olddate = postList.get(0).getCreatedAt();
+            db.collection(location)
+                    .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate).whereGreaterThan("createdAt",olddate)
+                    .limit(Upload_Limit)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    Log.d("가져옴", document.getId() + " => " + document.getData());
+                                    newPosts.add(new PostInfo(
+                                                    document.get("id").toString(),
+                                                    document.get("publisher").toString(),
+                                                    document.get("title").toString(),
+                                                    document.get("contents").toString(),
+                                                    (ArrayList<String>) document.getData().get("formats"),
+                                                    new Date(document.getDate("createdAt").getTime()),
+                                                    document.getId(),
+                                                    Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
+                                                    (ArrayList<String>) document.getData().get("storagepath")
+                                            )
+                                    );
+                                }
+                                //////////////////////////////////////////////////////////////////
+                                if(newPosts.size() < Upload_Limit){ //20미만
+                                    newPosts.addAll(postList);
+                                    PostListModel.get().setValue(newPosts);
+                                }else{ // 20개
+                                    PostListModel.get().setValue(newPosts);
+                                }
+                                recyclerView.smoothScrollToPosition(0);
+                            } else {
+                                Log.d("실패함", "Error getting documents: ", task.getException());
+                            }
+                        }
+                    });
+        }else{
+            db.collection(location)
+                    .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate)
+                    .limit(Upload_Limit)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    Log.d("가져옴", document.getId() + " => " + document.getData());
+                                    newPosts.add(new PostInfo(
+                                                    document.get("id").toString(),
+                                                    document.get("publisher").toString(),
+                                                    document.get("title").toString(),
+                                                    document.get("contents").toString(),
+                                                    (ArrayList<String>) document.getData().get("formats"),
+                                                    new Date(document.getDate("createdAt").getTime()),
+                                                    document.getId(),
+                                                    Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
+                                                    (ArrayList<String>) document.getData().get("storagepath")
+                                            )
+                                    );
+                                }
+                                PostListModel.get().setValue(newPosts);
+                                recyclerView.smoothScrollToPosition(0);
+                            } else {
+                                Log.d("실패함", "Error getting documents: ", task.getException());
+                            }
+                        }
+                    });
+        }
+    }
+
+    public void DownScrolled(){
+
+        ArrayList<PostInfo> newPosts = new ArrayList<>();
+        ArrayList<PostInfo> temp = deepCopy(postList);
+        Date date = postList.size() == 0 ? new Date() : postList.get(postList.size() - 1).getCreatedAt();
+
+        db.collection(location)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
+                .limit(Upload_Limit)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d("가져옴", document.getId() + " => " + document.getData());
+                                newPosts.add(new PostInfo(
+                                                document.get("id").toString(),
+                                                document.get("publisher").toString(),
+                                                document.get("title").toString(),
+                                                document.get("contents").toString(),
+                                                (ArrayList<String>) document.getData().get("formats"),
+                                                new Date(document.getDate("createdAt").getTime()),
+                                                document.getId(),
+                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
+                                                (ArrayList<String>) document.getData().get("storagepath")
+                                        )
+                                );
+                            }
+                            temp.addAll(newPosts);
+                            PostListModel.get().setValue(temp);
+                        } else {
+                            Log.d("실패함", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    }
+
     private void RecyclerInit(Activity activity,View view) {//저장된 db에서 내용을 뽑아오는 로직
 
         mAuth = FirebaseAuth.getInstance();
-        user = mAuth.getCurrentUser();
         db = FirebaseFirestore.getInstance();
         recyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_frag);
 
@@ -182,7 +307,7 @@ public class BoardFragment extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         postAdapter = new PostAdapter(activity); //처음엔 비어있는 list를 넣어줬음
 //        postAdapter.setHasStableIds(true); 이걸쓰면 게시물 시간이 재사용되서 리셋이 안되는 이슈가 발생
-//        postAdapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
+//        postAdapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY); //스크롤 저장하는건데 필요없어짐
         recyclerView.setAdapter(postAdapter);
 
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
@@ -200,10 +325,10 @@ public class BoardFragment extends Fragment {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) { //아래 갱신
                 super.onScrolled(recyclerView, dx, dy);
-                        if (!recyclerView.canScrollVertically(1)) { //끝에 도달하면 추가
-                            DownScrolled();
-                        }
-                    }
+                if (!recyclerView.canScrollVertically(1)) { //끝에 도달하면 추가
+                    DownScrolled();
+                }
+            }
         });
 
         swipe.setColorSchemeResources(
@@ -228,89 +353,6 @@ public class BoardFragment extends Fragment {
                 },1000);
             }
         });
-    }
-
-    private void UpScrolled() { // (글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
-
-        Date newdate = new Date();
-//        Date olddate = postList.get(postList.size()-1).getCreatedAt();
-//        .whereGreaterThan("createdAt",olddate) todo 새로고침이 원했던 로직처럼 효율적으로 안되고 전부 새로고쳐지므로 이걸 넣어야하는데 일단 현재 좋ㅇ요버그 수정후에 추가예정
-        ArrayList<PostInfo> newPosts = new ArrayList<>();
-
-        db.collection(location)
-                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate)
-                .limit(Upload_Limit)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d("가져옴", document.getId() + " => " + document.getData());
-                                newPosts.add(new PostInfo(
-                                                document.get("id").toString(),
-                                                document.get("publisher").toString(),
-                                                document.get("title").toString(),
-                                                document.get("contents").toString(),
-                                                (ArrayList<String>) document.getData().get("formats"),
-                                                new Date(document.getDate("createdAt").getTime()),
-                                                document.getId(),
-                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                (ArrayList<String>) document.getData().get("storagepath")
-                                        )
-                                );
-                            }
-//                            if(newPosts.size() < Upload_Limit){
-//                                newPosts.addAll(postList);
-//                            }
-//                            postList.clear();
-//                            postList.addAll(newPosts);
-//                            PostListModel.get().setValue(postList);
-                            PostListModel.get().setValue(newPosts);
-                            postList.clear();
-                            postList.addAll(newPosts);
-                            recyclerView.smoothScrollToPosition(0);
-                        } else {
-                            Log.d("실패함", "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-
-    }
-
-    public void DownScrolled(){
-
-        Date date = postList.size() == 0 ? new Date() : postList.get(postList.size() - 1).getCreatedAt();
-
-        db.collection(location)
-                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
-                .limit(Upload_Limit)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d("가져옴", document.getId() + " => " + document.getData());
-                                postList.add(new PostInfo(
-                                                document.get("id").toString(),
-                                                document.get("publisher").toString(),
-                                                document.get("title").toString(),
-                                                document.get("contents").toString(),
-                                                (ArrayList<String>) document.getData().get("formats"),
-                                                new Date(document.getDate("createdAt").getTime()),
-                                                document.getId(),
-                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                (ArrayList<String>) document.getData().get("storagepath")
-                                        )
-                                );
-                            }
-                            PostListModel.get().setValue(postList);
-                        } else {
-                            Log.d("실패함", "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
     }
 
     private void removeScrollPullUpListener(){
