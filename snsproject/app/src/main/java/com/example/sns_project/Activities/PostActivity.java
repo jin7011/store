@@ -138,9 +138,10 @@ public class PostActivity extends AppCompatActivity {
         }
 
     }
+    @SuppressLint("SetTextI18n")
     public void good_up_btn(View view){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
 
-       //postinfo로 해당게시물에 좋아요를 누른 사람 id를 저장해주고,
+        //postinfo로 해당게시물에 좋아요를 누른 사람 id를 저장해주고,
         //좋아요 누른 사람이 중복으로 누르지않게 id를 찾아서 있으면 아닌거고 없으면 좋아요+1
         if(postInfo.getId().equals(user.getUid())){
             Toast("자신의 게시물에는 좋아요를 누를 수 없습니다.");
@@ -160,6 +161,14 @@ public class PostActivity extends AppCompatActivity {
                         {
                             Toast("이미 눌렀어요!");
                         }else{ //처음 누른다면
+                            //이곳에서 미리 텍스트처리
+                            GOOD_ACTION = true;
+                            String good = binding.goodNumPostT.getText().toString();
+                            binding.goodNumPostT.setText( ( Integer.parseInt(good)+1 )+"" );
+                            Toast("좋아요!");
+
+
+                            //이후에 백그라운드로 DB처리
                             good_users.put(user.getUid(),1);
                             docref.update("good_user",good_users).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
@@ -168,17 +177,19 @@ public class PostActivity extends AppCompatActivity {
                                         //좋아요가 db에 올라간 이후
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
-                                            GOOD_ACTION = true;
+//                                            GOOD_ACTION = true;
                                             ////////////////////////////////////////////////////////////////////////////////////////////////게시글에서 바로 좋아요가 갱신되는 걸 나타내야함.
-                                            docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                                //다시 게시물을 가져와서 굳이?라고 할법하지만 그냥 +1이 아니라 동시사용자가 있기때문에 현재상황 반영
-                                                @Override
-                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                    DocumentSnapshot document = task.getResult();
-                                                    binding.goodNumPostT.setText(document.get("good").toString());
-                                                    Toast("좋아요!");
-                                                }
-                                            });
+//                                            docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//                                                //다시 게시물을 가져와서 굳이?라고 할법하지만 그냥 +1이 아니라 동시사용자가 있기때문에 현재상황 반영
+//                                                //(todo)하지만 고민중.. 속도가 느려져서 반영이 빨리안되면 오히려 불편하기 떄문에 그냥 +1을 할까 생각중 하지만 어차피 db에 넣아야하는건 마찬가지라서 고민댐
+//                                                //(todo) 고민끝났음 어차피 db는 background에서 돌아가니까 상관없고 빨리 처리하기위헤서 그냥 +1로 텍스트만 바꿔주기로.
+//                                                @Override
+//                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                                                    DocumentSnapshot document = task.getResult();
+//                                                    binding.goodNumPostT.setText(document.get("good").toString());
+//                                                    Toast("좋아요!");
+//                                                }
+//                                            });
                                         }
                                     });
                                 }
@@ -253,7 +264,7 @@ public class PostActivity extends AppCompatActivity {
     public void toMain(int result,String docid){ //게시물번호를 넘겨주고 frag에서 처리하기위함.
         Intent intent = new Intent();
         intent.putExtra("docid",docid);
-        setResult(WriteResult,intent);
+        setResult(result,intent);
         finish();
     }
 

@@ -127,7 +127,7 @@ public class BoardFragment extends Fragment {
         boolean flag = false;
 
         for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
-            if(postList.get(x).getDocid() == docid){
+            if(postList.get(x).getDocid().equals(docid)){
                 postList.remove(x);
                 PostListModel.get().setValue(postList);
                 flag = true;
@@ -151,10 +151,15 @@ public class BoardFragment extends Fragment {
             // 좋아요의 경우 보이기엔 그냥 +1로 해주자 새로 갱신해줄만큼 가치있지않음
             // 보통 좋아요 누르면 +1 되는거보고 그냥 가니까, 그게 아니라 궁금하면 새로고침했을 때 db에서 좋아요 불러오므로 확실하게 확인가능.
             //(todo)삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
+            //todo 게시글에 좋아요 안올라가는 버그 발생 -> main에서 docid를 정확하게 받아오면서부터 이상하게 upscroll마저도 좋아요 리셋이 안됌 diff에서 똑같다고 판단함 , 웃긴건 downscroll하면 정상표기됌 아무래도 자료형을 유심히봐야겟음
             PostInfo postInfo = postList.get(x);
-            if(postInfo.getDocid() == docid){
-                postInfo.setGood(postInfo.getGood()+1);
-                PostListModel.get().setValue(postList);
+            if(postInfo.getDocid().equals(docid)){
+                ArrayList<PostInfo> temp;
+                temp = deepCopy(postList);
+                temp.get(x).setGood(temp.get(x).getGood()+1);
+                PostListModel.get().setValue(temp);
+                postList.clear();
+                postList.addAll(temp);
                 flag = true;
                 break;
             }
@@ -227,11 +232,13 @@ public class BoardFragment extends Fragment {
 
     private void UpScrolled() { // (글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
 
-        Date date = new Date();
+        Date newdate = new Date();
+//        Date olddate = postList.get(postList.size()-1).getCreatedAt();
+//        .whereGreaterThan("createdAt",olddate) todo 새로고침이 원했던 로직처럼 효율적으로 안되고 전부 새로고쳐지므로 이걸 넣어야하는데 일단 현재 좋ㅇ요버그 수정후에 추가예정
         ArrayList<PostInfo> newPosts = new ArrayList<>();
 
         db.collection(location)
-                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate)
                 .limit(Upload_Limit)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -253,12 +260,15 @@ public class BoardFragment extends Fragment {
                                         )
                                 );
                             }
-                            if(newPosts.size() < Upload_Limit){
-                                newPosts.addAll(postList);
-                            }
+//                            if(newPosts.size() < Upload_Limit){
+//                                newPosts.addAll(postList);
+//                            }
+//                            postList.clear();
+//                            postList.addAll(newPosts);
+//                            PostListModel.get().setValue(postList);
+                            PostListModel.get().setValue(newPosts);
                             postList.clear();
                             postList.addAll(newPosts);
-                            PostListModel.get().setValue(postList);
                             recyclerView.smoothScrollToPosition(0);
                         } else {
                             Log.d("실패함", "Error getting documents: ", task.getException());
@@ -309,6 +319,16 @@ public class BoardFragment extends Fragment {
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             }
         });
+    }
+
+    public ArrayList<PostInfo> deepCopy(ArrayList<PostInfo> oldone){
+
+        ArrayList<PostInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++)
+            newone.add(new PostInfo(oldone.get(x)));
+
+        return newone;
     }
 
 }

@@ -22,6 +22,22 @@ public class PostInfo implements Serializable {
     private HashMap<String,Integer> good_user = new HashMap<String,Integer>(); //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
     private ArrayList<CommentInfo> comments= new ArrayList<>();  //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
 
+    public PostInfo(PostInfo p){
+        this.title = p.getTitle();
+        this.contents = p.getContents();
+        this.publisher = p.getPublisher();
+        this.createdAt = p.getCreatedAt();
+        this.formats = p.getFormats();
+        this.id = p.getId();
+        this.docid = p.getDocid();
+        this.good = p.getGood();
+        this.comment = p.getComment();
+        this.location = p.getLocation();
+        this.storagePath = p.getStoragePath();
+        this.good_user = p.getGood_user(); //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
+        this.comments= p.getComments();  //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
+    }
+
     public PostInfo(String id, String publisher, String title, String contents, ArrayList<String> formats, Date createdAt,String location ){ //글쓰기에서 쓰임(파일포함)
         this.title = title;
         this.contents = contents;

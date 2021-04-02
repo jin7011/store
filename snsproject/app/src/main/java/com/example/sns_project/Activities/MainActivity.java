@@ -264,15 +264,14 @@ public class MainActivity extends AppCompatActivity {
 
         if (resultCode == DeleteResult) { //글삭제 리턴값
             Log.d("From PostActivity","requestCode: "+requestCode);
-            Intent intent = getIntent();
-            String docid = intent.getStringExtra("docid");
+            String docid = data.getStringExtra("docid");
             boardFragment.postUpdate(DeleteResult,docid);
         }
 
         if (resultCode == GoodResult) { //좋아요/삭제/(댓글추가) 리턴값
             Log.d("From PostActivity","requestCode: "+requestCode);
-            Intent intent = getIntent();
-            String docid = intent.getStringExtra("docid");
+//            Intent intent = getIntent();
+            String docid = data.getStringExtra("docid");
             boardFragment.postUpdate(GoodResult,docid);
         }
 

@@ -122,10 +122,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
     }
 
 
-        @Override
-    public long getItemId(int position) {
-        return postList.get(position).hashCode();
-    }
+//        @Override
+//    public long getItemId(int position) {
+//        return postList.get(position).hashCode();
+//    }
 
 //    @Override
 //    public int getItemViewType(int position) {
