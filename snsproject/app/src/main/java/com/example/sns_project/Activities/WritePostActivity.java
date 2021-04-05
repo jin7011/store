@@ -161,7 +161,7 @@ public class WritePostActivity extends AppCompatActivity {
                         location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
                         Log.d("지격탐색",location);
 
-                        final DocumentReference documentReference = postInfo == null ? db.collection(location).document() : db.collection(location).document(postInfo.getId());
+                        final DocumentReference documentReference = postInfo == null ? db.collection(location).document() : db.collection(location).document(postInfo.getDocid());
                         final Date date = postInfo == null ? new Date() : postInfo.getCreatedAt();
                         final ArrayList<String> formatList = new ArrayList<>();
                         final ArrayList<String> storagePath = new ArrayList<>();

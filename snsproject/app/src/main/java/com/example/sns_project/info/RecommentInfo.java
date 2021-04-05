@@ -2,20 +2,17 @@ package com.example.sns_project.info;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import java.util.ArrayList;
 import java.util.Date;
 
-public class CommentInfo implements Parcelable {
+public class RecommentInfo implements Parcelable{
 
     private String contents;
     private String publisher;
     private Date createdAt;
     private String id;
     private int good;
-//    private ArrayList<RecommentInfo> recomments = new ArrayList<>();
 
-    public CommentInfo(String contents, String publisher, Date createdAt, String id, int good) {
+    public RecommentInfo(String contents, String publisher, Date createdAt, String id, int good) {
         this.contents = contents;
         this.publisher = publisher;
         this.createdAt = createdAt;
@@ -23,13 +20,12 @@ public class CommentInfo implements Parcelable {
         this.good = good;
     }
 
-    protected CommentInfo(Parcel in) {
+    protected RecommentInfo(Parcel in) {
         contents = in.readString();
         publisher = in.readString();
         createdAt = new Date(in.readLong());
         id = in.readString();
         good = in.readInt();
-//        recomments = in.createTypedArrayList(RecommentInfo.CREATOR);
     }
 
     @Override
@@ -39,7 +35,6 @@ public class CommentInfo implements Parcelable {
         dest.writeLong(createdAt.getTime());
         dest.writeString(id);
         dest.writeInt(good);
-//        dest.writeTypedList(recomments);
     }
 
     @Override
@@ -47,15 +42,15 @@ public class CommentInfo implements Parcelable {
         return 0;
     }
 
-    public static final Creator<CommentInfo> CREATOR = new Creator<CommentInfo>() {
+    public static final Creator<RecommentInfo> CREATOR = new Creator<RecommentInfo>() {
         @Override
-        public CommentInfo createFromParcel(Parcel in) {
-            return new CommentInfo(in);
+        public RecommentInfo createFromParcel(Parcel in) {
+            return new RecommentInfo(in);
         }
 
         @Override
-        public CommentInfo[] newArray(int size) {
-            return new CommentInfo[size];
+        public RecommentInfo[] newArray(int size) {
+            return new RecommentInfo[size];
         }
     };
 
@@ -89,11 +84,6 @@ public class CommentInfo implements Parcelable {
     public void setGood(int good) {
         this.good = good;
     }
-//    public ArrayList<RecommentInfo> getRecomments() {
-//        return recomments;
-//    }
-//    public void setRecomments(ArrayList<RecommentInfo> comments) {
-//        this.recomments = comments;
-//    }
 
 }
+

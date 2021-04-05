@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,31 +17,45 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 
+import com.example.sns_project.Adapter.CommentsAdapter;
+import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.Adapter.ShowPostImageAdapter;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityPostBinding;
+import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
+import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.Named;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import org.w3c.dom.Comment;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
 import static com.example.sns_project.util.Named.DeleteResult;
 import static com.example.sns_project.util.Named.GoodResult;
+import static com.example.sns_project.util.Named.PostAddComment;
+import static com.example.sns_project.util.Named.PostInitComment;
 import static com.example.sns_project.util.Named.WriteResult;
 
 //이 곳에서 작성한 글과 파일을 볼 수 있으며 댓글과 좋아요 버튼을 누를 수 있다.
@@ -58,6 +73,9 @@ public class PostActivity extends AppCompatActivity {
     private ActionBar actionBar;
     private Named named = new Named();
     private boolean GOOD_ACTION = false;
+    private boolean COMMENT_ACTION = false;
+    private CommentsAdapter commentsAdapter;
+    private ArrayList<CommentInfo> comments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,9 +88,142 @@ public class PostActivity extends AppCompatActivity {
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference();
 
-        postInfo = (PostInfo) getIntent().getSerializableExtra("postInfo");
+        Bundle bundle = getIntent().getExtras();
+        postInfo = bundle.getParcelable("postInfo");
+
+//        postInfo = (PostInfo) getIntent().getParcelableExtra("postInfo"); //홀더에서 받아온 게시물정보
+
+        Log.d("포스트액티","getComments: "+postInfo.getComments());
+        Log.d("포스트액티","getCreatedAt: "+postInfo.getCreatedAt());
+        Log.d("포스트액티","getDocid: "+postInfo.getDocid());
+        Log.d("포스트액티","getGood_user: "+postInfo.getGood_user());
+        Log.d("포스트액티","getGood: "+postInfo.getGood());
+        Log.d("포스트액티","getComment: "+postInfo.getComment());
+        Log.d("포스트액티","getFormats: "+postInfo.getFormats());
+        Log.d("포스트액티","getId: "+postInfo.getId());
+        Log.d("포스트액티","getContents: "+postInfo.getContents());
+        Log.d("포스트액티","getLocation: "+postInfo.getLocation());
+        Log.d("포스트액티","getPublisher: "+postInfo.getPublisher());
+        Log.d("포스트액티","getTitle: "+postInfo.getTitle());
+        Log.d("포스트액티","getStoragePath: "+postInfo.getStoragePath());
         setPost();
         setToolbar();
+
+        binding.AddCommentBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                add_comment();
+            }
+        });
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void setPost() {
+
+        binding.nicknamePostT.setText(postInfo.getPublisher());
+        binding.datePostT.setText(new SimpleDateFormat("yyyy/MM/dd hh:mm", Locale.getDefault()).format(postInfo.getCreatedAt()));
+        binding.titlePostT.setText(postInfo.getTitle());
+        binding.contentPostT.setText(postInfo.getContents());
+        binding.goodNumPostT.setText(postInfo.getGood() + "");
+        binding.commentNumPostT.setText(postInfo.getComment() + "");
+        comments = postInfo.getComments();
+        Check_Comment(PostInitComment);
+        //todo 댓글추가해야함  (받아온 정보에 댓글이 있는지 확인하고 있으면 visible 해줘야함 그리고 리사이클러뷰 세팅해줘야댐 없으면 gone처리해줘야 재활용안댐)
+
+        if (postInfo.getFormats() != null && postInfo.getFormats().size() != 0) {
+            Log.d("겟포멧 널아님 입성","입성");
+            binding.formatsLinearLayout.setVisibility(View.VISIBLE);
+            Add_and_Set_ImageRecyclerView(PostActivity.this,postInfo.getFormats());
+        }
+
+    }
+
+    private void add_comment(){
+        String comment = binding.AddCommentT.getText().toString();
+        CommentInfo commentInfo = new CommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0);
+        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+
+        docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+                        commentInfoArrayList.add(commentInfo);
+                        docref.update("comments", commentInfoArrayList).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 db에 올리고,
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                docref.update("comment",commentInfoArrayList.size()).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 갯수 +1 해주고,
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Check_Comment(PostAddComment);
+                                        commentsAdapter.CommentInfo_DiffUtil(commentInfoArrayList);
+                                        comments.clear();
+                                        comments.addAll(commentInfoArrayList);
+                                        binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
+                                        hideKeyPad();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast("삭제된 게시물입니다.");
+            }
+        });
+    }
+
+    public void Check_Comment(int order){
+        Log.d("zzxzxzx:    ",comments.size()+"");
+
+        if(order == PostInitComment) {
+            if (comments.size() != 0) { //댓글이 있는 게시물은 갱신
+                Log.d("zzxzxzx:    ","init: "+PostInitComment+"");
+                binding.commentLinearLayout.setVisibility(View.VISIBLE);
+                Add_and_Set_CommentRecyclerView(PostActivity.this);
+                commentsAdapter.CommentInfo_DiffUtil(comments);
+            } else { //아님 닫음
+                binding.commentLinearLayout.setVisibility(View.GONE);
+            }
+        }
+
+        if(order == PostAddComment){
+            COMMENT_ACTION = true;
+            if (comments.size() == 0) {
+                binding.commentLinearLayout.setVisibility(View.VISIBLE);
+                Add_and_Set_CommentRecyclerView(PostActivity.this);
+            }
+        }
+    }
+
+    public void Add_and_Set_CommentRecyclerView(Activity activity){
+        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
+        binding.commentRecycler.setLayoutManager(layoutManager);
+        commentsAdapter = new CommentsAdapter(activity);
+        binding.commentRecycler.setAdapter(commentsAdapter);
+
+        RecyclerView.ItemAnimator animator = binding.commentRecycler.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+        }
+    }
+
+    public void Add_and_Set_ImageRecyclerView(Activity activity, ArrayList<String> formats){
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        binding.formatsRecycler.setLayoutManager(layoutManager);
+
+        ShowPostImageAdapter showPostImageAdapter = new ShowPostImageAdapter(activity,formats);
+        binding.formatsRecycler.setAdapter(showPostImageAdapter);
+
     }
 
     public void setToolbar(){
@@ -120,24 +271,6 @@ public class PostActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-    @SuppressLint("SetTextI18n")
-    private void setPost() {
-
-        binding.nicknamePostT.setText(postInfo.getPublisher());
-        binding.datePostT.setText(new SimpleDateFormat("yyyy/MM/dd hh:mm", Locale.getDefault()).format(postInfo.getCreatedAt()).toString());
-        binding.titlePostT.setText(postInfo.getTitle());
-        binding.contentPostT.setText(postInfo.getContents());
-        binding.goodNumPostT.setText(postInfo.getGood() + "");
-        binding.commentNumPostT.setText(postInfo.getComment() + "");
-
-        if (postInfo.getFormats() != null) {
-            Log.d("겟포멧 널아님 입성","입성");
-            binding.formatsLinearLayout.setVisibility(View.VISIBLE);
-            Add_and_SetRecyclerView(PostActivity.this,postInfo.getFormats());
-        }
-
-    }
     @SuppressLint("SetTextI18n")
     public void good_up_btn(View view){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
 
@@ -167,31 +300,12 @@ public class PostActivity extends AppCompatActivity {
                             binding.goodNumPostT.setText( ( Integer.parseInt(good)+1 )+"" );
                             Toast("좋아요!");
 
-
                             //이후에 백그라운드로 DB처리
                             good_users.put(user.getUid(),1);
                             docref.update("good_user",good_users).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
-                                    docref.update("good",good_users.size()).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        //좋아요가 db에 올라간 이후
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-//                                            GOOD_ACTION = true;
-                                            ////////////////////////////////////////////////////////////////////////////////////////////////게시글에서 바로 좋아요가 갱신되는 걸 나타내야함.
-//                                            docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-//                                                //다시 게시물을 가져와서 굳이?라고 할법하지만 그냥 +1이 아니라 동시사용자가 있기때문에 현재상황 반영
-//                                                //(todo)하지만 고민중.. 속도가 느려져서 반영이 빨리안되면 오히려 불편하기 떄문에 그냥 +1을 할까 생각중 하지만 어차피 db에 넣아야하는건 마찬가지라서 고민댐
-//                                                //(todo) 고민끝났음 어차피 db는 background에서 돌아가니까 상관없고 빨리 처리하기위헤서 그냥 +1로 텍스트만 바꿔주기로.
-//                                                @Override
-//                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-//                                                    DocumentSnapshot document = task.getResult();
-//                                                    binding.goodNumPostT.setText(document.get("good").toString());
-//                                                    Toast("좋아요!");
-//                                                }
-//                                            });
-                                        }
-                                    });
+                                    docref.update("good",good_users.size());
                                 }
                             });
                         }
@@ -202,16 +316,7 @@ public class PostActivity extends AppCompatActivity {
         });
     }
 
-    public void Add_and_SetRecyclerView(Activity activity, ArrayList<String> formats){
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        binding.formatsRecycler.setLayoutManager(layoutManager);
-
-        ShowPostImageAdapter showPostImageAdapter = new ShowPostImageAdapter(activity,formats);
-        binding.formatsRecycler.setAdapter(showPostImageAdapter);
-
-    }
+    //todo 좋아요 갱신하는 함수 따로만들어서 편하게쓰자
 
     private void PostDelete(int delcnt){
 
@@ -268,6 +373,26 @@ public class PostActivity extends AppCompatActivity {
         finish();
     }
 
+    public ArrayList<CommentInfo> get_commentArray_from_Firestore(DocumentSnapshot document){
+
+        ArrayList<CommentInfo> commentInfoArrayList = new ArrayList<>();
+
+        if(((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size() != 0){
+            for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size(); x++) {
+                HashMap<String, Object> map = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
+
+                CommentInfo commentInfo = new CommentInfo((String) map.get("contents"), (String) map.get("publisher"),
+                        ((Timestamp)map.get("createdAt")).toDate(),
+                        (String) map.get("id"),
+                        ((Long)(map.get("good"))).intValue());
+
+                commentInfoArrayList.add(commentInfo);
+            }
+        }
+
+        return commentInfoArrayList;
+    }
+
     @Override
     public void onBackPressed() {
 
@@ -277,6 +402,12 @@ public class PostActivity extends AppCompatActivity {
             finish();
         }
 
+    }
+
+    public void hideKeyPad(){
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(binding.AddCommentT.getWindowToken(), 0);
+        binding.AddCommentT.setText(null);
     }
 
     public void Toast(String str){

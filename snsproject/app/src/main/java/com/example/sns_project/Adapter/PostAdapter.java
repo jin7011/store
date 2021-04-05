@@ -19,20 +19,27 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.sns_project.Activities.PostActivity;
 import com.example.sns_project.R;
+import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
-import com.example.sns_project.util.PostInfoDiffUtil;
+import com.example.sns_project.util.Named;
+import com.example.sns_project.util.PostInfo_DiffUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.util.Named.HOUR;
+import static com.example.sns_project.util.Named.MIN;
+import static com.example.sns_project.util.Named.SEC;
+
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 
     private Activity activity;
     private ArrayList<PostInfo> postList = new ArrayList<>();
+    private Named named = new Named();
 
     public void PostInfoDiffUtil(ArrayList<PostInfo> newPosts) {
-        final PostInfoDiffUtil diffCallback = new PostInfoDiffUtil(this.postList, newPosts);
+        final PostInfo_DiffUtil diffCallback = new PostInfo_DiffUtil(this.postList, newPosts);
         final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
 
         this.postList.clear();
@@ -80,8 +87,19 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(activity, PostActivity.class);
-                Log.d("포스트어댑터","uid: "+postList.get(postHolder.getAdapterPosition()).getId());
-                intent.putExtra("postInfo", postList.get(postHolder.getAdapterPosition()));
+//                Log.d("포스트어댑터","getCreatedAt: "+postList.get(postHolder.getBindingAdapterPosition()).getCreatedAt());
+//                Log.d("포스트어댑터","getDocid: "+postList.get(postHolder.getBindingAdapterPosition()).getDocid());
+//                Log.d("포스트어댑터","getGood_user: "+postList.get(postHolder.getBindingAdapterPosition()).getGood_user());
+//                Log.d("포스트어댑터","getGood: "+postList.get(postHolder.getBindingAdapterPosition()).getGood());
+//                Log.d("포스트어댑터","getComment: "+postList.get(postHolder.getBindingAdapterPosition()).getComment());
+//                Log.d("포스트어댑터","getFormats: "+postList.get(postHolder.getBindingAdapterPosition()).getFormats());
+//                Log.d("포스트어댑터","getId: "+postList.get(postHolder.getBindingAdapterPosition()).getId());
+//                Log.d("포스트어댑터","getContents: "+postList.get(postHolder.getBindingAdapterPosition()).getContents());
+//                Log.d("포스트어댑터","getLocation: "+postList.get(postHolder.getBindingAdapterPosition()).getLocation());
+//                Log.d("포스트어댑터","getPublisher: "+postList.get(postHolder.getBindingAdapterPosition()).getPublisher());
+//                Log.d("포스트어댑터","getTitle: "+postList.get(postHolder.getBindingAdapterPosition()).getTitle());
+//                Log.d("포스트어댑터","getStoragePath: "+postList.get(postHolder.getBindingAdapterPosition()).getStoragePath());
+                intent.putExtra("postInfo", (PostInfo)postList.get(postHolder.getBindingAdapterPosition()));
                 activity.startActivityForResult(intent,2);
             }
         });
@@ -97,7 +115,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 
         holder.titleT.setText(postInfo.getTitle());
         holder.contentT.setText(postInfo.getContents());
-//        holder.dateT.setText(new SimpleDateFormat("MM/dd", Locale.getDefault()).format(postInfo.getCreatedAt()));
         holder.dateT.setText(formatTimeString(postInfo.getCreatedAt(),new Date()));
         holder.goodNum.setText(postInfo.getGood()+"");
         holder.commentNum.setText(postInfo.getComment()+"");
@@ -132,14 +149,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 //        return position;
 //    }
 
-    private static class TIME_MAXIMUM{
-        public static final int SEC = 60;
-        public static final int MIN = 60;
-        public static final int HOUR = 24;
-        public static final int DAY = 30;
-        public static final int MONTH = 12;
-    }
-
     public static String formatTimeString(Date postdate,Date nowDate){
 
         long ctime = nowDate.getTime();
@@ -148,11 +157,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         long diffTime = (ctime - regTime) / 1000;
         String msg = null;
 
-        if (diffTime < TIME_MAXIMUM.SEC) {
+        if (diffTime < SEC) {
             msg = "방금 전";
-        } else if ((diffTime /= TIME_MAXIMUM.SEC) < TIME_MAXIMUM.MIN) {
+        } else if ((diffTime /= SEC) < MIN) {
             msg = diffTime + "분 전";
-        } else if ((diffTime /= TIME_MAXIMUM.MIN) < TIME_MAXIMUM.HOUR) {
+        } else if ((diffTime /= MIN) < HOUR) {
             msg = new SimpleDateFormat("HH:mm").format(postdate);
 //        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
 //            msg = (diffTime) + "일 전";

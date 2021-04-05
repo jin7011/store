@@ -20,11 +20,13 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostList;
+import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.util.Named;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -33,7 +35,11 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.example.sns_project.util.Named.DOWN_SROLLED;
 import static com.example.sns_project.util.Named.DeleteResult;
@@ -177,6 +183,16 @@ public class BoardFragment extends Fragment {
             UpScrolled();
     }
 
+    public static List<?> convertObjectToList(Object obj) {
+        List<?> list = new ArrayList<>();
+        if (obj.getClass().isArray()) {
+            list = Arrays.asList((Object[])obj);
+        } else if (obj instanceof Collection) {
+            list = new ArrayList<>((Collection<?>)obj);
+        }
+        return list;
+    }
+
     private void UpScrolled() { // (글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
 
         Date newdate = new Date();
@@ -196,6 +212,9 @@ public class BoardFragment extends Fragment {
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
+
+                                    ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+
                                     Log.d("가져옴", document.getId() + " => " + document.getData());
                                     newPosts.add(new PostInfo(
                                                     document.get("id").toString(),
@@ -206,11 +225,11 @@ public class BoardFragment extends Fragment {
                                                     new Date(document.getDate("createdAt").getTime()),
                                                     document.getId(),
                                                     Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                    (ArrayList<String>) document.getData().get("storagepath")
+                                                    (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
+                                            (HashMap<String, Integer>)document.getData().get("good_user")
                                             )
                                     );
                                 }
-                                //////////////////////////////////////////////////////////////////
                                 if(newPosts.size() < Upload_Limit){ //20미만
                                     newPosts.addAll(postList);
                                     PostListModel.get().setValue(newPosts);
@@ -233,6 +252,10 @@ public class BoardFragment extends Fragment {
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
+                                    ///////////////////////////////////////////////////////실험중
+
+                                    ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+
                                     Log.d("가져옴", document.getId() + " => " + document.getData());
                                     newPosts.add(new PostInfo(
                                                     document.get("id").toString(),
@@ -243,7 +266,9 @@ public class BoardFragment extends Fragment {
                                                     new Date(document.getDate("createdAt").getTime()),
                                                     document.getId(),
                                                     Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                    (ArrayList<String>) document.getData().get("storagepath")
+                                                    //아무래도 여기서 데이터 가져올때 형변환이 제대로 안된거같은 기분이 든다.
+                                                    (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
+                                            (HashMap<String, Integer>)document.getData().get("good_user")
                                             )
                                     );
                                 }
@@ -257,8 +282,27 @@ public class BoardFragment extends Fragment {
         }
     }
 
-    public void DownScrolled(){
+    public ArrayList<CommentInfo> get_commentArray_from_Firestore(QueryDocumentSnapshot document){
 
+        ArrayList<CommentInfo> commentInfoArrayList = new ArrayList<>();
+
+        if(((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size() != 0){
+            for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size(); x++) {
+                HashMap<String, Object> map = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
+
+                CommentInfo commentInfo = new CommentInfo((String) map.get("contents"), (String) map.get("publisher"),
+                        ((Timestamp)map.get("createdAt")).toDate(),
+                        (String) map.get("id"),
+                        ((Long)(map.get("good"))).intValue());
+
+                commentInfoArrayList.add(commentInfo);
+            }
+        }
+
+        return commentInfoArrayList;
+    }
+
+    public void DownScrolled(){
         ArrayList<PostInfo> newPosts = new ArrayList<>();
         ArrayList<PostInfo> temp = deepCopy(postList);
         Date date = postList.size() == 0 ? new Date() : postList.get(postList.size() - 1).getCreatedAt();
@@ -272,6 +316,9 @@ public class BoardFragment extends Fragment {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
+
+                                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+
                                 Log.d("가져옴", document.getId() + " => " + document.getData());
                                 newPosts.add(new PostInfo(
                                                 document.get("id").toString(),
@@ -282,7 +329,8 @@ public class BoardFragment extends Fragment {
                                                 new Date(document.getDate("createdAt").getTime()),
                                                 document.getId(),
                                                 Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                (ArrayList<String>) document.getData().get("storagepath")
+                                                (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
+                                        (HashMap<String, Integer>)document.getData().get("good_user")
                                         )
                                 );
                             }

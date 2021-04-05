@@ -82,7 +82,7 @@
             android:layout_width="15dp"
             android:layout_height="15dp"
             android:layout_marginEnd="3dp"
-            app:srcCompat="@drawable/ic_goodnum_post_24" />
+            app:srcCompat="@drawable/ic__485477009_like_78561" />
 
         <TextView
             android:id="@+id/goodNum_postItem"

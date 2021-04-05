@@ -1,12 +1,15 @@
 package com.example.sns_project.info;
 
-import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PostInfo implements Serializable {
+public class PostInfo implements Parcelable{
 
     private String title;
     private String contents;
@@ -17,12 +20,13 @@ public class PostInfo implements Serializable {
     private String location;
     private String id;
     private String docid;
-    private int good; //어차피 자동으로 0이므로 post에서는 생성자에서 쓰이지 않았음
-    private int comment; //어차피 자동으로 0이므로 post에서는 생성자에서 쓰이지 않았음
-    private HashMap<String,Integer> good_user = new HashMap<String,Integer>(); //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
-    private ArrayList<CommentInfo> comments= new ArrayList<>();  //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
+    private int good;
+    private int comment;
+    private HashMap<String, Integer> good_user;
+    private ArrayList<CommentInfo> comments;
 
-    public PostInfo(PostInfo p){
+    public PostInfo(PostInfo p) {
+        //깊은 복사 전용
         this.title = p.getTitle();
         this.contents = p.getContents();
         this.publisher = p.getPublisher();
@@ -34,21 +38,12 @@ public class PostInfo implements Serializable {
         this.comment = p.getComment();
         this.location = p.getLocation();
         this.storagePath = p.getStoragePath();
-        this.good_user = p.getGood_user(); //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
-        this.comments= p.getComments();  //어차피 처음엔 무조건 0개이므로 post에서는 생성자에서 쓰이지 않았음
+        this.good_user = p.getGood_user();
+        this.comments = p.getComments();
     }
 
-    public PostInfo(String id, String publisher, String title, String contents, ArrayList<String> formats, Date createdAt,String location ){ //글쓰기에서 쓰임(파일포함)
-        this.title = title;
-        this.contents = contents;
-        this.formats = formats;
-        this.publisher = publisher;
-        this.createdAt = createdAt;
-        this.id = id;
-        this.location = location;
-    }
-
-    public PostInfo(String id, String publisher, String title, String contents,Date createdAt,String docid,String location ){ //글쓰기에서 쓰임(파일미포함)
+    public PostInfo(String id, String publisher, String title, String contents, Date createdAt, String docid, String location) {
+        //글쓰기에서 쓰임(파일미포함)
         this.title = title;
         this.contents = contents;
         this.publisher = publisher;
@@ -56,10 +51,15 @@ public class PostInfo implements Serializable {
         this.id = id;
         this.docid = docid;
         this.location = location;
+        this.good_user = new HashMap<>();
+        this.comments = new ArrayList<>();
+        this.good = 0;
+        this.comment = 0;
     }
 
-    public PostInfo(String id, String publisher, String title, String contents,ArrayList<String> formats,Date createdAt,String docid,int good,int comment,String location,ArrayList<String> storagePath){
-        //게시판 업로드용(format포함)
+    public PostInfo(String id, String publisher, String title, String contents, ArrayList<String> formats, Date createdAt, String docid, int good,
+                    int comment, String location, ArrayList<String> storagePath, ArrayList<CommentInfo> comments,HashMap<String, Integer> good_user) {
+        //게시판 갱신/업로드용(format포함)
         this.title = title;
         this.contents = contents;
         this.publisher = publisher;
@@ -71,76 +71,84 @@ public class PostInfo implements Serializable {
         this.comment = comment;
         this.location = location;
         this.storagePath = storagePath;
+        this.comments = comments;
+        this.good_user = good_user;
     }
 
-    public PostInfo(String id, String publisher, String title, String contents,Date createdAt,String docid,int good,int comment,String location ){
-        //게시판 업로드용(format미포함) 비동기 db저장하면서 리사이클러뷰에 넣는데 이상하게 오류나기땜에 따로 놨음
-        this.title = title;
-        this.contents = contents;
-        this.publisher = publisher;
-        this.createdAt = createdAt;
-        this.id = id;
-        this.docid = docid;
-        this.good = good;
-        this.comment = comment;
-        this.location = location;
-    }
-
-
-    public Map<String, Object> getPostInfo(){
+    public Map<String, Object> getPostInfo() {
         Map<String, Object> docData = new HashMap<>();
-        docData.put("id",id);
-        docData.put("title",title);
-        docData.put("contents",contents);
-        docData.put("formats",formats);
-        docData.put("publisher",publisher);
-        docData.put("docid",docid);
-        docData.put("createdAt",createdAt);
-        docData.put("location",location);
-        docData.put("good",good);
-        docData.put("comment",comment);
-        docData.put("storagepath",storagePath);
-        docData.put("good_user",good_user);
-        docData.put("comments",comments);
-        return  docData;
+        docData.put("id", id);
+        docData.put("title", title);
+        docData.put("contents", contents);
+        docData.put("formats", formats);
+        docData.put("publisher", publisher);
+        docData.put("docid", docid);
+        docData.put("createdAt", createdAt);
+        docData.put("location", location);
+        docData.put("good", good);
+        docData.put("comment", comment);
+        docData.put("storagepath", storagePath);
+        docData.put("good_user", good_user);
+        docData.put("comments", comments);
+        return docData;
     }
 
-    public ArrayList<String> getStoragePath() {return storagePath; }
-    public void setStoragePath(ArrayList<String> storagePath) {this.storagePath = storagePath; }
-    public String getTitle(){
+    public void setPostInfo(Map<String, Object> docData) {
+        this.title = (String)docData.get("title");
+        this.contents = (String)docData.get("contents");
+        this.publisher = (String)docData.get("publisher");
+        this.createdAt = (Date)docData.get("createdAt");
+        this.formats = (ArrayList<String>)docData.get("formats");
+        this.id = (String)docData.get("id");
+        this.docid =(String)docData.get("docid");
+        this.good = (int)docData.get("good");
+        this.comment = (int)docData.get("comment");
+        this.location = (String)docData.get("location");
+        this.storagePath = (ArrayList<String>)docData.get("storagepath");
+        this.comments = (ArrayList<CommentInfo>)docData.get("comments");
+        this.good_user = (HashMap<String, Integer>)docData.get("good_user");
+    }
+
+    public ArrayList<String> getStoragePath() {
+        return storagePath;
+    }
+    public void setStoragePath(ArrayList<String> storagePath) {
+        this.storagePath = storagePath;
+    }
+    public String getTitle() {
         return this.title;
     }
-    public void setTitle(String title){
+    public void setTitle(String title) {
         this.title = title;
     }
-    public String getContents(){
+    public String getContents() {
         return this.contents;
     }
-    public void setContents(String contents){
+    public void setContents(String contents) {
         this.contents = contents;
     }
-    public ArrayList<String> getFormats(){
+    public ArrayList<String> getFormats() {
         return this.formats;
     }
-    public void setFormats(ArrayList<String> formats){
+    public void setFormats(ArrayList<String> formats) {
         this.formats = formats;
     }
-    public String getPublisher(){
+    public String getPublisher() {
         return this.publisher;
     }
-    public void setPublisher(String publisher){
+    public void setPublisher(String publisher) {
         this.publisher = publisher;
     }
-    public Date getCreatedAt(){
+    public Date getCreatedAt() {
         return this.createdAt;
     }
-    public void setCreatedAt(Date createdAt){
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
-    public String getId(){
+    public String getId() {
         return this.id;
     }
-    public void setId(String id){
+    public void setId(String id) {
         this.id = id;
     }
     public String getDocid() {
@@ -158,9 +166,15 @@ public class PostInfo implements Serializable {
     public int getComment() {
         return comment;
     }
-    public String getLocation() {return location;}
-    public void setLocation(String location) { this.location = location; }
-    public void setComment(int comment) {this.comment = comment; }
+    public String getLocation() {
+        return location;
+    }
+    public void setLocation(String location) {
+        this.location = location;
+    }
+    public void setComment(int comment) {
+        this.comment = comment;
+    }
     public HashMap<String, Integer> getGood_user() {
         return good_user;
     }
@@ -173,4 +187,79 @@ public class PostInfo implements Serializable {
     public void setComments(ArrayList<CommentInfo> comments) {
         this.comments = comments;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    protected PostInfo(Parcel in) { // 받을 때
+
+        title = in.readString();
+        contents = in.readString();
+        formats = in.createStringArrayList();
+        storagePath = in.createStringArrayList();
+        publisher = in.readString();
+        createdAt = new Date(in.readLong());
+        location = in.readString();
+        id = in.readString();
+        docid = in.readString();
+        good = in.readInt();
+        comment = in.readInt();
+
+        int size = in.readInt();
+        if(size != 0) {
+            good_user = new HashMap<>();
+            for (int i = 0; i < size; i++) {
+                good_user.put(in.readString(), in.readInt());
+            }
+        }
+
+        comments = in.createTypedArrayList(CommentInfo.CREATOR);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) { //보낼때
+
+        dest.writeString(title);
+        dest.writeString(contents);
+        dest.writeStringList(formats);
+        dest.writeStringList(storagePath);
+        dest.writeString(publisher);
+        dest.writeLong(createdAt.getTime());
+        dest.writeString(location);
+        dest.writeString(id);
+        dest.writeString(docid);
+        dest.writeInt(good);
+        dest.writeInt(comment);
+
+        dest.writeInt(good_user.size());
+        for(Map.Entry<String, Integer> entry : good_user.entrySet()) {
+            String key = entry.getKey();
+            int val = Integer.parseInt(String.valueOf(entry.getValue())); //해쉬값에 있는 int가 number형이라 에러났던건데 그거때문에 오래 삽질했음.
+            dest.writeString(key);
+            dest.writeInt(val);
+        }
+
+//        java.util.HashMap cannot be cast to com.example.sns_project.info.CommentInfo
+//        java.util.HashMap cannot be cast to android.os.Parcelable
+
+//        private ArrayList<CommentInfo> comments; 인데 왜 hashmap으로 읽히는지 이해가 ㅠ..
+        //firestore에서 들어올 때 커스텀객체를 인식못하고 ArrayList<HashMap<String,Object>>로 읽어옴
+        dest.writeTypedList(comments);
+
+    }
+
+    public static final Creator<PostInfo> CREATOR = new Creator<PostInfo>() {
+        @Override
+        public PostInfo createFromParcel(Parcel in) {
+            return new PostInfo(in);
+        }
+
+        @Override
+        public PostInfo[] newArray(int size) {
+            return new PostInfo[size];
+        }
+    };
+
 }

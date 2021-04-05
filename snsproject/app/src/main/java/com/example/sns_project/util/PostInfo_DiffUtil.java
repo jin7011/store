@@ -9,12 +9,12 @@ import com.example.sns_project.info.PostInfo;
 
 import java.util.ArrayList;
 
-public class PostInfoDiffUtil extends DiffUtil.Callback{
+public class PostInfo_DiffUtil extends DiffUtil.Callback{
 
     private final ArrayList<PostInfo> oldPosts;
     private final ArrayList<PostInfo> newPosts;
 
-    public PostInfoDiffUtil(ArrayList<PostInfo> oldPosts, ArrayList<PostInfo> newPosts) {
+    public PostInfo_DiffUtil(ArrayList<PostInfo> oldPosts, ArrayList<PostInfo> newPosts) {
         this.oldPosts = oldPosts;
         this.newPosts = newPosts;
     }
