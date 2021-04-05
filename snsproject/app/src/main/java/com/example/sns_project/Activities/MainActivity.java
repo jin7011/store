@@ -39,8 +39,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 
 import static com.example.sns_project.util.Named.DeleteResult;
-import static com.example.sns_project.util.Named.GoodResult;
 import static com.example.sns_project.util.Named.None;
+import static com.example.sns_project.util.Named.Something_IN_Post;
 import static com.example.sns_project.util.Named.WriteResult;
 
 public class MainActivity extends AppCompatActivity {
@@ -268,11 +268,11 @@ public class MainActivity extends AppCompatActivity {
             boardFragment.postUpdate(DeleteResult,docid);
         }
 
-        if (resultCode == GoodResult) { //좋아요/삭제/(댓글추가) 리턴값
+        if (resultCode == Something_IN_Post) { //좋아요/(댓글추가) 리턴값
             Log.d("From PostActivity","requestCode: "+requestCode);
 //            Intent intent = getIntent();
             String docid = data.getStringExtra("docid");
-            boardFragment.postUpdate(GoodResult,docid);
+            boardFragment.postUpdate(Something_IN_Post,docid);
         }
 
     }

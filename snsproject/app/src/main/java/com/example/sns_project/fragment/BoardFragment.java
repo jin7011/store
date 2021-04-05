@@ -28,7 +28,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -43,7 +42,7 @@ import java.util.List;
 
 import static com.example.sns_project.util.Named.DOWN_SROLLED;
 import static com.example.sns_project.util.Named.DeleteResult;
-import static com.example.sns_project.util.Named.GoodResult;
+import static com.example.sns_project.util.Named.Something_IN_Post;
 import static com.example.sns_project.util.Named.UP_SROLLED;
 import static com.example.sns_project.util.Named.Upload_Limit;
 import static com.example.sns_project.util.Named.WriteResult;
@@ -128,8 +127,8 @@ public class BoardFragment extends Fragment {
             DownScrolled();
         else if(request == UP_SROLLED || request == WriteResult) //위로 새로고침하거나 글쓰고 왔을 때
             UpScrolled();
-        else if(request == GoodResult) // 다른 게시물에 좋아요버튼 누르고 왔을 때
-            GoodPressed(docid);
+        else if(request == Something_IN_Post) // 다른 게시물에 좋아요버튼 누르고 왔을 때
+            Good_or_Comment(docid);
         else if(request == DeleteResult){ // 내 게시물을 삭제하고 왔을 때
             Deleted(docid);
         }
@@ -137,7 +136,7 @@ public class BoardFragment extends Fragment {
     }
     //todo 댓글을 달고오면 리셋 ( 한마디로 포스트내에서 뭔가를 하고 오면 리셋 아니면 굳이 보고온 것만으로는 갱신 x )
 
-    private void GoodPressed(String docid) { //좋아요
+    private void Good_or_Comment(String docid) { //좋아요
 
         //(좋아요 누르고 나옴) 스크롤을 가능한 유지하고, 리스트 상태를 새로 고침.
         //아무래도 리셋할거 없이 해당 포지션을 어댑터에서 전달하고 그걸actvity에서 받아와서 수정한다음 이쪽으로
@@ -148,7 +147,7 @@ public class BoardFragment extends Fragment {
         for(int x =0; x<postList.size(); x++){
             // 좋아요의 경우 보이기엔 그냥 +1로 해주자 새로 갱신해줄만큼 가치있지않음
             // 보통 좋아요 누르면 +1 되는거보고 그냥 가니까, 그게 아니라 궁금하면 새로고침했을 때 db에서 좋아요 불러오므로 확실하게 확인가능.
-            //todo 사용자가 많아지면 포스트에서 어떠한 활동이라도 하고 나오면 해당 게시물만이 아니라 전부 리셋해주는 경우가 필요할 듯 그 경우는 actedOnPost같은 함수 만들어서 하나에 다 집어넣는게 좋을듯
+            //todo goodpressed를 Something_IN_Post로 이름바꿔주고 좋아요/댓글을 봤던 해당 글의 최신상태로 돌려받고 해당 글만 포스트에서 업데이트하자.
             PostInfo postInfo = postList.get(x);
             if(postInfo.getDocid().equals(docid)){
                 ArrayList<PostInfo> temp;
