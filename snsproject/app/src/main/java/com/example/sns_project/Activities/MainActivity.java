@@ -263,15 +263,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (resultCode == DeleteResult) { //글삭제 리턴값
-            Log.d("From PostActivity","requestCode: "+requestCode);
             String docid = data.getStringExtra("docid");
+            Log.d("From PostActivity","requestCode: "+requestCode+" docid: "+docid);
             boardFragment.postUpdate(DeleteResult,docid);
         }
 
         if (resultCode == Something_IN_Post) { //좋아요/(댓글추가) 리턴값
-            Log.d("From PostActivity","requestCode: "+requestCode);
-//            Intent intent = getIntent();
             String docid = data.getStringExtra("docid");
+            Log.d("From PostActivity","requestCode: "+requestCode+" docid: "+docid);
             boardFragment.postUpdate(Something_IN_Post,docid);
         }
 

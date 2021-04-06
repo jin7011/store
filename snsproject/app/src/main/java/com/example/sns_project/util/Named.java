@@ -19,4 +19,5 @@ public class Named {
 
     public static final int PostInitComment = 2000;
     public static final int PostAddComment = 2001;
+
 }

@@ -28,6 +28,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -141,31 +142,55 @@ public class BoardFragment extends Fragment {
         //(좋아요 누르고 나옴) 스크롤을 가능한 유지하고, 리스트 상태를 새로 고침.
         //아무래도 리셋할거 없이 해당 포지션을 어댑터에서 전달하고 그걸actvity에서 받아와서 수정한다음 이쪽으로
         //넘겨주고 그것만 처리하는게 깔끔할 듯. 그 이후에 diffutil사용
-
+        //todo goodpressed를 Something_IN_Post로 이름바꿔주고 좋아요/댓글을 봤던 해당 글의 최신상태로 돌려받고 해당 글만 포스트에서 업데이트하자. ㅊㅊ
         boolean flag = false;
+        int idx = 0;
 
-        for(int x =0; x<postList.size(); x++){
-            // 좋아요의 경우 보이기엔 그냥 +1로 해주자 새로 갱신해줄만큼 가치있지않음
-            // 보통 좋아요 누르면 +1 되는거보고 그냥 가니까, 그게 아니라 궁금하면 새로고침했을 때 db에서 좋아요 불러오므로 확실하게 확인가능.
-            //todo goodpressed를 Something_IN_Post로 이름바꿔주고 좋아요/댓글을 봤던 해당 글의 최신상태로 돌려받고 해당 글만 포스트에서 업데이트하자.
+        for(int x =0; x<postList.size(); x++) { //해당 게시물의 position을 찾고,
             PostInfo postInfo = postList.get(x);
             if(postInfo.getDocid().equals(docid)){
-                ArrayList<PostInfo> temp;
-                temp = deepCopy(postList);
-                temp.get(x).setGood(temp.get(x).getGood()+1);
-                PostListModel.get().setValue(temp);
+                idx = x;
                 flag = true;
                 break;
             }
         }
 
-        if(!flag) //게시물을 검색해서 찾은 경우 그냥 리셋해주는게 좋다
-            UpScrolled();
+        if(flag){ //해당 게시물이 로드되어있던 거라면, 그것만 갱신
+            final PostInfo[] newpostInfo = new PostInfo[1];
+            int finalIdx = idx;
+            db.collection(location).document(docid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+                        newpostInfo[0] = new PostInfo(
+                                document.get("id").toString(),
+                                document.get("publisher").toString(),
+                                document.get("title").toString(),
+                                document.get("contents").toString(),
+                                (ArrayList<String>) document.getData().get("formats"),
+                                new Date(document.getDate("createdAt").getTime()),
+                                document.getId(),
+                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
+                                (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
+                                (HashMap<String, Integer>)document.getData().get("good_user")
+                        );
+                        ArrayList<PostInfo> temp;
+                        temp = deepCopy(postList);
+                        temp.remove(finalIdx);
+                        temp.add(finalIdx,newpostInfo[0]);
+                        PostListModel.get().setValue(temp);
+                    }
+                }
+            });
+        }
+
     }
 
     private void Deleted(String docid) { //삭제
-        //(todo)삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
-        boolean flag = false;
+        //삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
+//        boolean flag = false;
 
         for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
             if(postList.get(x).getDocid().equals(docid)){
@@ -173,13 +198,13 @@ public class BoardFragment extends Fragment {
                 temp = deepCopy(postList);
                 temp.remove(x);
                 PostListModel.get().setValue(temp);
-                flag = true;
+//                flag = true;
                 break;
             }
         }
-
-        if(!flag) //삭제한 게시글이 당장 리스트에 보이지 않는다면(아마도 올린지 좀 된 글의 경우 -> 보통 검색으로 자신의 게시물을 찾아서 삭제한경우) 그냥 리셋 4/1일버전에서는 작동할 일이 없을 것으로 보임.
-            UpScrolled();
+//
+//        if(!flag) //삭제한 게시글이 당장 리스트에 보이지 않는다면(아마도 올린지 좀 된 글의 경우 -> 보통 검색으로 자신의 게시물을 찾아서 삭제한경우) 그냥 리셋 4/1일버전에서는 작동할 일이 없을 것으로 보임.
+//            UpScrolled();
     }
 
     public static List<?> convertObjectToList(Object obj) {
@@ -281,7 +306,7 @@ public class BoardFragment extends Fragment {
         }
     }
 
-    public ArrayList<CommentInfo> get_commentArray_from_Firestore(QueryDocumentSnapshot document){
+    public ArrayList<CommentInfo> get_commentArray_from_Firestore(DocumentSnapshot document){
 
         ArrayList<CommentInfo> commentInfoArrayList = new ArrayList<>();
 
@@ -300,6 +325,7 @@ public class BoardFragment extends Fragment {
 
         return commentInfoArrayList;
     }
+
 
     public void DownScrolled(){
         ArrayList<PostInfo> newPosts = new ArrayList<>();

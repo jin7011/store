@@ -272,7 +272,7 @@ public class PostActivity extends AppCompatActivity {
     }
 
 
-    //todo 아예 포스트의 좋아요와 댓글까지 싹 갱신하는 함수를 만들자. 그래서 좋아요를 누르거나 댓글을 달면 바로 갱신될 수 있도록 해주자
+    //todo 아예 포스트의 좋아요와 댓글까지 싹 갱신하는 함수를 만들자. 그래서 좋아요를 누르거나 댓글을 달면 바로 갱신될 수 있도록 해주자  ㅊ
     @SuppressLint("SetTextI18n")
     public void good_up_btn(View view){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
 
