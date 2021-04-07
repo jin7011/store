@@ -91,7 +91,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
         @Override
         public void onBindViewHolder(@NonNull CommentsAdapter.CommentsHolder holder, int position) { //포지션에 맞게 이미지 셋업
 
-            //todo   java.lang.ClassCastException: java.util.HashMap cannot be cast to com.example.sns_project.info.CommentInfo
             CommentInfo commentInfo = comments.get(position);
 
             holder.contentT.setText(commentInfo.getContents());
@@ -116,7 +115,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
 //    public int getItemViewType(int position) {
 //        return position;
 //    }
-
 
         public static String formatTimeString(Date postdate,Date nowDate){
 

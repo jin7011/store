@@ -1,9 +1,8 @@
 package com.example.sns_project.util;
 
 public class Named {
-
-    public static final int DOWN_SROLLED = 0;
-    public static final int UP_SROLLED = 1;
+    public static final int DOWN_SROLLED = 500;
+    public static final int UP_SROLLED = 501;
     public static final int Upload_Limit = 20;
 
     public static final int WriteResult = 1000;

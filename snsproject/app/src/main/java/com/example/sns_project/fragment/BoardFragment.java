@@ -2,6 +2,7 @@ package com.example.sns_project.fragment;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -135,14 +136,12 @@ public class BoardFragment extends Fragment {
         }
 
     }
-    //todo 댓글을 달고오면 리셋 ( 한마디로 포스트내에서 뭔가를 하고 오면 리셋 아니면 굳이 보고온 것만으로는 갱신 x )
 
     private void Good_or_Comment(String docid) { //좋아요
 
         //(좋아요 누르고 나옴) 스크롤을 가능한 유지하고, 리스트 상태를 새로 고침.
         //아무래도 리셋할거 없이 해당 포지션을 어댑터에서 전달하고 그걸actvity에서 받아와서 수정한다음 이쪽으로
         //넘겨주고 그것만 처리하는게 깔끔할 듯. 그 이후에 diffutil사용
-        //todo goodpressed를 Something_IN_Post로 이름바꿔주고 좋아요/댓글을 봤던 해당 글의 최신상태로 돌려받고 해당 글만 포스트에서 업데이트하자. ㅊㅊ
         boolean flag = false;
         int idx = 0;
 
@@ -157,7 +156,7 @@ public class BoardFragment extends Fragment {
 
         if(flag){ //해당 게시물이 로드되어있던 거라면, 그것만 갱신
             final PostInfo[] newpostInfo = new PostInfo[1];
-            int finalIdx = idx;
+            int finalIdx = idx; //위 2줄은 비동기랑 맞추려고 어쩔수없이
             db.collection(location).document(docid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -207,103 +206,48 @@ public class BoardFragment extends Fragment {
 //            UpScrolled();
     }
 
-    public static List<?> convertObjectToList(Object obj) {
-        List<?> list = new ArrayList<>();
-        if (obj.getClass().isArray()) {
-            list = Arrays.asList((Object[])obj);
-        } else if (obj instanceof Collection) {
-            list = new ArrayList<>((Collection<?>)obj);
-        }
-        return list;
-    }
-
     private void UpScrolled() { // (글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
 
         Date newdate = new Date();
         ArrayList<PostInfo> newPosts = new ArrayList<>();
 
-        if(postList.size() != 0) {
-            //이미 리스트가 있고, 새로받아오는 리스트가 limit미만이라면, 그냥 덧붙이자.
-            Date olddate;
+        db.collection(location)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate)
+                .limit(Upload_Limit)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                ///////////////////////////////////////////////////////실험중
 
-            olddate = postList.get(0).getCreatedAt();
-            db.collection(location)
-                    .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate).whereGreaterThan("createdAt",olddate)
-                    .limit(Upload_Limit)
-                    .get()
-                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful()) {
-                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
 
-                                    ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-
-                                    Log.d("가져옴", document.getId() + " => " + document.getData());
-                                    newPosts.add(new PostInfo(
-                                                    document.get("id").toString(),
-                                                    document.get("publisher").toString(),
-                                                    document.get("title").toString(),
-                                                    document.get("contents").toString(),
-                                                    (ArrayList<String>) document.getData().get("formats"),
-                                                    new Date(document.getDate("createdAt").getTime()),
-                                                    document.getId(),
-                                                    Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                    (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
-                                            (HashMap<String, Integer>)document.getData().get("good_user")
-                                            )
-                                    );
-                                }
-                                if(newPosts.size() < Upload_Limit){ //20미만
-                                    newPosts.addAll(postList);
-                                    PostListModel.get().setValue(newPosts);
-                                }else{ // 20개
-                                    PostListModel.get().setValue(newPosts);
-                                }
-                                recyclerView.smoothScrollToPosition(0);
-                            } else {
-                                Log.d("실패함", "Error getting documents: ", task.getException());
+                                Log.d("가져옴", document.getId() + " => " + document.getData());
+                                newPosts.add(new PostInfo(
+                                                document.get("id").toString(),
+                                                document.get("publisher").toString(),
+                                                document.get("title").toString(),
+                                                document.get("contents").toString(),
+                                                (ArrayList<String>) document.getData().get("formats"),
+                                                new Date(document.getDate("createdAt").getTime()),
+                                                document.getId(),
+                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
+                                                //아무래도 여기서 데이터 가져올때 형변환이 제대로 안된거같은 기분이 든다.
+                                                (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
+                                                (HashMap<String, Integer>)document.getData().get("good_user")
+                                        )
+                                );
                             }
+                            PostListModel.get().setValue(newPosts);
+                            recyclerView.smoothScrollToPosition(0);
+                        } else {
+                            Log.d("실패함", "Error getting documents: ", task.getException());
                         }
-                    });
-        }else{
-            db.collection(location)
-                    .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate)
-                    .limit(Upload_Limit)
-                    .get()
-                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful()) {
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    ///////////////////////////////////////////////////////실험중
+                    }
+                });
 
-                                    ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-
-                                    Log.d("가져옴", document.getId() + " => " + document.getData());
-                                    newPosts.add(new PostInfo(
-                                                    document.get("id").toString(),
-                                                    document.get("publisher").toString(),
-                                                    document.get("title").toString(),
-                                                    document.get("contents").toString(),
-                                                    (ArrayList<String>) document.getData().get("formats"),
-                                                    new Date(document.getDate("createdAt").getTime()),
-                                                    document.getId(),
-                                                    Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                    //아무래도 여기서 데이터 가져올때 형변환이 제대로 안된거같은 기분이 든다.
-                                                    (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
-                                            (HashMap<String, Integer>)document.getData().get("good_user")
-                                            )
-                                    );
-                                }
-                                PostListModel.get().setValue(newPosts);
-                                recyclerView.smoothScrollToPosition(0);
-                            } else {
-                                Log.d("실패함", "Error getting documents: ", task.getException());
-                            }
-                        }
-                    });
-        }
     }
 
     public ArrayList<CommentInfo> get_commentArray_from_Firestore(DocumentSnapshot document){

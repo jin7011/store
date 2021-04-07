@@ -4,12 +4,14 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -128,7 +130,6 @@ public class PostActivity extends AppCompatActivity {
         binding.commentNumPostT.setText(postInfo.getComment() + "");
         comments = postInfo.getComments();
         Check_Comment(PostInitComment);
-        //todo 댓글추가해야함  (받아온 정보에 댓글이 있는지 확인하고 있으면 visible 해줘야함 그리고 리사이클러뷰 세팅해줘야댐 없으면 gone처리해줘야 재활용안댐)
 
         if (postInfo.getFormats() != null && postInfo.getFormats().size() != 0) {
             Log.d("겟포멧 널아님 입성","입성");
@@ -139,6 +140,9 @@ public class PostActivity extends AppCompatActivity {
     }
 
     private void add_comment(){
+        RelativeLayout loader = findViewById(R.id.loaderLyaout);
+        loader.setVisibility(View.VISIBLE);
+
         String comment = binding.AddCommentT.getText().toString();
         CommentInfo commentInfo = new CommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0);
         DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
@@ -163,6 +167,7 @@ public class PostActivity extends AppCompatActivity {
                                         comments.addAll(commentInfoArrayList);
                                         binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
                                         hideKeyPad();
+                                        loader.setVisibility(View.GONE);
                                     }
                                 });
                             }
@@ -271,7 +276,6 @@ public class PostActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     //todo 아예 포스트의 좋아요와 댓글까지 싹 갱신하는 함수를 만들자. 그래서 좋아요를 누르거나 댓글을 달면 바로 갱신될 수 있도록 해주자  ㅊ
     @SuppressLint("SetTextI18n")
     public void good_up_btn(View view){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
@@ -317,8 +321,6 @@ public class PostActivity extends AppCompatActivity {
 
         });
     }
-
-    //todo 좋아요 갱신하는 함수 따로만들어서 편하게쓰자
 
     private void PostDelete(int delcnt){
 
