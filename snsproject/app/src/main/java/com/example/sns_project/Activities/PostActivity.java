@@ -141,7 +141,8 @@ public class PostActivity extends AppCompatActivity {
 
     private void add_comment(){
         RelativeLayout loader = findViewById(R.id.loaderLyaout);
-        loader.setVisibility(View.VISIBLE);
+        loader.setVisibility(View.VISIBLE); //로딩화면
+        hideKeyPad(); //보기안좋으니까 키패드 내리고
 
         String comment = binding.AddCommentT.getText().toString();
         CommentInfo commentInfo = new CommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0);
@@ -167,7 +168,7 @@ public class PostActivity extends AppCompatActivity {
                                         comments.addAll(commentInfoArrayList);
                                         binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
                                         loader.setVisibility(View.GONE);
-                                        hideKeyPad();
+                                        binding.AddCommentT.setText(null);
                                     }
                                 });
                             }
@@ -411,7 +412,6 @@ public class PostActivity extends AppCompatActivity {
     public void hideKeyPad(){
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(binding.AddCommentT.getWindowToken(), 0);
-        binding.AddCommentT.setText(null);
     }
 
     public void Toast(String str){
