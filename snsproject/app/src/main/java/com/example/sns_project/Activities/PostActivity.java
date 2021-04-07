@@ -166,8 +166,8 @@ public class PostActivity extends AppCompatActivity {
                                         comments.clear();
                                         comments.addAll(commentInfoArrayList);
                                         binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
-                                        hideKeyPad();
                                         loader.setVisibility(View.GONE);
+                                        hideKeyPad();
                                     }
                                 });
                             }
