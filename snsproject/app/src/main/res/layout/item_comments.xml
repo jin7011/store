@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/get_outline_under"
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/commentbody_comments"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:background="@drawable/get_outline_commentitem"
         android:orientation="vertical">
 
         <LinearLayout
@@ -17,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="10dp"
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="3dp"
             android:orientation="horizontal">
@@ -51,6 +52,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0.1"
                     android:text="TextView"
+                    android:textColor="#8a000000"
                     android:textSize="10sp" />
 
 
@@ -60,45 +62,57 @@
                 android:id="@+id/good_btn_Frame"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/get_outline_commentitem"
-                android:divider="#37000000"
+                android:background="@drawable/get_outline_rec"
                 android:paddingHorizontal="5dp"
-                android:paddingVertical="1dp"
+                android:paddingVertical="0.5dp"
                 android:showDividers="middle">
 
-                <ImageView
-                    android:id="@+id/good_comment_comment"
+                <ImageButton
+                    android:id="@+id/good_comment_comments"
                     android:layout_width="15dp"
                     android:layout_height="15dp"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginBottom="4dp"
                     android:layout_weight="1"
-                    android:background="@drawable/ic_good_up_comment_24"
+                    android:background="@drawable/ic__goodupcomment_post"
                     android:text="Button" />
 
-                <!--                <View-->
-                <!--                    android:layout_width="0.8dp"-->
-                <!--                    android:layout_height="match_parent"-->
-                <!--                    android:background="#BDBDBD" />-->
+                <View
+                    android:layout_width="0.3dp"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:background="@color/dividecolor" />
 
-                <ImageView
+                <ImageButton
                     android:id="@+id/re_comment"
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginStart="7dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="7dp"
+                    android:layout_marginBottom="4dp"
                     android:layout_weight="1"
-                    android:background="@drawable/ic_letter_bottomnavigation"
+                    android:background="@drawable/ic_recomment_post"
                     android:text="Button" />
 
-                <ImageView
+                <View
+                    android:layout_width="0.3dp"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:background="@color/dividecolor" />
+
+                <ImageButton
                     android:id="@+id/opt_comment"
                     android:layout_width="15dp"
                     android:layout_height="15dp"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="2dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginBottom="4dp"
                     android:layout_weight="1"
-                    android:background="@drawable/ic_menu_button"
+                    android:background="@drawable/ic_option_post"
                     android:text="Button" />
 
             </LinearLayout>
@@ -117,7 +131,7 @@
                 android:id="@+id/comment_commentT"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:layout_marginBottom="8dp"
                 android:text="댓글내용"
                 android:textColor="#393636"
                 android:textSize="12sp" />
@@ -151,22 +165,14 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/commentLinearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_weight="1"
-            android:visibility="gone">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/commentRecycler"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-        </LinearLayout>
-
     </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recommentRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:visibility="gone" />
 </LinearLayout>

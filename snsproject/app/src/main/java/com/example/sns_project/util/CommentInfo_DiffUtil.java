@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil;
 
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
+import com.example.sns_project.info.RecommentInfo;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,11 +37,7 @@ public class CommentInfo_DiffUtil extends DiffUtil.Callback {
         final CommentInfo oldpost = oldPosts.get(oldItemPosition);
         final CommentInfo newpost = newPosts.get(newItemPosition);
 
-        // todo  java.lang.IllegalArgumentException: Cannot format given Object as a Date
-        String olddate = new SimpleDateFormat("yyyy:MM:dd:HH:mm:ss").format(oldpost.getCreatedAt());
-        String newDate = new SimpleDateFormat("yyyy:MM:dd:HH:mm:ss").format(newpost.getCreatedAt());
-
-        return olddate.equals(newDate);
+        return oldpost.getKey().equals(newpost.getKey());
     }
 
     @Override
@@ -48,7 +45,25 @@ public class CommentInfo_DiffUtil extends DiffUtil.Callback {
         final CommentInfo oldpost = oldPosts.get(oldItemPosition);
         final CommentInfo newpost = newPosts.get(newItemPosition);
 
-        return oldpost.getContents().equals(newpost.getContents()) && oldpost.getId().equals(newpost.getId());
+        return oldpost.getContents().equals(newpost.getContents()) && oldpost.getId().equals(newpost.getId()) && is_same_recomment(oldpost,newpost);
+    }
+
+    private boolean is_same_recomment(CommentInfo oldpost, CommentInfo newpost) {
+        ArrayList<RecommentInfo> oldrecomments = oldpost.getRecomments();
+        ArrayList<RecommentInfo> newrecomments = newpost.getRecomments();
+
+        if(oldrecomments.size() == newrecomments.size()){
+            for(int x=0; x<newrecomments.size(); x++){
+                long olddate = oldrecomments.get(x).getCreatedAt().getTime();
+                long newdate = newrecomments.get(x).getCreatedAt().getTime();
+
+                if(olddate == newdate)
+                    return true;
+            }
+            return false;
+        }else{
+            return false;
+        }
     }
 
     @Nullable

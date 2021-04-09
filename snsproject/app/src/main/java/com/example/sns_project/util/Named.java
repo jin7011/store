@@ -10,6 +10,12 @@ public class Named {
     public static final int Something_IN_Post = 1002;
     public static final String None = "None";
 
+    public static final int Write_Recomment = 3000;
+    public static final int Good_Comment = 3001;
+    public static final int Delete_Comment = 3002;
+    public static final int Good_Recomment = 3003;
+    public static final int Delete_Recomment = 3004;
+
     public static final int SEC = 60;
     public static final int MIN = 60;
     public static final int HOUR = 24;

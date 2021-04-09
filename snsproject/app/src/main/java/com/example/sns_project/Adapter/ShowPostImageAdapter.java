@@ -42,7 +42,6 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
 
         ImageView imageView = (ImageView) LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
         ShowPostImageHolder showPostImageHolder = new ShowPostImageHolder(imageView);
-        Log.d("holder","holder: "+showPostImageHolder.getAdapterPosition());
 
         return showPostImageHolder;
     }

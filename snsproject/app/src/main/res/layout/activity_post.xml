@@ -46,7 +46,7 @@
             android:focusableInTouchMode="true"
             app:layout_constrainedHeight="true"
             app:layout_constrainedWidth="true"
-            app:layout_constraintBottom_toTopOf="@id/c"
+            app:layout_constraintBottom_toTopOf="@id/commentFrame"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -83,7 +83,7 @@
                             android:gravity="start|center_vertical"
                             android:text="TextView"
                             android:textColor="@color/maincolor"
-                            android:textSize="16sp"
+                            android:textSize="15.5sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -91,17 +91,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.1"
-                            android:text="TextView" />
+                            android:text="TextView"
+                            android:textSize="12sp" />
 
 
                     </LinearLayout>
 
-                    <androidx.cardview.widget.CardView
+                    <FrameLayout
                         android:id="@+id/good_btn_Frame"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/corner"
-                        app:cardElevation="13dp">
+                        android:background="@drawable/get_outline_rec"
+                        android:padding="8dp">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -112,10 +113,10 @@
 
                             <ImageView
                                 android:id="@+id/opt_comment"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/ic_good"
+                                android:background="@drawable/ic__485477009_like_78561"
                                 android:text="Button" />
 
                             <TextView
@@ -127,7 +128,7 @@
                                 android:text="좋아요"
                                 android:textSize="12sp" />
                         </LinearLayout>
-                    </androidx.cardview.widget.CardView>
+                    </FrameLayout>
 
                 </LinearLayout>
 
@@ -154,7 +155,7 @@
                         android:id="@+id/content_postT"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:minHeight="50dp" />
+                        android:minHeight="20dp" />
 
                 </LinearLayout>
 
@@ -187,7 +188,7 @@
                         android:layout_height="18dp"
                         android:layout_weight="0"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/ic_commentnum" />
+                        android:background="@drawable/ic_commentnum_post" />
 
                     <TextView
                         android:id="@+id/commentNum_postT"
@@ -222,9 +223,6 @@
                     android:id="@+id/commentLinearLayout"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginBottom="10dp"
                     android:layout_weight="1"
                     android:visibility="gone">
 
@@ -240,15 +238,10 @@
 
         </androidx.core.widget.NestedScrollView>
 
-        <LinearLayout
-            android:id="@+id/c"
+        <FrameLayout
+            android:id="@+id/commentFrame"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            android:paddingStart="10dp"
-            android:paddingTop="5dp"
-            android:paddingEnd="5dp"
-            android:paddingBottom="5dp"
             app:layout_constrainedHeight="true"
             app:layout_constrainedWidth="true"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -256,25 +249,41 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/scrollView3">
 
-            <EditText
-                android:id="@+id/Add_commentT"
+            <LinearLayout
+                android:id="@+id/commentT_LinearLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/corner"
-                android:backgroundTint="@color/gray"
-                android:hint="댓글을 작성해주세요."
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
                 android:paddingStart="10dp"
-                android:textSize="13sp" />
+                android:paddingTop="5dp"
+                android:paddingEnd="5dp"
+                android:paddingBottom="5dp"
+                android:visibility="visible"
+                app:layout_constrainedHeight="true"
+                app:layout_constrainedWidth="true">
 
-            <ImageButton
-                android:id="@+id/Add_comment_btn"
-                android:layout_width="80dp"
-                android:layout_height="35dp"
-                android:layout_weight="1"
-                android:background="@drawable/ic_comment_send_24" />
+                <EditText
+                    android:id="@+id/Add_commentT"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/corner"
+                    android:backgroundTint="@color/gray"
+                    android:hint="댓글을 작성해주세요."
+                    android:paddingStart="10dp"
+                    android:textSize="13sp" />
 
-        </LinearLayout>
+                <ImageButton
+                    android:id="@+id/Add_comment_btn"
+                    android:layout_width="80dp"
+                    android:layout_height="35dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/ic_comment_send_post" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <include

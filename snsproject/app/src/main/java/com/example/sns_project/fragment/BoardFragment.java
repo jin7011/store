@@ -23,6 +23,7 @@ import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostList;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
+import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.Named;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -96,25 +97,28 @@ public class BoardFragment extends Fragment {
         PostListModel = new ViewModelProvider(getActivity()).get(LiveData_PostList.class);
         postList = PostListModel.getPostList();
 
-        if(postList.size() == 0){
-            RecyclerInit(getActivity(),view);
-            Log.d("zz","리사이클러뷰 이닛");
-        }
-
         //라이브데이터
         PostList_Observer = new Observer<ArrayList<PostInfo>>() { // 따로 라이프사이클없이 계속돌아가게 해놨음
             @Override
             public void onChanged(ArrayList<PostInfo> postInfos) {
-                postAdapter.PostInfoDiffUtil(postInfos);
-                PostListModel.setpostList(postInfos);
-                postList.clear();
-                postList.addAll(PostListModel.getPostList());
-                Log.d("zxczxc", "newPosts: " + postInfos.size());
-                Log.d("zxczxc", "PostListModel.getPostList: " + PostListModel.getPostList().size());
-                Log.d("zxczxc", "postList: " + postList.size());
+                if(postInfos != null) {
+                    //todo  Attempt to invoke virtual method 'void com.example.sns_project.Adapter.PostAdapter.PostInfoDiffUtil(java.util.ArrayList)' on a null object reference
+                    postAdapter.PostInfoDiffUtil(postInfos);
+                    PostListModel.setpostList(postInfos);
+                    postList.clear();
+                    postList.addAll(PostListModel.getPostList());
+                    Log.d("zxczxc", "newPosts: " + postInfos.size());
+                    Log.d("zxczxc", "PostListModel.getPostList: " + PostListModel.getPostList().size());
+                    Log.d("zxczxc", "postList: " + postList.size());
+                }
             }
         };
         PostListModel.get().observeForever(PostList_Observer);
+
+        if(postList.size() == 0){
+            RecyclerInit(getActivity(),view);
+            Log.d("zz","리사이클러뷰 이닛");
+        }
 
         RecyclerView_ScrollListener();
 
@@ -220,7 +224,6 @@ public class BoardFragment extends Fragment {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                ///////////////////////////////////////////////////////실험중
 
                                 ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
 
@@ -256,18 +259,41 @@ public class BoardFragment extends Fragment {
 
         if(((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size() != 0){
             for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size(); x++) {
-                HashMap<String, Object> map = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
+                HashMap<String, Object> commentsmap = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
 
-                CommentInfo commentInfo = new CommentInfo((String) map.get("contents"), (String) map.get("publisher"),
-                        ((Timestamp)map.get("createdAt")).toDate(),
-                        (String) map.get("id"),
-                        ((Long)(map.get("good"))).intValue());
+                CommentInfo commentInfo = new CommentInfo((String) commentsmap.get("contents"), (String) commentsmap.get("publisher"),
+                        ((Timestamp)commentsmap.get("createdAt")).toDate(),
+                        (String) commentsmap.get("id"),
+                        ((Long)(commentsmap.get("good"))).intValue(),
+                        get_RecommentArray_from_commentsmap(commentsmap),
+                        (String) commentsmap.get("key")
+                );
 
                 commentInfoArrayList.add(commentInfo);
             }
         }
 
         return commentInfoArrayList;
+    }
+
+    public ArrayList<RecommentInfo> get_RecommentArray_from_commentsmap(HashMap<String, Object> commentsmap ){
+        ArrayList<RecommentInfo> recommentInfoArrayList = new ArrayList<>();
+        ArrayList<HashMap<String, Object>> recomments = (ArrayList<HashMap<String, Object>>)commentsmap.get("recomments");
+
+        for(int x=0; x<recomments.size(); x++) {
+            HashMap<String, Object> recommentsmap = recomments.get(x);
+            RecommentInfo recommentInfo = new RecommentInfo(
+                    (String)recommentsmap.get("contents"),
+                    (String)recommentsmap.get("publisher"),
+                    ((Timestamp)recommentsmap.get("createdAt")).toDate(),
+                    (String)recommentsmap.get("id"),
+                    ((Long)(recommentsmap.get("good"))).intValue()
+            );
+
+            recommentInfoArrayList.add(recommentInfo);
+        }
+
+        return recommentInfoArrayList;
     }
 
 

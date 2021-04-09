@@ -2,6 +2,7 @@ package com.example.sns_project.Activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
@@ -25,6 +27,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import com.example.sns_project.Adapter.CommentsAdapter;
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.Adapter.ShowPostImageAdapter;
+import com.example.sns_project.Listener.Listener_CommentHolder;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivityPostBinding;
 import com.example.sns_project.info.CommentInfo;
@@ -53,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Random;
 
 import static com.example.sns_project.util.Named.DeleteResult;
 import static com.example.sns_project.util.Named.PostAddComment;
@@ -78,9 +82,10 @@ public class PostActivity extends AppCompatActivity {
     private boolean COMMENT_ACTION = false;
     private CommentsAdapter commentsAdapter;
     private ArrayList<CommentInfo> comments;
+    private CommentsAdapter.CommentsHolder PostcommentsHolder;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) { //todo 게시물 내부에 새로고침 만들어야하고 대댓글기능 활성화 시켜야함.
         super.onCreate(savedInstanceState);
         binding = ActivityPostBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -92,9 +97,7 @@ public class PostActivity extends AppCompatActivity {
 
         Bundle bundle = getIntent().getExtras();
         postInfo = bundle.getParcelable("postInfo");
-
 //        postInfo = (PostInfo) getIntent().getParcelableExtra("postInfo"); //홀더에서 받아온 게시물정보
-
         Log.d("포스트액티","getComments: "+postInfo.getComments());
         Log.d("포스트액티","getCreatedAt: "+postInfo.getCreatedAt());
         Log.d("포스트액티","getDocid: "+postInfo.getDocid());
@@ -114,7 +117,15 @@ public class PostActivity extends AppCompatActivity {
         binding.AddCommentBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                add_comment();
+                if(binding.AddCommentT.getText() != null && binding.AddCommentT.getText().toString().length() > 0) {
+                    if(PostcommentsHolder == null)
+                        add_comment();
+                    else
+                        add_recomment();
+                }
+                else{
+                    Toast("글자를 입력해주세요.");
+                }
             }
         });
     }
@@ -138,6 +149,67 @@ public class PostActivity extends AppCompatActivity {
         }
 
     }
+    private void add_recomment(){
+        if(PostcommentsHolder == null)
+            return;
+
+        RelativeLayout loader = findViewById(R.id.loaderLyaout);
+        loader.setVisibility(View.VISIBLE); //로딩화면
+        hideKeyPad(); //보기안좋으니까 키패드 내리고
+
+        String comment = binding.AddCommentT.getText().toString();
+        RecommentInfo recommentInfo = new RecommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0);
+        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+
+        docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+
+                        for(int x=0; x<commentInfoArrayList.size(); x++){
+                            String db_comment_key = commentInfoArrayList.get(x).getKey();
+                            String holder_comment_key = postInfo.getComments().get(PostcommentsHolder.getAbsoluteAdapterPosition()).getKey();
+
+                            //todo 'boolean java.lang.String.equals(java.lang.Object)' on a null object reference
+                            if(db_comment_key.equals(holder_comment_key)){ //db에서 대댓글을 달려고하는 해당 댓글을 key값으로 찾았다면,
+
+                                commentInfoArrayList.get(x).getRecomments().add(recommentInfo);
+
+                                docref.update("comments", commentInfoArrayList).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 db에 올리고,
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        docref.update("comment",commentInfoArrayList.size()).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 갯수 +1 해주고,
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                Check_Comment(PostAddComment);
+                                                commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
+                                                PostcommentsHolder = null;
+
+                                                commentsAdapter.CommentInfo_DiffUtil(commentInfoArrayList);
+                                                comments.clear();
+                                                comments.addAll(commentInfoArrayList);
+                                                binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
+                                                loader.setVisibility(View.GONE);
+                                                binding.AddCommentT.setText(null);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast("삭제된 게시물/댓글입니다.");
+            }
+        });
+    }
 
     private void add_comment(){
         RelativeLayout loader = findViewById(R.id.loaderLyaout);
@@ -145,7 +217,10 @@ public class PostActivity extends AppCompatActivity {
         hideKeyPad(); //보기안좋으니까 키패드 내리고
 
         String comment = binding.AddCommentT.getText().toString();
-        CommentInfo commentInfo = new CommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0);
+        Date date = new Date();
+
+        CommentInfo commentInfo = new CommentInfo(comment,user.getDisplayName(),date,user.getUid(),0,new ArrayList<>(),
+                postInfo.getDocid()+date.getTime());
         DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
 
         docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -207,12 +282,25 @@ public class PostActivity extends AppCompatActivity {
         }
     }
 
-    public void Add_and_Set_CommentRecyclerView(Activity activity){
+    public void Add_and_Set_CommentRecyclerView(PostActivity activity){
         LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
         binding.commentRecycler.setLayoutManager(layoutManager);
-        commentsAdapter = new CommentsAdapter(activity);
+        commentsAdapter = new CommentsAdapter(activity, postInfo, new Listener_CommentHolder() {
+            @Override
+            public void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder,int order) {
+                //todo 홀더에서 받은 댓글포지션을 활용해서 대댓글을 달고, db에 올려서 갱신까지 해야함.
+                CommentInfo commentInfo = postInfo.getComments().get(commentsHolder.getAbsoluteAdapterPosition());
+                if(PostcommentsHolder == null)
+                    PostcommentsHolder = commentsHolder;
+                else{
+                    commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
+                    PostcommentsHolder = commentsHolder;
+                }
+                Toast(""+commentInfo.getContents());
+            }
+        });
         binding.commentRecycler.setAdapter(commentsAdapter);
 
         RecyclerView.ItemAnimator animator = binding.commentRecycler.getItemAnimator();
@@ -384,12 +472,15 @@ public class PostActivity extends AppCompatActivity {
 
         if(((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size() != 0){
             for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size(); x++) {
-                HashMap<String, Object> map = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
+                HashMap<String, Object> commentsmap = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
 
-                CommentInfo commentInfo = new CommentInfo((String) map.get("contents"), (String) map.get("publisher"),
-                        ((Timestamp)map.get("createdAt")).toDate(),
-                        (String) map.get("id"),
-                        ((Long)(map.get("good"))).intValue());
+                CommentInfo commentInfo = new CommentInfo((String) commentsmap.get("contents"), (String) commentsmap.get("publisher"),
+                        ((Timestamp)commentsmap.get("createdAt")).toDate(),
+                        (String) commentsmap.get("id"),
+                        ((Long)(commentsmap.get("good"))).intValue(),
+                        get_RecommentArray_from_commentsmap(commentsmap),
+                        (String) commentsmap.get("key")
+                );
 
                 commentInfoArrayList.add(commentInfo);
             }
@@ -398,15 +489,40 @@ public class PostActivity extends AppCompatActivity {
         return commentInfoArrayList;
     }
 
+    public ArrayList<RecommentInfo> get_RecommentArray_from_commentsmap( HashMap<String, Object> commentsmap ){
+        ArrayList<RecommentInfo> recommentInfoArrayList = new ArrayList<>();
+        ArrayList<HashMap<String, Object>> recomments = (ArrayList<HashMap<String, Object>>)commentsmap.get("recomments");
+
+        for(int x=0; x<recomments.size(); x++) {
+            HashMap<String, Object> recommentsmap = recomments.get(x);
+            RecommentInfo recommentInfo = new RecommentInfo(
+                    (String)recommentsmap.get("contents"),
+                    (String)recommentsmap.get("publisher"),
+                    ((Timestamp)recommentsmap.get("createdAt")).toDate(),
+                    (String)recommentsmap.get("id"),
+                    ((Long)(recommentsmap.get("good"))).intValue()
+                    );
+
+            recommentInfoArrayList.add(recommentInfo);
+        }
+
+        return recommentInfoArrayList;
+    }
+
     @Override
     public void onBackPressed() {
 
-        if (GOOD_ACTION || COMMENT_ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
-            toMain(Something_IN_Post,postInfo.getDocid());
-        }else{
-            finish();
-        }
+        if(PostcommentsHolder != null){
+            commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
+            PostcommentsHolder = null;
+        }else {
 
+            if (GOOD_ACTION || COMMENT_ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
+                toMain(Something_IN_Post, postInfo.getDocid());
+            } else {
+                finish();
+            }
+        }
     }
 
     public void hideKeyPad(){
@@ -414,7 +530,14 @@ public class PostActivity extends AppCompatActivity {
         imm.hideSoftInputFromWindow(binding.AddCommentT.getWindowToken(), 0);
     }
 
+    public void ShowKeyPad(){
+        binding.AddCommentT.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+    }
+
     public void Toast(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
     }
+
 }

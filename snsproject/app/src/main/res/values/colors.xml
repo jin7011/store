@@ -8,5 +8,12 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="maincolor">#310191</color>
-    <color name="gray">#6FD4CEDA</color>
+    <color name="gray">#2DD4CEDA</color>#8a000000
+    <color name="textcolor">#8a000000</color>
+    <color name="dividecolor">#57000000</color>
+    <color name="selectcolor">#61F8BBD0</color>
+    <color name="selectcolor_rec">#0FF8BBD0</color>
+    <color name="recomment_background">#2DD4CEDA</color>
+    <color name="recomment_background_rec">#19D4CEDA</color>
+    <color name="Transparency">#00ff0000</color>
 </resources>

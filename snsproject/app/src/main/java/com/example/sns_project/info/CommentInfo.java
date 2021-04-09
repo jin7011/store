@@ -8,19 +8,22 @@ import java.util.Date;
 
 public class CommentInfo implements Parcelable {
 
+    private String key;
     private String contents;
     private String publisher;
     private Date createdAt;
     private String id;
     private int good;
-//    private ArrayList<RecommentInfo> recomments = new ArrayList<>();
+    private ArrayList<RecommentInfo> recomments;
 
-    public CommentInfo(String contents, String publisher, Date createdAt, String id, int good) {
+    public CommentInfo(String contents, String publisher, Date createdAt, String id, int good,ArrayList<RecommentInfo> recomments,String key) {
         this.contents = contents;
         this.publisher = publisher;
         this.createdAt = createdAt;
         this.id = id;
         this.good = good;
+        this.recomments = recomments;
+        this.key = key;
     }
 
     protected CommentInfo(Parcel in) {
@@ -29,7 +32,8 @@ public class CommentInfo implements Parcelable {
         createdAt = new Date(in.readLong());
         id = in.readString();
         good = in.readInt();
-//        recomments = in.createTypedArrayList(RecommentInfo.CREATOR);
+        recomments = in.createTypedArrayList(RecommentInfo.CREATOR);
+        key = in.readString();
     }
 
     @Override
@@ -39,7 +43,8 @@ public class CommentInfo implements Parcelable {
         dest.writeLong(createdAt.getTime());
         dest.writeString(id);
         dest.writeInt(good);
-//        dest.writeTypedList(recomments);
+        dest.writeTypedList(recomments);
+        dest.writeString(key);
     }
 
     @Override
@@ -89,11 +94,17 @@ public class CommentInfo implements Parcelable {
     public void setGood(int good) {
         this.good = good;
     }
-//    public ArrayList<RecommentInfo> getRecomments() {
-//        return recomments;
-//    }
-//    public void setRecomments(ArrayList<RecommentInfo> comments) {
-//        this.recomments = comments;
-//    }
+    public ArrayList<RecommentInfo> getRecomments() {
+        return recomments;
+    }
+    public void setRecomments(ArrayList<RecommentInfo> recomments) {
+        this.recomments = recomments;
+    }
+    public String getKey() {
+        return key;
+    }
+    public void setKey(String key) {
+        this.key = key;
+    }
 
 }

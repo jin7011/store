@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginStart="7dp"
     android:layout_marginEnd="7dp"
-    android:background="@drawable/get_outline_postitem"
+    android:background="@drawable/get_outline_under"
     android:orientation="horizontal"
     android:paddingBottom="4dp">
 
@@ -97,7 +97,7 @@
             android:layout_width="15dp"
             android:layout_height="15dp"
             android:layout_marginEnd="3dp"
-            app:srcCompat="@drawable/ic_commentnum" />
+            app:srcCompat="@drawable/ic_commentnum_post" />
 
         <TextView
             android:id="@+id/commentNum_postItem"

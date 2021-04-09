@@ -9,16 +9,16 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_weight="1"
-        app:srcCompat="@drawable/ic_recomment" />
+        app:srcCompat="@drawable/ic_recomment_recycler" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:background="@drawable/recomment_background"
+        android:background="@drawable/get_nonline_corner_gray"
         android:orientation="vertical">
 
         <LinearLayout
@@ -35,8 +35,8 @@
 
                 <ImageView
                     android:id="@+id/imageView_post"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:background="@drawable/ic_person_24" />
 
                 <LinearLayout
@@ -46,22 +46,23 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/nickname_postT"
+                        android:id="@+id/nickname_RecommentT"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="start|center_vertical"
                         android:text="TextView"
                         android:textColor="@color/maincolor"
-                        android:textSize="16sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/date_postT"
+                        android:id="@+id/date_RecommentT"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.1"
-                        android:text="TextView" />
+                        android:text="TextView"
+                        android:textSize="10sp" />
 
 
                 </LinearLayout>
@@ -70,33 +71,39 @@
                     android:id="@+id/good_btn_Frame"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/recomment_background"
+                    android:background="@drawable/get_outline_rec_gray"
                     android:divider="#37000000"
                     android:paddingHorizontal="5dp"
                     android:paddingVertical="1dp"
                     android:showDividers="middle">
 
-                    <ImageView
-                        android:id="@+id/good_comment"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginStart="3dp"
-                        android:layout_marginEnd="3dp"
+
+                    <ImageButton
+                        android:id="@+id/good_comment_Recomments"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginEnd="5dp"
+                        android:layout_marginBottom="4dp"
                         android:layout_weight="1"
-                        android:background="@drawable/ic_good_up_comment_24"
+                        android:background="@drawable/ic__goodupcomment_post"
                         android:text="Button" />
 
-                    <!--                <View-->
-                    <!--                    android:layout_width="0.8dp"-->
-                    <!--                    android:layout_height="match_parent"-->
-                    <!--                    android:background="#BDBDBD" />-->
+                    <View
+                        android:layout_width="0.3dp"
+                        android:layout_height="match_parent"
+                        android:layout_centerInParent="true"
+                        android:background="@color/dividecolor" />
 
-                    <ImageView
-                        android:id="@+id/opt_comment"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginStart="3dp"
-                        android:layout_marginEnd="2dp"
+                    <ImageButton
+                        android:id="@+id/opt_Recomment"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginEnd="5dp"
+                        android:layout_marginBottom="4dp"
                         android:layout_weight="1"
                         android:background="@drawable/ic_menu_button"
                         android:text="Button" />
@@ -111,17 +118,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
-                android:layout_marginBottom="10dp"
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/title_postT"
+                    android:id="@+id/recomment_RecommentT"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="5dp"
                     android:text="댓글내용"
                     android:textColor="#393636"
-                    android:textSize="14sp" />
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
@@ -141,7 +147,7 @@
                     android:background="@drawable/ic__485477009_like_78561" />
 
                 <TextView
-                    android:id="@+id/goodNum_postT"
+                    android:id="@+id/goodNum_RecommentT"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="2dp"
