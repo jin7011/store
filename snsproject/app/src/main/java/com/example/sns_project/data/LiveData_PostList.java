@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class LiveData_PostList extends ViewModel {
 
-    private MutableLiveData<ArrayList<PostInfo>> Mutable_postList = new MutableLiveData<>();
+    private MutableLiveData<ArrayList<PostInfo>> Mutable_postList;
     private ArrayList<PostInfo> postList = new ArrayList<>();
 
     public MutableLiveData<ArrayList<PostInfo>> get (){

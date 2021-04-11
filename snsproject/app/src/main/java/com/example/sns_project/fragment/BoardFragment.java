@@ -103,6 +103,8 @@ public class BoardFragment extends Fragment {
             public void onChanged(ArrayList<PostInfo> postInfos) {
                 if(postInfos != null) {
                     //todo  Attempt to invoke virtual method 'void com.example.sns_project.Adapter.PostAdapter.PostInfoDiffUtil(java.util.ArrayList)' on a null object reference
+                    //todo adapter내에서 live를 써줘야 의미가 있으므로 어댑터수정이 필요
+                    //todo 따라서 글쓰고 화면전환시에 에러 수정필요.
                     postAdapter.PostInfoDiffUtil(postInfos);
                     PostListModel.setpostList(postInfos);
                     postList.clear();
@@ -115,10 +117,8 @@ public class BoardFragment extends Fragment {
         };
         PostListModel.get().observeForever(PostList_Observer);
 
-        if(postList.size() == 0){
-            RecyclerInit(getActivity(),view);
-            Log.d("zz","리사이클러뷰 이닛");
-        }
+        RecyclerInit(getActivity(),view);
+        Log.d("zz","리사이클러뷰 이닛");
 
         RecyclerView_ScrollListener();
 

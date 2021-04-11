@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.Activities.PostActivity;
-import com.example.sns_project.Listener.Listener_BackButton;
 import com.example.sns_project.Listener.Listener_CommentHolder;
 import com.example.sns_project.R;
 import com.example.sns_project.info.CommentInfo;
@@ -40,11 +39,11 @@ import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.SEC;
 import static com.example.sns_project.util.Named.Write_Recomment;
 
-public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.CommentsHolder> implements Listener_BackButton {
-
-    private PostActivity activity;
-    private ArrayList<CommentInfo> comments = new ArrayList<>();
+public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.CommentsHolder>{
+                                                 //todo 라이브로 댓글리스트관리하다가 어댑터랑 리스트는 다르다는 걸 알고 잘못됨을 느끼는중, 화면전환시에 리사이클러뷰
     private Named named = new Named();
+    private PostActivity activity;
+    private ArrayList<CommentInfo> comments;      //postinfo에 있는 것을 쓰지않는 이유는 diffutil을 쓰기 위함임 (같은 주소같을 할당하면 변화를 찾을 수 없어서)
     private Listener_CommentHolder listener_commentHolder;
     PostInfo postInfo;
 
@@ -61,6 +60,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
         this.postInfo = postInfo;
         this.activity = activity;
         this.listener_commentHolder = listener_commentHolder;
+        this.comments = new ArrayList<>();
     }
 
     //holder
@@ -251,16 +251,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
     public void Off_CommentbodyColor(CommentsAdapter.CommentsHolder commentsHolder){
         commentsHolder.commentbody.setBackgroundResource(R.drawable.get_nonline);
         commentsHolder.commentbody_goodframe.setBackgroundResource(R.drawable.get_outline_rec);
-    }
-
-    public void Showkeyboard(){
-        InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-    }
-
-    @Override
-    public void backpressed() {
- //todo 포스트에서 뒤로가기 버튼을 누르면 선택된 홀더를 취소하려고 리스터를 만들었는데 필요없어지면 삭제예정
     }
 
     public boolean isposter(int position){
