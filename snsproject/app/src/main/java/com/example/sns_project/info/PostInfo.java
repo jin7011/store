@@ -4,9 +4,11 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class PostInfo implements Parcelable{
@@ -24,6 +26,7 @@ public class PostInfo implements Parcelable{
     private int comment;
     private HashMap<String, Integer> good_user;
     private ArrayList<CommentInfo> comments;
+    private String DateFormate_for_layout;
 
     public PostInfo(PostInfo p) {
         //깊은 복사 전용
@@ -40,6 +43,7 @@ public class PostInfo implements Parcelable{
         this.storagePath = p.getStoragePath();
         this.good_user = p.getGood_user();
         this.comments = p.getComments();
+        this.DateFormate_for_layout = p.DateFormate_for_layout;
     }
 
     public PostInfo(String id, String publisher, String title, String contents, Date createdAt, String docid, String location) {
@@ -55,6 +59,7 @@ public class PostInfo implements Parcelable{
         this.comments = new ArrayList<>();
         this.good = 0;
         this.comment = 0;
+        this.DateFormate_for_layout = new SimpleDateFormat("yyyy/MM/dd hh:mm", Locale.getDefault()).format(createdAt);
     }
 
     public PostInfo(String id, String publisher, String title, String contents, ArrayList<String> formats, Date createdAt, String docid, int good,
@@ -73,6 +78,7 @@ public class PostInfo implements Parcelable{
         this.storagePath = storagePath;
         this.comments = comments;
         this.good_user = good_user;
+        this.DateFormate_for_layout = new SimpleDateFormat("yyyy/MM/dd hh:mm", Locale.getDefault()).format(createdAt);
     }
 
     public Map<String, Object> getPostInfo() {
@@ -186,6 +192,12 @@ public class PostInfo implements Parcelable{
     }
     public void setComments(ArrayList<CommentInfo> comments) {
         this.comments = comments;
+    }
+    public String getDateFormate_for_layout() {
+        return DateFormate_for_layout;
+    }
+    public void setDateFormate_for_layout(String dateFormate_for_layout) {
+        DateFormate_for_layout = dateFormate_for_layout;
     }
 
     @Override

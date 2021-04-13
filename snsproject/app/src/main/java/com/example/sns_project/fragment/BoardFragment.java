@@ -192,8 +192,6 @@ public class BoardFragment extends Fragment {
     }
 
     private void Deleted(String docid) { //삭제
-        //삭제와 좋아요는 리사이클러뷰의 위치를 유지시켜주자.
-//        boolean flag = false;
 
         for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
             if(postList.get(x).getDocid().equals(docid)){
@@ -201,13 +199,9 @@ public class BoardFragment extends Fragment {
                 temp = deepCopy(postList);
                 temp.remove(x);
                 PostListModel.get().setValue(temp);
-//                flag = true;
                 break;
             }
         }
-//
-//        if(!flag) //삭제한 게시글이 당장 리스트에 보이지 않는다면(아마도 올린지 좀 된 글의 경우 -> 보통 검색으로 자신의 게시물을 찾아서 삭제한경우) 그냥 리셋 4/1일버전에서는 작동할 일이 없을 것으로 보임.
-//            UpScrolled();
     }
 
     private void UpScrolled() { // (글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로

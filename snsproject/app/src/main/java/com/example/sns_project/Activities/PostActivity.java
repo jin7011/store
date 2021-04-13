@@ -47,16 +47,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
-import java.util.Objects;
 
 import static com.example.sns_project.util.Named.DeleteResult;
-import static com.example.sns_project.util.Named.PostAddComment;
-import static com.example.sns_project.util.Named.PostInitComment;
 import static com.example.sns_project.util.Named.Something_IN_Post;
 
 //이 곳에서 작성한 글과 파일을 볼 수 있으며 댓글과 좋아요 버튼을 누를 수 있다.
@@ -80,10 +75,9 @@ public class PostActivity extends AppCompatActivity {
     private LiveData_PostInfo liveData_postInfo;
     private CommentsAdapter.CommentsHolder PostcommentsHolder;
 
-    //todo 변경사항에 있어서 commnetList를 live화 시켜줘야함.
-    //todo ( 처음 받아온 List를 첫 liveList로 설정 -> 댓글 (추가,삭제,리코멘트추가,리코멘트삭제,새로고침(미구현),좋아요(포스트,댓글,대댓글)할 때마다 live데이터 setvalue )
+    //todo 추가적으로 하는 일(댓글,좋아요,글쓰기)에 대해서 동시적인 작업처리를 해줘야할 때가 왔음 (아마도 트랜젝션이 제일 유일)
     @Override
-    protected void onCreate(Bundle savedInstanceState) { //todo 게시물 내부에 새로고침 만들어야하고 대댓글기능 활성화 시켜야함.
+    protected void onCreate(Bundle savedInstanceState) { //todo 게시물 내부에 새로고침 만들
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         binding = ActivityPostBinding.inflate(getLayoutInflater());
@@ -99,13 +93,14 @@ public class PostActivity extends AppCompatActivity {
             @Override
             public void onChanged(PostInfo postInfo) {
                 commentsAdapter.CommentInfo_DiffUtil(postInfo.getComments());
+                Log.d("포스트액티zx","getComment: "+postInfo.getComment());
+                binding.setPostInfo(postInfo);
             }
         });
 
         Bundle bundle = getIntent().getExtras();
         postInfo = bundle.getParcelable("postInfo");
         liveData_postInfo.get().setValue(postInfo);
-        comments = Objects.requireNonNull(liveData_postInfo.get().getValue()).getComments();
 
         Log.d("포스트액티","getComments: "+postInfo.getComments());
         Log.d("포스트액티","getCreatedAt: "+postInfo.getCreatedAt());
@@ -144,16 +139,6 @@ public class PostActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     private void setPost() {
 
-        binding.nicknamePostT.setText(postInfo.getPublisher());
-        binding.datePostT.setText(new SimpleDateFormat("yyyy/MM/dd hh:mm", Locale.getDefault()).format(postInfo.getCreatedAt()));
-        binding.titlePostT.setText(postInfo.getTitle());
-        binding.contentPostT.setText(postInfo.getContents());
-        binding.goodNumPostT.setText(postInfo.getGood() + "");
-        binding.commentNumPostT.setText(postInfo.getComment() + "");
-//        comments = postInfo.getComments();
-//        Check_Comment(PostInitComment);
-
-
         if (postInfo.getFormats() != null && postInfo.getFormats().size() != 0) {
             Log.d("겟포멧 널아님 입성","입성");
             binding.formatsLinearLayout.setVisibility(View.VISIBLE);
@@ -181,6 +166,7 @@ public class PostActivity extends AppCompatActivity {
                     if (document.exists()) {
                         ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
                         PostInfo newpostInfo = liveData_postInfo.get().getValue();
+                        int commentnum =  ((Long)document.get("comment")).intValue();
 
                         for(int x=0; x<commentInfoArrayList.size(); x++){
                             String db_comment_key = commentInfoArrayList.get(x).getKey();
@@ -196,17 +182,14 @@ public class PostActivity extends AppCompatActivity {
                                         docref.update("comment",commentInfoArrayList.size()).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 갯수 +1 해주고,
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
-                                                commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
-                                                PostcommentsHolder = null;
-
-                                                newpostInfo.getComments().clear();
-                                                newpostInfo.getComments().addAll(commentInfoArrayList);
-                                                liveData_postInfo.get().setValue(newpostInfo);
-
-                                                binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
-                                                loader.setVisibility(View.GONE);
-                                                binding.AddCommentT.setText(null);
-                                                COMMENT_ACTION = true;
+                                                docref.update("comment", commentnum+1).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
+                                                        PostcommentsHolder = null;
+                                                        Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader);
+                                                    }
+                                                });
                                             }
                                         });
                                     }
@@ -242,9 +225,9 @@ public class PostActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
-
+                        int commentnum =  ((Long)document.get("comment")).intValue();
                         ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-                        PostInfo newpostInfo = liveData_postInfo.get().getValue();
+                        PostInfo newpostInfo = liveData_postInfo.get().getValue(); //얕은 복사라 사실상 다같이 지워지고 다같이 리셋되지만, 걍 쓰기엔 변수명이 너무 길어서 새로 팠음
                         commentInfoArrayList.add(commentInfo);
 
                         docref.update("comments", commentInfoArrayList).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 db에 올리고,
@@ -253,14 +236,12 @@ public class PostActivity extends AppCompatActivity {
                                 docref.update("comment",commentInfoArrayList.size()).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 갯수 +1 해주고,
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
-                                        newpostInfo.getComments().clear();
-                                        newpostInfo.getComments().addAll(commentInfoArrayList);
-                                        liveData_postInfo.get().setValue(newpostInfo);
-
-                                        binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
-                                        loader.setVisibility(View.GONE);
-                                        binding.AddCommentT.setText(null);
-                                        COMMENT_ACTION = true;
+                                        docref.update("comment", commentnum+1).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader);
+                                            }
+                                        });
                                     }
                                 });
                             }
@@ -276,6 +257,36 @@ public class PostActivity extends AppCompatActivity {
         });
     }
 
+    public void Set_Comment_and_Good_View(DocumentReference docref) {
+        docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+
+                        int goodnum = (int)document.get("good");
+
+                    }
+                }
+            }
+        });
+    }
+
+    public void Set_CommentDB(ArrayList<CommentInfo> commentInfoArrayList,PostInfo newpostInfo,int commentnum,RelativeLayout loader){
+
+        newpostInfo.setComment(commentnum+1); //댓글수 +1
+        newpostInfo.getComments().clear();
+        newpostInfo.getComments().addAll(commentInfoArrayList);
+        liveData_postInfo.get().setValue(newpostInfo);
+
+        binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
+        loader.setVisibility(View.GONE);
+        binding.AddCommentT.setText(null);
+        COMMENT_ACTION = true;
+
+    }
+
     public void Add_and_Set_CommentRecyclerView(PostActivity activity){
         LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -284,7 +295,6 @@ public class PostActivity extends AppCompatActivity {
         commentsAdapter = new CommentsAdapter(activity, postInfo, new Listener_CommentHolder() {
             @Override
             public void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder,int order) {
-                //todo 홀더에서 받은 댓글포지션을 활용해서 대댓글을 달고, db에 올려서 갱신까지 해야함.
                 CommentInfo commentInfo = postInfo.getComments().get(commentsHolder.getAbsoluteAdapterPosition());
                 if(PostcommentsHolder == null)
                     PostcommentsHolder = commentsHolder;
