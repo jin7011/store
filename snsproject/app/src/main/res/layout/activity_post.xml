@@ -17,8 +17,10 @@
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_post"
+            style="@style/Text.bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:theme="@style/ToolBarTheme"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -29,6 +31,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="글 내용"
+                android:textColor="@color/black"
                 android:textSize="20dp"
                 android:textStyle="bold">
 
@@ -87,9 +90,8 @@
                                 android:id="@+id/nickname_postT"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:gravity="start|center_vertical"
-                                android:text="@{PostInfo.publisher}"
+                                android:text="운영자"
                                 android:textColor="@color/maincolor"
                                 android:textSize="15.5sp"
                                 android:textStyle="bold" />
@@ -98,8 +100,7 @@
                                 android:id="@+id/date_postT"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="0.1"
-                                android:text="@{PostInfo.DateFormate_for_layout}"
+                                android:text="123123"
                                 android:textSize="12sp" />
 
                         </LinearLayout>
@@ -150,20 +151,22 @@
 
                         <TextView
                             android:id="@+id/title_postT"
+                            style="@style/Text.bold"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="5dp"
+                            android:layout_marginBottom="10dp"
                             android:text="@{PostInfo.title}"
                             android:textColor="#393636"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
+                            android:textSize="18sp" />
 
                         <TextView
                             android:id="@+id/content_postT"
+                            style="@style/Text.normal"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:minHeight="20dp"
                             android:text="@{PostInfo.contents}"
-                            android:minHeight="20dp" />
+                            android:textSize="12sp" />
 
                     </LinearLayout>
 
@@ -175,8 +178,8 @@
                         android:layout_marginBottom="10dp">
 
                         <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
                             android:layout_weight="0"
                             android:adjustViewBounds="true"
                             android:background="@drawable/ic__485477009_like_78561" />
@@ -188,12 +191,14 @@
                             android:layout_marginLeft="2dp"
                             android:layout_marginRight="5dp"
                             android:text="@{String.valueOf(PostInfo.good)}"
-                            android:textColor="#5524B6" />
+                            android:textColor="#5524B6"
+                            android:textSize="12.5sp" />
 
                         <ImageView
                             android:id="@+id/imageView2"
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:layout_gravity="bottom"
                             android:layout_weight="0"
                             android:adjustViewBounds="true"
                             android:background="@drawable/ic_commentnum_post" />
@@ -206,7 +211,8 @@
                             android:layout_marginRight="5dp"
                             android:layout_weight="0"
                             android:text="@{String.valueOf(PostInfo.comment)}"
-                            android:textColor="#D81B60" />
+                            android:textColor="#D81B60"
+                            android:textSize="12.5sp" />
 
 
                     </LinearLayout>
@@ -279,7 +285,7 @@
                         android:backgroundTint="@color/gray"
                         android:hint="댓글을 작성해주세요."
                         android:paddingStart="10dp"
-                        android:textSize="13sp" />
+                        android:textSize="14sp" />
 
                     <ImageButton
                         android:id="@+id/Add_comment_btn"

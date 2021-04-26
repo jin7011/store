@@ -4,11 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="7dp"
+    android:layout_marginStart="13dp"
+    android:layout_marginTop="7dp"
     android:layout_marginEnd="7dp"
     android:background="@drawable/get_outline_under"
     android:orientation="horizontal"
-    android:paddingBottom="4dp">
+    android:paddingBottom="7dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,12 +25,13 @@
 
             <TextView
                 android:id="@+id/titleT"
+                style="@style/Text.bold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:text="TextView"
                 android:textColor="#000000"
-                android:textSize="17.5sp"
+                android:textSize="16dp"
                 android:textStyle="bold" />
 
             <TextView
@@ -79,8 +81,8 @@
 
         <ImageView
             android:id="@+id/imageView4"
-            android:layout_width="15dp"
-            android:layout_height="15dp"
+            android:layout_width="13dp"
+            android:layout_height="13dp"
             android:layout_marginEnd="3dp"
             app:srcCompat="@drawable/ic__485477009_like_78561" />
 
@@ -90,12 +92,13 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="3dp"
             android:text="0"
-            android:textColor="#5524B6" />
+            android:textColor="#5524B6"
+            android:textSize="12sp" />
 
         <ImageView
             android:id="@+id/imageView5"
-            android:layout_width="15dp"
-            android:layout_height="15dp"
+            android:layout_width="13dp"
+            android:layout_height="13dp"
             android:layout_marginEnd="3dp"
             app:srcCompat="@drawable/ic_commentnum_post" />
 
@@ -105,13 +108,14 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="3dp"
             android:text="0"
-            android:textColor="#D81B60" />
+            android:textColor="#D81B60"
+            android:textSize="12sp" />
     </LinearLayout>
 
     <ImageView
         android:id="@+id/postImage"
         android:layout_width="100dp"
-        android:layout_height="60dp"
+        android:layout_height="50dp"
         android:layout_weight="0"
         android:adjustViewBounds="true"
         android:scaleType="fitXY"

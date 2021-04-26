@@ -42,7 +42,6 @@
                     android:layout_weight="1"
                     android:gravity="start|center_vertical"
                     android:text="TextView"
-                    android:textColor="@color/maincolor"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -112,7 +111,7 @@
                     android:layout_marginEnd="5dp"
                     android:layout_marginBottom="4dp"
                     android:layout_weight="1"
-                    android:background="@drawable/ic_option_post"
+                    android:background="@drawable/ic_menu_button"
                     android:text="Button" />
 
             </LinearLayout>
@@ -129,6 +128,7 @@
 
             <TextView
                 android:id="@+id/comment_commentT"
+                style="@style/Text.bold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"

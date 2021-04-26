@@ -218,6 +218,7 @@ public class PostInfo implements Parcelable{
         docid = in.readString();
         good = in.readInt();
         comment = in.readInt();
+        DateFormate_for_layout = in.readString();
 
         int size = in.readInt();
         if(size != 0) {
@@ -244,6 +245,7 @@ public class PostInfo implements Parcelable{
         dest.writeString(docid);
         dest.writeInt(good);
         dest.writeInt(comment);
+        dest.writeString(DateFormate_for_layout);
 
         dest.writeInt(good_user.size());
         for(Map.Entry<String, Integer> entry : good_user.entrySet()) {

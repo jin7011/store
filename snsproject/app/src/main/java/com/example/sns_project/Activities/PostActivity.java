@@ -44,6 +44,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Transaction;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -68,8 +70,9 @@ public class PostActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private ActionBar actionBar;
     private Named named = new Named();
-    private boolean GOOD_ACTION = false;
-    private boolean COMMENT_ACTION = false;
+//    private boolean GOOD_ACTION = false;
+//    private boolean COMMENT_ACTION = false;
+    private boolean ACTION = false;
     private CommentsAdapter commentsAdapter;
     private ArrayList<CommentInfo> comments;
     private LiveData_PostInfo liveData_postInfo;
@@ -95,6 +98,7 @@ public class PostActivity extends AppCompatActivity {
                 commentsAdapter.CommentInfo_DiffUtil(postInfo.getComments());
                 Log.d("포스트액티zx","getComment: "+postInfo.getComment());
                 binding.setPostInfo(postInfo);
+                ACTION = true;
             }
         });
 
@@ -103,7 +107,7 @@ public class PostActivity extends AppCompatActivity {
         liveData_postInfo.get().setValue(postInfo);
 
         Log.d("포스트액티","getComments: "+postInfo.getComments());
-        Log.d("포스트액티","getCreatedAt: "+postInfo.getCreatedAt());
+        Log.d("포스트액티","getCreatedAt: "+postInfo.getDateFormate_for_layout());
         Log.d("포스트액티","getDocid: "+postInfo.getDocid());
         Log.d("포스트액티","getGood_user: "+postInfo.getGood_user());
         Log.d("포스트액티","getGood: "+postInfo.getGood());
@@ -147,6 +151,7 @@ public class PostActivity extends AppCompatActivity {
 
     }
     private void add_recomment(){
+        //todo transaction
         if(PostcommentsHolder == null)
             return;
 
@@ -173,27 +178,8 @@ public class PostActivity extends AppCompatActivity {
                             String holder_comment_key = postInfo.getComments().get(PostcommentsHolder.getAbsoluteAdapterPosition()).getKey();
 
                             if(db_comment_key.equals(holder_comment_key)){ //db에서 대댓글을 달려고하는 해당 댓글을 key값으로 찾았다면,
-
                                 commentInfoArrayList.get(x).getRecomments().add(recommentInfo);
-
-                                docref.update("comments", commentInfoArrayList).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 db에 올리고,
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        docref.update("comment",commentInfoArrayList.size()).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 갯수 +1 해주고,
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                docref.update("comment", commentnum+1).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
-                                                        PostcommentsHolder = null;
-                                                        Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader);
-                                                    }
-                                                });
-                                            }
-                                        });
-                                    }
-                                });
+                                Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader,docref);
                             }
                         }
                     }
@@ -208,6 +194,7 @@ public class PostActivity extends AppCompatActivity {
     }
 
     private void add_comment(){
+        //todo transaction
         RelativeLayout loader = findViewById(R.id.loaderLyaout);
         loader.setVisibility(View.VISIBLE); //로딩화면
         hideKeyPad(); //보기안좋으니까 키패드 내리고
@@ -230,22 +217,8 @@ public class PostActivity extends AppCompatActivity {
                         PostInfo newpostInfo = liveData_postInfo.get().getValue(); //얕은 복사라 사실상 다같이 지워지고 다같이 리셋되지만, 걍 쓰기엔 변수명이 너무 길어서 새로 팠음
                         commentInfoArrayList.add(commentInfo);
 
-                        docref.update("comments", commentInfoArrayList).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 db에 올리고,
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                docref.update("comment",commentInfoArrayList.size()).addOnCompleteListener(new OnCompleteListener<Void>() { //댓글 갯수 +1 해주고,
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        docref.update("comment", commentnum+1).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader);
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
+                        Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader,docref);
+
                     }
                 }
             }
@@ -257,33 +230,44 @@ public class PostActivity extends AppCompatActivity {
         });
     }
 
-    public void Set_Comment_and_Good_View(DocumentReference docref) {
-        docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+    public void Set_CommentDB(ArrayList<CommentInfo> commentInfoArrayList,PostInfo newpostInfo,int commentnum,RelativeLayout loader, DocumentReference docref){
+
+        db.runTransaction(new Transaction.Function<Void>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(docref);
 
-                        int goodnum = (int)document.get("good");
+                //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
+                transaction.update(docref, "comment", commentnum+1);
+                transaction.update(docref, "comments", commentInfoArrayList);
 
-                    }
+                // Success
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                newpostInfo.setComment(commentnum+1); //댓글수 +1
+                newpostInfo.getComments().clear();
+                newpostInfo.getComments().addAll(commentInfoArrayList);
+                liveData_postInfo.get().setValue(newpostInfo);
+
+                binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
+                loader.setVisibility(View.GONE);
+                binding.AddCommentT.setText(null);
+
+                if(PostcommentsHolder != null){
+                    commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
+                    PostcommentsHolder = null;
                 }
             }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                loader.setVisibility(View.GONE);
+                Toast("댓글에 실패했습니다.");
+            }
         });
-    }
-
-    public void Set_CommentDB(ArrayList<CommentInfo> commentInfoArrayList,PostInfo newpostInfo,int commentnum,RelativeLayout loader){
-
-        newpostInfo.setComment(commentnum+1); //댓글수 +1
-        newpostInfo.getComments().clear();
-        newpostInfo.getComments().addAll(commentInfoArrayList);
-        liveData_postInfo.get().setValue(newpostInfo);
-
-        binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
-        loader.setVisibility(View.GONE);
-        binding.AddCommentT.setText(null);
-        COMMENT_ACTION = true;
 
     }
 
@@ -350,25 +334,6 @@ public class PostActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("NonConstantResourceId")
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.delete:
-                PostDelete(0);
-                break;
-            case R.id.scrap:
-                break;
-            case R.id.submission:
-                break;
-            case android.R.id.home://////////////////////////////////////////////////////////////////////////////////////백버튼 기능추가 요망
-                //select back button
-                finish();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     //todo 아예 포스트의 좋아요와 댓글까지 싹 갱신하는 함수를 만들자. 그래서 좋아요를 누르거나 댓글을 달면 바로 갱신될 수 있도록 해주자  ㅊ
     @SuppressLint("SetTextI18n")
     public void good_up_btn(View view){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
@@ -393,18 +358,33 @@ public class PostActivity extends AppCompatActivity {
                         {
                             Toast("이미 눌렀어요!");
                         }else{ //처음 누른다면
-                            //이곳에서 미리 텍스트처리
-                            GOOD_ACTION = true;
-                            String good = binding.goodNumPostT.getText().toString();
-                            binding.goodNumPostT.setText( ( Integer.parseInt(good)+1 )+"" );
-                            Toast("좋아요!");
-
                             //이후에 백그라운드로 DB처리
-                            good_users.put(user.getUid(),1);
-                            docref.update("good_user",good_users).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            db.runTransaction(new Transaction.Function<Void>() {
                                 @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    docref.update("good",good_users.size());
+                                public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                                    DocumentSnapshot snapshot = transaction.get(docref);
+
+                                    //이후에 백그라운드로 DB처리
+                                    good_users.put(user.getUid(),1);
+                                    Long newPopulation = snapshot.getLong("good") + 1;
+                                    transaction.update(docref, "good", newPopulation.intValue());
+                                    transaction.update(docref, "good_user", good_users);
+
+                                    // Success
+                                    return null;
+                                }
+                            }).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    Log.d("트랜잭션좋아요", "Transaction success!");
+                                    String good = binding.goodNumPostT.getText().toString();
+                                    binding.goodNumPostT.setText( ( Integer.parseInt(good)+1 )+"");
+                                    Toast("좋아요!");
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.w("트랜잭션좋아요", "Transaction failure.", e);
                                 }
                             });
                         }
@@ -435,13 +415,41 @@ public class PostActivity extends AppCompatActivity {
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
-                    Log.d("asdasd", postInfo.getLocation() + "/" + postInfo.getDocid());
+                    Log.d("storage_Delete", postInfo.getLocation() + "/" + postInfo.getDocid());
                     Toast("삭제 실패하였습니다. :storage" + postInfo.getLocation() + "/" + postInfo.getDocid());
                 }
             });
         }else {
             DB_del();
         }
+
+    }
+
+    public void Reset(){
+
+        db.collection(postInfo.getLocation()).document(postInfo.getDocid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
+                DocumentSnapshot document = task.getResult();
+                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+
+                PostInfo newpostInfo = new PostInfo(
+                        document.get("id").toString(),
+                        document.get("publisher").toString(),
+                        document.get("title").toString(),
+                        document.get("contents").toString(),
+                        (ArrayList<String>) document.getData().get("formats"),
+                        new Date(document.getDate("createdAt").getTime()),
+                        document.getId(),
+                        Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), document.get("location").toString(),
+                        (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
+                        (HashMap<String, Integer>)document.getData().get("good_user")
+                );
+                liveData_postInfo.get().setValue(newpostInfo);
+                Toast("새로고침 되었습니다.");
+            }
+        });
 
     }
 
@@ -513,6 +521,30 @@ public class PostActivity extends AppCompatActivity {
         return recommentInfoArrayList;
     }
 
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.delete:
+                PostDelete(0);
+                break;
+            case R.id.scrap:
+                Toast("스크랩되었습니다.");
+                break;
+            case R.id.submission:
+                Toast("신고되었습니다.");
+                break;
+            case R.id.autonew:
+                Reset();
+                break;
+            case android.R.id.home://////////////////////////////////////////////////////////////////////////////////////백버튼 기능추가 요망
+                //select back button
+                onBackPressed();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     @Override
     public void onBackPressed() {
 
@@ -520,8 +552,7 @@ public class PostActivity extends AppCompatActivity {
             commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
             PostcommentsHolder = null;
         }else {
-
-            if (GOOD_ACTION || COMMENT_ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
+            if (ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
                 toMain(Something_IN_Post, postInfo.getDocid());
             } else {
                 finish();

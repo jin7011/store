@@ -11,6 +11,6 @@
         android:id="@+id/toolbar_main_write_post_btn"
         android:title="글쓰기버튼"
         android:icon="@drawable/ic_write_btn"
-        app:showAsAction="ifRoom">
+        app:showAsAction="always">
     </item>
 </menu>

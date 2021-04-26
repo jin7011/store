@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/delete"
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/autonew"
+        android:title="글쓰기버튼"
+        android:icon="@drawable/ic_autorenew"
+        app:showAsAction="always">
+    </item>
+
+    <item
+        android:id="@+id/delete"
         android:title="삭제" />
+
+
 </menu>

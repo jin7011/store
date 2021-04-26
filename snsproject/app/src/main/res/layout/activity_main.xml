@@ -32,13 +32,13 @@
 
                 <TextView
                     android:id="@+id/toolbar_title"
+                    style="@style/Text.bold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="@{MyAccount.location}"
                     android:textColor="@color/black"
-                    android:textSize="20dp"
-                    android:textStyle="bold">
+                    android:textSize="20dp">
 
                 </TextView>
             </androidx.appcompat.widget.Toolbar>

@@ -144,7 +144,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
             holder.nicknameT.setTypeface(null, Typeface.BOLD);
             holder.nicknameT.setText(commentInfo.getPublisher()+"(글쓴이)");
         }else{
-            holder.nicknameT.setTextColor(ContextCompat.getColor(activity, R.color.textcolor)); //아니라면 색상변경해줘야 리사이클러뷰 재활용할 때 혼동안옴.
+            holder.nicknameT.setTextColor(ContextCompat.getColor(activity, R.color.black)); //아니라면 색상변경해줘야 리사이클러뷰 재활용할 때 혼동안옴.
             holder.nicknameT.setTypeface(null, Typeface.NORMAL);
             holder.nicknameT.setText(commentInfo.getPublisher());
         }
