@@ -244,13 +244,18 @@ public class MainActivity extends AppCompatActivity {
                 Activity(WritePostActivity.class);
             }
             case R.id.toolbar_main_reset:{
+
+                item.setEnabled(false);
+                boardFragment.UpScrolled();
+
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        boardFragment.UpScrolled();
+                        item.setEnabled(true);
                     }
-                }, 3000); //딜레이 타임 조절
+                }, 1500); //딜레이 타임 조절
+
             }
         }
         return super.onOptionsItemSelected(item);

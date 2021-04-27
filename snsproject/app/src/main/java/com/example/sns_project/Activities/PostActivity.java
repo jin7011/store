@@ -536,15 +536,18 @@ public class PostActivity extends AppCompatActivity {
                 Toast("신고되었습니다.");
                 break;
             case R.id.autonew:
+
+                item.setEnabled(false);
+                Reset();
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        Reset();
+                        item.setEnabled(true);
                     }
-                }, 800); //딜레이 타임 조절
+                }, 1500); //딜레이 타임 조절
                 break;
-            case android.R.id.home://////////////////////////////////////////////////////////////////////////////////////백버튼 기능추가 요망
+            case android.R.id.home:
                 //select back button
                 onBackPressed();
                 break;
