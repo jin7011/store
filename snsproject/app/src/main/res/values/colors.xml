@@ -10,6 +10,7 @@
     <color name="maincolor">#310191</color>
     <color name="gray">#2DD4CEDA</color>#8a000000
     <color name="textcolor">#8a000000</color>
+    <color name="semi_black">#C4000000</color>
     <color name="dividecolor">#57000000</color>
     <color name="selectcolor">#61F8BBD0</color>
     <color name="selectcolor_rec">#0FF8BBD0</color>

@@ -17,7 +17,6 @@
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_post"
-            style="@style/Text.bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:theme="@style/ToolBarTheme"
@@ -91,7 +90,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="start|center_vertical"
-                                android:text="운영자"
+                                android:text="@{PostInfo.publisher}"
                                 android:textColor="@color/maincolor"
                                 android:textSize="15.5sp"
                                 android:textStyle="bold" />
@@ -100,7 +99,7 @@
                                 android:id="@+id/date_postT"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="123123"
+                                android:text="@{PostInfo.dateFormate_for_layout}"
                                 android:textSize="12sp" />
 
                         </LinearLayout>
@@ -151,29 +150,29 @@
 
                         <TextView
                             android:id="@+id/title_postT"
-                            style="@style/Text.bold"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="10dp"
                             android:text="@{PostInfo.title}"
                             android:textColor="#393636"
-                            android:textSize="18sp" />
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/content_postT"
-                            style="@style/Text.normal"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:minHeight="20dp"
                             android:text="@{PostInfo.contents}"
-                            android:textSize="12sp" />
+                            android:textColor="@color/semi_black"
+                            android:textSize="13.5sp" />
 
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
+                        android:layout_marginStart="15dp"
                         android:layout_marginEnd="10dp"
                         android:layout_marginBottom="10dp">
 
@@ -289,8 +288,8 @@
 
                     <ImageButton
                         android:id="@+id/Add_comment_btn"
-                        android:layout_width="80dp"
-                        android:layout_height="35dp"
+                        android:layout_width="60dp"
+                        android:layout_height="30dp"
                         android:layout_weight="1"
                         android:background="@drawable/ic_comment_send_post" />
 

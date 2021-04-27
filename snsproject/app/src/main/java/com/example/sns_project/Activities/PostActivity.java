@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -535,7 +536,13 @@ public class PostActivity extends AppCompatActivity {
                 Toast("신고되었습니다.");
                 break;
             case R.id.autonew:
-                Reset();
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Reset();
+                    }
+                }, 800); //딜레이 타임 조절
                 break;
             case android.R.id.home://////////////////////////////////////////////////////////////////////////////////////백버튼 기능추가 요망
                 //select back button

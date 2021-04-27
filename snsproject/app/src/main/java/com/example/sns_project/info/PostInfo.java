@@ -27,6 +27,7 @@ public class PostInfo implements Parcelable{
     private HashMap<String, Integer> good_user;
     private ArrayList<CommentInfo> comments;
     private String DateFormate_for_layout;
+    private String How_Long;
 
     public PostInfo(PostInfo p) {
         //깊은 복사 전용
@@ -198,6 +199,12 @@ public class PostInfo implements Parcelable{
     }
     public void setDateFormate_for_layout(String dateFormate_for_layout) {
         DateFormate_for_layout = dateFormate_for_layout;
+    }
+    public String getHow_Long() {
+        return How_Long;
+    }
+    public void setHow_Long(String how_Long) {
+        How_Long = how_Long;
     }
 
     @Override

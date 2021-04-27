@@ -112,6 +112,9 @@ public class BoardFragment extends Fragment {
                     Log.d("zxczxc", "newPosts: " + postInfos.size());
                     Log.d("zxczxc", "PostListModel.getPostList: " + PostListModel.getPostList().size());
                     Log.d("zxczxc", "postList: " + postList.size());
+                    if(postInfos.get(0).getHow_Long() == null){
+                        Log.d("널이라구", "널이라구" + postInfos.size());
+                    }
                 }
             }
         };
@@ -204,7 +207,8 @@ public class BoardFragment extends Fragment {
         }
     }
 
-    private void UpScrolled() { // (글생성/새로고침) 한계치만큼 지료를 받아와서 한계치보다 적으면 이전의 자료와 덮어씌우고, 최대치까지 끌어모았다면 원래list는 지우고 새것을 사용. -> 스크롤 맨위로
+    public void UpScrolled() {
+        // (글생성/새로고침) 스크롤 맨위로
 
         Date newdate = new Date();
         ArrayList<PostInfo> newPosts = new ArrayList<>();
@@ -239,6 +243,7 @@ public class BoardFragment extends Fragment {
                             }
                             PostListModel.get().setValue(newPosts);
                             recyclerView.smoothScrollToPosition(0);
+                            Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
                         } else {
                             Log.d("실패함", "Error getting documents: ", task.getException());
                         }
@@ -369,7 +374,7 @@ public class BoardFragment extends Fragment {
         });
 
         swipe.setColorSchemeResources(
-                R.color.purple_500
+                R.color.maincolor
         );
 
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -383,8 +388,6 @@ public class BoardFragment extends Fragment {
                         //반면에 삭제는 가지고 있는 리스트를 그대로 유지하고 내가 쓴 글의 position만 지우고 갱신함.
                         removeScrollPullUpListener();
                         UpScrolled();
-
-                        Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
                         swipe.setRefreshing(false);
                     }
                 },1000);

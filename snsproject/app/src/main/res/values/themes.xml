@@ -18,18 +18,11 @@
         <item name="android:tint">@color/black</item>
     </style>
 
-    <style name="Text.bold" parent="android:TextAppearance">
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/black</item>
-        <item name="android:fontFamily">@font/fonts</item>
-        <item name="android:includeFontPadding">false</item>
-    </style>
+<!--    <style name="Text.ragular" parent="android:TextAppearance">-->
+<!--        <item name="android:textStyle">normal</item>-->
+<!--        <item name="android:fontFamily">@font/fonts</item>-->
+<!--        <item name="android:includeFontPadding">false</item>-->
+<!--    </style> 폰트 삽입했는데 맘에 안들어서 다시 주석처리함 이후에 필요하면 사용할 의향있음-->
 
-    <style name="Text.normal" parent="android:TextAppearance">
-        <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@color/black</item>
-        <item name="android:fontFamily">@font/fonts</item>
-        <item name="android:includeFontPadding">false</item>
-    </style>
 
 </resources>

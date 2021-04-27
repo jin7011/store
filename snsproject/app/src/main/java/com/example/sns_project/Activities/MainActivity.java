@@ -3,6 +3,7 @@ package com.example.sns_project.Activities;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -241,6 +242,15 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case R.id.toolbar_main_write_post_btn:{
                 Activity(WritePostActivity.class);
+            }
+            case R.id.toolbar_main_reset:{
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        boardFragment.UpScrolled();
+                    }
+                }, 3000); //딜레이 타임 조절
             }
         }
         return super.onOptionsItemSelected(item);

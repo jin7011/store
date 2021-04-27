@@ -112,10 +112,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
     public void onBindViewHolder(@NonNull PostAdapter.PostHolder holder, int position) { //포지션에 맞게 이미지 셋업
 
         PostInfo postInfo = postList.get(position);
+        postInfo.setHow_Long(formatTimeString(postInfo.getCreatedAt(),new Date()));
 
         holder.titleT.setText(postInfo.getTitle());
         holder.contentT.setText(postInfo.getContents());
-        holder.dateT.setText(formatTimeString(postInfo.getCreatedAt(),new Date()));
+        holder.dateT.setText(postInfo.getHow_Long());
         holder.goodNum.setText(postInfo.getGood()+"");
         holder.commentNum.setText(postInfo.getComment()+"");
         holder.nicknameT.setText(postInfo.getPublisher());
@@ -137,7 +138,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
     public int getItemCount() {
         return postList.size();
     }
-
 
 //        @Override
 //    public long getItemId(int position) {

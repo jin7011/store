@@ -13,7 +13,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -25,23 +25,24 @@
 
             <TextView
                 android:id="@+id/titleT"
-                style="@style/Text.bold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
                 android:maxLines="1"
                 android:text="TextView"
-                android:textColor="#000000"
+                android:textColor="@color/semi_black"
                 android:textSize="16dp"
-                android:textStyle="bold" />
+                android:textStyle="normal" />
 
             <TextView
                 android:id="@+id/contentT"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
+                android:layout_marginBottom="3dp"
                 android:maxLines="1"
                 android:text="TextView"
-                android:textSize="10sp" />
+                android:textSize="11sp" />
 
         </LinearLayout>
 

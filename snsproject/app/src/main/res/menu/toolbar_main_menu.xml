@@ -8,6 +8,13 @@
 <!--        app:showAsAction="ifRoom">-->
 <!--    </item>-->
     <item
+        android:id="@+id/toolbar_main_reset"
+        android:title="글쓰기버튼"
+        android:icon="@drawable/ic_autorenew"
+        app:showAsAction="always">
+    </item>
+
+    <item
         android:id="@+id/toolbar_main_write_post_btn"
         android:title="글쓰기버튼"
         android:icon="@drawable/ic_write_btn"
