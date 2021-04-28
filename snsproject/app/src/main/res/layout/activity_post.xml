@@ -232,13 +232,15 @@
                             android:layout_height="match_parent" />
                     </LinearLayout>
 
+
                     <LinearLayout
                         android:id="@+id/commentLinearLayout"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:visibility="visible">
-
+                        android:background="@drawable/get_outlline_top"
+                        android:padding="2dp">
+                        <!--2dp패딩 줌으로써 background의 실선이 리사이클러뷰 아이템(댓글)에 가려지는 현상을 없애줌으로 쓸모없어 보이지만 냅둬야함-->
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/commentRecycler"
                             android:layout_width="match_parent"

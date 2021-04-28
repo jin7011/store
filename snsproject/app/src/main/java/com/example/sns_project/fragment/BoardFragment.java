@@ -101,7 +101,7 @@ public class BoardFragment extends Fragment {
         PostList_Observer = new Observer<ArrayList<PostInfo>>() { // 따로 라이프사이클없이 계속돌아가게 해놨음
             @Override
             public void onChanged(ArrayList<PostInfo> postInfos) {
-                if(postInfos != null) {
+                if(postInfos != null && postAdapter != null) {
                     //todo  Attempt to invoke virtual method 'void com.example.sns_project.Adapter.PostAdapter.PostInfoDiffUtil(java.util.ArrayList)' on a null object reference
                     //todo adapter내에서 live를 써줘야 의미가 있으므로 어댑터수정이 필요
                     //todo 따라서 글쓰고 화면전환시에 에러 수정필요.

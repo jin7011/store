@@ -3,6 +3,7 @@ package com.example.sns_project.Adapter;
 import android.app.Activity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.example.sns_project.Listener.Listener_PostImageHolder;
 import com.example.sns_project.R;
 
 import java.util.ArrayList;
@@ -20,14 +22,15 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
 
     private Activity activity;
     private ArrayList<String> formats;
+    private Listener_PostImageHolder listener_postImageHolder;
 
-    public ShowPostImageAdapter(Activity activity, ArrayList<String> formats) {
+    public ShowPostImageAdapter(Activity activity, ArrayList<String> formats,Listener_PostImageHolder listener_postImageHolder) {
         this.activity = activity;
         this.formats = formats;
+        this.listener_postImageHolder = listener_postImageHolder;
     }
 
-    //holder
-    static class ShowPostImageHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
+    public class ShowPostImageHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
         ImageView imageView;
 
         public ShowPostImageHolder(@NonNull ImageView imageView) {
@@ -43,6 +46,13 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
         ImageView imageView = (ImageView) LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
         ShowPostImageHolder showPostImageHolder = new ShowPostImageHolder(imageView);
 
+        showPostImageHolder.imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener_postImageHolder.onClickedholder(showPostImageHolder);
+            }
+        });
+
         return showPostImageHolder;
     }
 
@@ -53,13 +63,13 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
         Glide.with(activity).load(formats.get(position)).transform(new CenterCrop(), new RoundedCorners(85)).override(600,700).thumbnail(0.5f).into(imageView);
         Log.d("포멧리사이클러뷰","성공: "+position+ "url: " +formats.get(position));
 
-
 //        imageView.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View view) {
 //
 //            }
 //        });
+
     }
 
     @Override

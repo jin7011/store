@@ -111,8 +111,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
             @Override
             public void onClick(View v) {
                 RecommentDialog(commentsHolder);
-    }
-});
+            }
+        });
+
         commentsHolder.option_btn.setOnClickListener(new View.OnClickListener() { //옵션
             @Override
             public void onClick(View v) {
@@ -230,7 +231,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
                     public void onClick(DialogInterface dialog, int which)
                     {
                         activity.ShowKeyPad();
-                        listener_commentHolder.onClickedholder(commentsHolder,Write_Recomment); //리스너의 응답으로써 postactivity로 해당 댓글의 holder를 넘겨준다.
+                        listener_commentHolder.onClickedholder(commentsHolder); //리스너의 응답으로써 postactivity로 해당 댓글의 holder를 넘겨준다.
                         On_CommentbodyColor(commentsHolder);
                     }
                 })

@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -28,6 +29,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import com.example.sns_project.Adapter.CommentsAdapter;
 import com.example.sns_project.Adapter.ShowPostImageAdapter;
 import com.example.sns_project.Listener.Listener_CommentHolder;
+import com.example.sns_project.Listener.Listener_PostImageHolder;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostInfo;
 import com.example.sns_project.databinding.ActivityPostBinding;
@@ -273,13 +275,15 @@ public class PostActivity extends AppCompatActivity {
     }
 
     public void Add_and_Set_CommentRecyclerView(PostActivity activity){
+
         LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
+
         binding.commentRecycler.setLayoutManager(layoutManager);
         commentsAdapter = new CommentsAdapter(activity, postInfo, new Listener_CommentHolder() {
             @Override
-            public void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder,int order) {
+            public void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder) {
                 CommentInfo commentInfo = postInfo.getComments().get(commentsHolder.getAbsoluteAdapterPosition());
                 if(PostcommentsHolder == null)
                     PostcommentsHolder = commentsHolder;
@@ -304,7 +308,17 @@ public class PostActivity extends AppCompatActivity {
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         binding.formatsRecycler.setLayoutManager(layoutManager);
 
-        ShowPostImageAdapter showPostImageAdapter = new ShowPostImageAdapter(activity,formats);
+        ShowPostImageAdapter showPostImageAdapter = new ShowPostImageAdapter(activity, formats, new Listener_PostImageHolder() {
+            @Override
+            public void onClickedholder(ShowPostImageAdapter.ShowPostImageHolder showPostImageHolder) {
+                //todo 이미지 클릭작업 (해당 이미지의 홀더를 리스너로 받아왔음.)
+                Toast("position: "+showPostImageHolder.getAbsoluteAdapterPosition());
+                Intent intent = new Intent(PostActivity.this,View_FormatActivity.class);
+                intent.putExtra("position",showPostImageHolder.getAbsoluteAdapterPosition());
+                intent.putExtra("formats",postInfo.getFormats());
+                PostActivity.this.startActivity(intent);
+            }
+        });
         binding.formatsRecycler.setAdapter(showPostImageAdapter);
 
     }
