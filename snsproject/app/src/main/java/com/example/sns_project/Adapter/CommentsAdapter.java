@@ -197,6 +197,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
     public void OthersDialog(){
         final String[] items = {"알림설정","쪽지보내기","신고"};
         AlertDialog.Builder alert = new AlertDialog.Builder(activity);
+
         alert.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

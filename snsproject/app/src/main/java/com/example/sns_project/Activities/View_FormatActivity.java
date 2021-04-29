@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.ayokunlepaul.frescoloader.FrescoMediaHelper;
+import com.bumptech.glide.Glide;
 import com.example.sns_project.R;
 import com.github.ybq.android.spinkit.SpinKitView;
 import com.veinhorn.scrollgalleryview.MediaInfo;
@@ -45,11 +46,11 @@ public class View_FormatActivity extends AppCompatActivity {
         position = intent.getIntExtra("position",0);
 
         scrollGalleryView
-                .setThumbnailSize(300)
+//                .setThumbnailSize(300)
                 .setZoom(true)
                 .withHiddenThumbnails(true)
-                .hideThumbnailsOnClick(true)
-                .hideThumbnailsAfter(5000)
+//                .hideThumbnailsOnClick(true)
+//                .hideThumbnailsAfter(5000)
                 .setFragmentManager(getSupportFragmentManager());
 
         loading.setVisibility(View.VISIBLE);

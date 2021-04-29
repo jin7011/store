@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseUser user;
     private FirebaseFirestore db;
-    private ArrayList<PostInfo> postList;
     private long backKeyPressedTime = 0;
     private Toolbar toolbar;
     private LiveData_MyData_Main liveDataMyDataMainModel;
@@ -76,12 +75,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(MyAccount myAccount) { //개인프로필을 변경했을 경우 -> 게시판 지역이동 (툴바이름변경,게시판내용변경)
                 binding.setMyAccount(myAccount); //툴바에 해당 지역을 나타내는 textview를 데이터바인딩 하였음. (툴바이름변경)
-                findLocation_and_setfragment(); //게시판 지역에 맞게 재설정 (게시판 내용변경)
+                setFragment();
+//                findLocation_and_setfragment(); //게시판 지역에 맞게 재설정 (게시판 내용변경)
             }
         });
 
         if(AccountInit()){ //계정이 있다면,
-            findLocation_and_setfragment();
+//            findLocation_and_setfragment();
+//            setFragment();
         }
         else{
             Activity(SignActivity.class);
@@ -111,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
 
                         location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
                         Log.d("지격탐색(main)", location);
-                        setFragment(location);
+                        setFragment();
                     }
                 }
             }
@@ -119,12 +120,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void setFragment(String location){
+    public void setFragment(){
 
         boardFragment = new BoardFragment();
 
         Bundle bundle = new Bundle();
-        bundle.putString("location",location);
+        bundle.putParcelable("Myaccount",myAccount);
         boardFragment.setArguments(bundle);
         //리퀘스트같은 번들내용을 줘서 frg에서 상황에 맞게 처리
         //글쓰기 -> 위로 갱신(새로고침도 위로갱신)
@@ -176,7 +177,8 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.menu_profile:
 
                         if(profileFragment == null) {
-                            profileFragment = new ProfileFragment();
+                            profileFragment = new ProfileFragment(MainActivity.this);
+                            profileFragment.setArguments(bundle);
                             fragmentManager.beginTransaction().add(R.id.fragment_frame, profileFragment).commit();
                         }
 
@@ -190,7 +192,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(AccountInit()){ //계정이 있다면,
+//            findLocation_and_setfragment();
+//            setFragment();
+        }
+        else{
+            Activity(SignActivity.class);
+        }
     }
 
     public boolean AccountInit() {
@@ -208,13 +221,16 @@ public class MainActivity extends AppCompatActivity {
                     if(task.isSuccessful()){
                         DocumentSnapshot document = task.getResult();
 
-                        String image = document.getString("image");
                         String location = document.getString("location");
+                        String image = document.getString("image");
                         String store = document.getString("store");
                         String phone = document.getString("phone");
                         String businessNum = document.getString("businessNum");
-                        myAccount = new MyAccount(user.getUid(),user.getDisplayName(),image,location,store,phone,businessNum);
-                        liveDataMyDataMainModel.get().setValue(myAccount);
+
+                        if( !(myAccount != null && myAccount.getLocation().equals(location) && myAccount.getNickname().equals(user.getDisplayName())) ){
+                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
+                            liveDataMyDataMainModel.get().setValue(myAccount);
+                        }
                     }
                 }
             });
@@ -310,6 +326,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void logout(){
+        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        FirebaseAuth.getInstance().signOut();
+        startActivity(i);
+        finish();
+    }
 
     public void Tost(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();

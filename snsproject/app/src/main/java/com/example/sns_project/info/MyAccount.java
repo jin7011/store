@@ -1,10 +1,13 @@
 package com.example.sns_project.info;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MyAccount implements Serializable {
+public class MyAccount implements Parcelable {
 
     private String id;
     private String nickname;
@@ -23,6 +26,38 @@ public class MyAccount implements Serializable {
         this.phone = phone;
         this.businessNum = businessNum;
     }
+
+    protected MyAccount(Parcel in) {
+        id = in.readString();
+        nickname = in.readString();
+        image = in.readString();
+        location = in.readString();
+        store = in.readString();
+        phone = in.readString();
+        businessNum = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(nickname);
+        dest.writeString(image);
+        dest.writeString(location);
+        dest.writeString(store);
+        dest.writeString(phone);
+        dest.writeString(businessNum);
+    }
+
+    public static final Creator<MyAccount> CREATOR = new Creator<MyAccount>() {
+        @Override
+        public MyAccount createFromParcel(Parcel in) {
+            return new MyAccount(in);
+        }
+        @Override
+        public MyAccount[] newArray(int size) {
+            return new MyAccount[size];
+        }
+    };
 
     public Map<String, Object> getMap(){
         Map<String, Object> docData = new HashMap<>();
@@ -77,6 +112,11 @@ public class MyAccount implements Serializable {
     }
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
 }

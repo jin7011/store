@@ -22,6 +22,7 @@ import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostList;
 import com.example.sns_project.info.CommentInfo;
+import com.example.sns_project.info.MyAccount;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.Named;
@@ -56,6 +57,7 @@ public class BoardFragment extends Fragment {
     //기능을 실행할 때에는 조금 비효율적이지만, 한번 갱신한 자료는 다시 갱신하지 않아도 되고, 스크롤이 유지된다. 4월3일
 
     private FirebaseAuth mAuth;
+    private MyAccount myAccount;
     private FirebaseFirestore db;
     private ArrayList<PostInfo> postList; //fragment에서 갱신하는 임시리스트
     private LiveData_PostList PostListModel; //postList 임시리스트를 라이브자료에 넣음으로써 리사이클러뷰를 갱신함
@@ -81,19 +83,17 @@ public class BoardFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_board, container, false);
-
-        return view;
+        return inflater.inflate(R.layout.fragment_board, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) { //view가 완전히 완료된 이후에 나오는 메서드라서 이곳에 findby~ 써야 안전함
         super.onViewCreated(view, savedInstanceState);
-
         swipe = view.findViewById(R.id.swipe);
 
         Bundle bundle = getArguments();
-        location = bundle.getString("location");
+        myAccount = (MyAccount)bundle.getParcelable("Myaccount");
+        location = myAccount.getLocation();
         PostListModel = new ViewModelProvider(getActivity()).get(LiveData_PostList.class);
         postList = PostListModel.getPostList();
 
@@ -102,9 +102,6 @@ public class BoardFragment extends Fragment {
             @Override
             public void onChanged(ArrayList<PostInfo> postInfos) {
                 if(postInfos != null && postAdapter != null) {
-                    //todo  Attempt to invoke virtual method 'void com.example.sns_project.Adapter.PostAdapter.PostInfoDiffUtil(java.util.ArrayList)' on a null object reference
-                    //todo adapter내에서 live를 써줘야 의미가 있으므로 어댑터수정이 필요
-                    //todo 따라서 글쓰고 화면전환시에 에러 수정필요.
                     postAdapter.PostInfoDiffUtil(postInfos);
                     PostListModel.setpostList(postInfos);
                     postList.clear();

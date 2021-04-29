@@ -73,8 +73,6 @@ public class PostActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private ActionBar actionBar;
     private Named named = new Named();
-//    private boolean GOOD_ACTION = false;
-//    private boolean COMMENT_ACTION = false;
     private boolean ACTION = false;
     private CommentsAdapter commentsAdapter;
     private ArrayList<CommentInfo> comments;
