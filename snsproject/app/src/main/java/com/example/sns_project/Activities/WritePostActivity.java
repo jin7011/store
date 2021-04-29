@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -60,6 +62,7 @@ public class WritePostActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private String location;
     private LiveData_WritePost Postmodel;
+    private Double filesize = 0.0;
     private Named named = new Named();
 
     @Override
@@ -80,7 +83,9 @@ public class WritePostActivity extends AppCompatActivity {
         Postmodel.get().observe(this, new Observer<ArrayList<Uri>>() {
             @Override
             public void onChanged(ArrayList<Uri> uris) {
-                Toast(uris.size()+"");
+                long sum = getFileSize(uris);
+                filesize = Double.parseDouble(String.valueOf(sum));
+                set_filesizeT(filesize);
                 Add_and_SetRecyclerView(WritePostActivity.this);
             }
         });
@@ -99,9 +104,12 @@ public class WritePostActivity extends AppCompatActivity {
                 String content = binding.contentEdit.getText().toString();
 
                 if(title.length() >= 2 && content.length() >= 2){
-                    UploadStorage(user.getUid(),user.getDisplayName(),title,content);
+                    if(!isfilesize_under_50MB(filesize))
+                        Toast("파일용량이 초과되었습니다.");
+                    else
+                        UploadStorage(user.getUid(),user.getDisplayName(),title,content);
                 }else{
-                 Toast("제목 및 내용을 2글자 이상 입력해주세요.");
+                    Toast("제목 및 내용을 2글자 이상 입력해주세요.");
                 }
             }
         });
@@ -140,7 +148,7 @@ public class WritePostActivity extends AppCompatActivity {
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         binding.ImageRecycler.setLayoutManager(layoutManager);
 
-        AddImageAdapter addImageAdapter = new AddImageAdapter(activity);
+        AddImageAdapter addImageAdapter = new AddImageAdapter(activity,Postmodel);
         binding.ImageRecycler.setAdapter(addImageAdapter);
 
     }
@@ -221,12 +229,11 @@ public class WritePostActivity extends AppCompatActivity {
                                 uploadPosts(mediaUris, documentReference, formatList, storagePath, postInfo); //Recursion
                                 Log.d("포멧올리는 과정", "size: " + formatList.size()+"medi size : "+mediaUris);
                             }
-                            if (formatList.size() == mediaUris.size()) {
+                            if (formatList.size() == mediaUris.size()) { //재귀함수를 반복하다가 마지막 포멧까지 올리고 나서 내용을 firestore에 게시글을 올릴 시점.
                                 Log.d("한번만 튀어나오면댐", "제발: " + formatList.size());
                                 postInfo.setFormats(formatList);
                                 postInfo.setStoragePath(storagePath);
                                 UploadPost(documentReference, postInfo);
-                                return;
                             }
                         }
                     }).addOnFailureListener(new OnFailureListener() {
@@ -240,8 +247,7 @@ public class WritePostActivity extends AppCompatActivity {
             });
         }
     }
-        private void UploadPost(DocumentReference documentReference,final PostInfo postInfo) {
-
+    private void UploadPost(DocumentReference documentReference,final PostInfo postInfo) {
         documentReference.set(postInfo.getPostInfo())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -277,6 +283,48 @@ public class WritePostActivity extends AppCompatActivity {
         return path;
     }
 
+    public long getFileSize(ArrayList<Uri> uris){
+
+        long sum = 0;
+
+        for(Uri uri : uris) {
+            Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+            int size = returnCursor.getColumnIndex(OpenableColumns.SIZE);
+            returnCursor.moveToFirst();
+            sum += returnCursor.getLong(size);
+            Log.d("Asdzzxcx",Long.toString(returnCursor.getLong(size))+"");
+        }
+        return sum;
+    }
+
+    public void set_filesizeT(Double filesize){
+        String str = String.format("%.1f",(filesize/1000000));
+
+        if(filesize == 0.0){
+            binding.filesizeT.setVisibility(View.INVISIBLE);
+        }else {
+            binding.filesizeT.setVisibility(View.VISIBLE);
+            if (isfilesize_under_50MB(filesize)) {
+                binding.filesizeT.setTextColor(ContextCompat.getColor(this, R.color.semi_black));
+                binding.filesizeT.setText(str + "MB/" + "100MB");
+            } else {
+                binding.filesizeT.setTextColor(ContextCompat.getColor(this, R.color.colorAccent));
+                binding.filesizeT.setText(str + "MB/" + "100MB");
+            }
+        }
+    }
+
+    public boolean isfilesize_under_50MB(Double filesize){
+
+        String str = String.format("%.1f",(filesize/1000000));
+
+        if (Double.parseDouble(str) <= 50.0)
+            return true;
+        else
+            return false;
+
+    }
+
     @Override
     public void onBackPressed() {
         // 마지막으로 뒤로가기 버튼을 눌렀던 시간 저장
@@ -289,7 +337,6 @@ public class WritePostActivity extends AppCompatActivity {
             //아래 3줄은 프로세스 종료
             finish();
         }
-
     }
 
     public void Toast(String str){

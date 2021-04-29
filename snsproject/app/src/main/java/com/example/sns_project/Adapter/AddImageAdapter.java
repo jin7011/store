@@ -25,13 +25,13 @@ import java.util.ArrayList;
 public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddImageHolder> {
 
     private Activity activity;
-    private ArrayList<Uri> UriFormats = new ArrayList<>();
+    private ArrayList<Uri> UriFormats;
     private LiveData_WritePost liveData_writePost;
 
-    public AddImageAdapter(Activity activity) {
-        liveData_writePost = new ViewModelProvider((ViewModelStoreOwner)activity).get(LiveData_WritePost.class);
+    public AddImageAdapter(Activity activity,LiveData_WritePost liveData_writePost) {
         this.activity = activity;
         this.UriFormats = liveData_writePost.get().getValue();
+        this.liveData_writePost = liveData_writePost;
     }
 
     //holder
@@ -100,7 +100,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
 
     @Override
     public int getItemCount() {
-        return liveData_writePost.get().getValue().size();
+        return UriFormats.size();
     }
 
     @Override
