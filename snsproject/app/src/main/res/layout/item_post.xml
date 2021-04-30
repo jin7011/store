@@ -31,7 +31,7 @@
                 android:maxLines="1"
                 android:text="TextView"
                 android:textColor="@color/semi_black"
-                android:textSize="16dp"
+                android:textSize="16.5sp"
                 android:textStyle="normal" />
 
             <TextView
@@ -42,7 +42,7 @@
                 android:layout_marginBottom="3dp"
                 android:maxLines="1"
                 android:text="TextView"
-                android:textSize="11sp" />
+                android:textSize="12.5sp" />
 
         </LinearLayout>
 

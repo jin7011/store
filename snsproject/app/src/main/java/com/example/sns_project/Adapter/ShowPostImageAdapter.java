@@ -60,10 +60,9 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
     @Override
     public void onBindViewHolder(@NonNull ShowPostImageHolder holder, int position) { //포지션에 맞게 이미지 셋업
 
-        ImageView imageView = holder.imageView;
         Glide.with(activity).load(formats.get(position)).diskCacheStrategy(DiskCacheStrategy.ALL)
                 .transform(new CenterCrop(), new RoundedCorners(85))
-                .override(600,700).thumbnail(0.3f).into(imageView);
+                .override(600,700).thumbnail(0.3f).into(holder.imageView);
         Log.d("포멧리사이클러뷰","성공: "+position+ "url: " +formats.get(position));
 
 //        imageView.setOnClickListener(new View.OnClickListener() {

@@ -6,6 +6,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.example.sns_project.Adapter.Formats_PagerAdapter;
 import com.example.sns_project.R;
@@ -35,6 +36,11 @@ public class View_FormatActivity extends AppCompatActivity {
         viewPager2.setAdapter(viewPagerAdapter);//어뎁터 연결
         viewPager2.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL); //스크롤방향
         viewPager2.setCurrentItem(position);
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        viewPagerAdapter.exoUtil.just_releasePlayer(); //exo에게 자유를 주자
     }
 }
