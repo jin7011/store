@@ -309,8 +309,7 @@ public class PostActivity extends AppCompatActivity {
         ShowPostImageAdapter showPostImageAdapter = new ShowPostImageAdapter(activity, formats, new Listener_PostImageHolder() {
             @Override
             public void onClickedholder(ShowPostImageAdapter.ShowPostImageHolder showPostImageHolder) {
-                //todo 이미지 클릭작업 (해당 이미지의 홀더를 리스너로 받아왔음.)
-                Toast("position: "+showPostImageHolder.getAbsoluteAdapterPosition());
+//                Toast("position: "+showPostImageHolder.getAbsoluteAdapterPosition());
                 Intent intent = new Intent(PostActivity.this,View_FormatActivity.class);
                 intent.putExtra("position",showPostImageHolder.getAbsoluteAdapterPosition());
                 intent.putExtra("formats",postInfo.getFormats());
@@ -318,7 +317,6 @@ public class PostActivity extends AppCompatActivity {
             }
         });
         binding.formatsRecycler.setAdapter(showPostImageAdapter);
-
     }
 
     public void setToolbar(){
@@ -347,7 +345,6 @@ public class PostActivity extends AppCompatActivity {
         }
     }
 
-    //todo 아예 포스트의 좋아요와 댓글까지 싹 갱신하는 함수를 만들자. 그래서 좋아요를 누르거나 댓글을 달면 바로 갱신될 수 있도록 해주자  ㅊ
     @SuppressLint("SetTextI18n")
     public void good_up_btn(View view){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
 

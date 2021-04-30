@@ -122,16 +122,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         holder.nicknameT.setText(postInfo.getPublisher());
 
         if(postInfo.getFormats() != null){
-
             String format = postInfo.getFormats().get(0);
             Log.d("bind 사진 바인드","foramt: "+format);
             holder.imageView.setVisibility(View.VISIBLE);
-            Glide.with(activity).load(format).transform(new CenterCrop(),new RoundedCorners(50)).thumbnail(0.5f).into(holder.imageView);
-
+            Glide.with(activity).load(format).transform(new CenterCrop(),new RoundedCorners(50)).thumbnail(0.3f).into(holder.imageView);
         }else{
             holder.imageView.setVisibility(View.GONE);
         }
-
     }
 
     @Override
@@ -155,7 +152,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
         long regTime = postdate.getTime();
 
         long diffTime = (ctime - regTime) / 1000;
-        String msg = null;
+        String msg;
 
         if (diffTime < SEC) {
             msg = "방금 전";
