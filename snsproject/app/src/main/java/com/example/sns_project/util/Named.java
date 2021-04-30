@@ -25,4 +25,7 @@ public class Named {
     public static final int PostInitComment = 2000;
     public static final int PostAddComment = 2001;
 
+    public static final int VIDEO_TYPE = 4001;
+    public static final int IMAGE_TYPE = 4002;
+
 }

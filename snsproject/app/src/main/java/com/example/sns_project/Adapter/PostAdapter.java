@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.sns_project.Activities.PostActivity;
@@ -125,7 +126,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
             String format = postInfo.getFormats().get(0);
             Log.d("bind 사진 바인드","foramt: "+format);
             holder.imageView.setVisibility(View.VISIBLE);
-            Glide.with(activity).load(format).transform(new CenterCrop(),new RoundedCorners(50)).thumbnail(0.3f).into(holder.imageView);
+            Glide.with(activity).load(format).diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .transform(new CenterCrop(),new RoundedCorners(50))
+                    .thumbnail(0.3f).into(holder.imageView);
         }else{
             holder.imageView.setVisibility(View.GONE);
         }
@@ -141,10 +144,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 //        return postList.get(position).hashCode();
 //    }
 
-//    @Override
-//    public int getItemViewType(int position) {
-//        return position;
-//    }
 
     public static String formatTimeString(Date postdate,Date nowDate){
 
