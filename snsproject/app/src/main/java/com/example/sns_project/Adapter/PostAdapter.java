@@ -20,9 +20,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.sns_project.Activities.PostActivity;
 import com.example.sns_project.R;
-import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
-import com.example.sns_project.util.Named;
 import com.example.sns_project.util.PostInfo_DiffUtil;
 
 import java.text.SimpleDateFormat;
@@ -33,11 +31,10 @@ import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.SEC;
 
-public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
+public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Activity activity;
     private ArrayList<PostInfo> postList = new ArrayList<>();
-    private Named named = new Named();
 
     public void PostInfoDiffUtil(ArrayList<PostInfo> newPosts) {
         final PostInfo_DiffUtil diffCallback = new PostInfo_DiffUtil(this.postList, newPosts);
@@ -53,7 +50,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
     }
 
     //holder
-    public class PostHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
+    public static class PostHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
 
         TextView titleT ;
         TextView contentT ;
@@ -79,7 +76,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 
     @NonNull
     @Override
-    public PostHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
+    public  RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
 
         View view  =  LayoutInflater.from(parent.getContext()).inflate(R.layout.item_post,parent,false);
         PostAdapter.PostHolder postHolder = new PostAdapter.PostHolder(view);
@@ -110,27 +107,29 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
 
     @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull PostAdapter.PostHolder holder, int position) { //포지션에 맞게 이미지 셋업
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) { //포지션에 맞게 이미지 셋업
 
-        PostInfo postInfo = postList.get(position);
-        postInfo.setHow_Long(formatTimeString(postInfo.getCreatedAt(),new Date()));
+        if(holder instanceof PostHolder) {
+            PostInfo postInfo = postList.get(position);
+            postInfo.setHow_Long(formatTimeString(postInfo.getCreatedAt(), new Date()));
 
-        holder.titleT.setText(postInfo.getTitle());
-        holder.contentT.setText(postInfo.getContents());
-        holder.dateT.setText(postInfo.getHow_Long());
-        holder.goodNum.setText(postInfo.getGood()+"");
-        holder.commentNum.setText(postInfo.getComment()+"");
-        holder.nicknameT.setText(postInfo.getPublisher());
+            ((PostHolder) holder).titleT.setText(postInfo.getTitle());
+            ((PostHolder) holder).contentT.setText(postInfo.getContents());
+            ((PostHolder) holder).dateT.setText(postInfo.getHow_Long());
+            ((PostHolder) holder).goodNum.setText(postInfo.getGood() + "");
+            ((PostHolder) holder).commentNum.setText(postInfo.getComment() + "");
+            ((PostHolder) holder).nicknameT.setText(postInfo.getPublisher());
 
-        if(postInfo.getFormats() != null){
-            String format = postInfo.getFormats().get(0);
-            Log.d("bind 사진 바인드","foramt: "+format);
-            holder.imageView.setVisibility(View.VISIBLE);
-            Glide.with(activity).load(format).diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .transform(new CenterCrop(),new RoundedCorners(50))
-                    .thumbnail(0.3f).into(holder.imageView);
-        }else{
-            holder.imageView.setVisibility(View.GONE);
+            if (postInfo.getFormats() != null) {
+                String format = postInfo.getFormats().get(0);
+                Log.d("bind 사진 바인드", "foramt: " + format);
+                ((PostHolder) holder).imageView.setVisibility(View.VISIBLE);
+                Glide.with(activity).load(format).diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .transform(new CenterCrop(), new RoundedCorners(50))
+                        .thumbnail(0.3f).into(((PostHolder) holder).imageView);
+            } else {
+                ((PostHolder) holder).imageView.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -138,12 +137,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostHolder> {
     public int getItemCount() {
         return postList.size();
     }
-
-//        @Override
-//    public long getItemId(int position) {
-//        return postList.get(position).hashCode();
-//    }
-
 
     public static String formatTimeString(Date postdate,Date nowDate){
 

@@ -93,7 +93,6 @@ public class Video_ExoUtil {
 
             player.release();
             player = null;
-
         }
     }
 }

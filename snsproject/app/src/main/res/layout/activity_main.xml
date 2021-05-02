@@ -37,7 +37,7 @@
                     android:layout_gravity="center"
                     android:text="@{MyAccount.location}"
                     android:textColor="@color/black"
-                    android:textSize="20dp">
+                    android:textSize="20sp">
 
                 </TextView>
             </androidx.appcompat.widget.Toolbar>

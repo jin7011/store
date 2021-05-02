@@ -1,6 +1,5 @@
 package com.example.sns_project.fragment;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,12 +15,17 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 
-import com.example.sns_project.Activities.LoginActivity;
 import com.example.sns_project.Activities.MainActivity;
+import com.example.sns_project.Activities.Password_resetActivity;
+import com.example.sns_project.Activities.PopupActivity;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.FragmentProfileBinding;
 import com.example.sns_project.info.MyAccount;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileFragment extends Fragment {
 
@@ -29,6 +33,9 @@ public class ProfileFragment extends Fragment {
     private FragmentProfileBinding binding;
     private MainActivity activity;
     private Context context;
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+    private FirebaseUser user;
 
     public ProfileFragment(MainActivity activity) {
         this.activity = activity;
@@ -60,8 +67,65 @@ public class ProfileFragment extends Fragment {
 
         Bundle bundle = getArguments();
         myAccount = (MyAccount)bundle.getParcelable("Myaccount");
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        user = mAuth.getCurrentUser();
+
         binding.setMyaccount(myAccount);
         binding.setProfileFragment(this);
+    }
+
+    public void withdraw(View view){
+        AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,android.R.style.Theme_DeviceDefault_Light_Dialog);
+
+        oDialog.setMessage("회원탈퇴를 하시겠습니까?\n사용자의 정보가 모두 삭제되지만,\n\'작성글\'과 \'댓글\'의 내용은 남아있게 됩니다.").setPositiveButton("예", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                db.collection("USER").document(user.getUid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        oDialog.setMessage("진짜한다..?").setPositiveButton("예", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            logout();
+                                        }
+                                    }
+                                });
+                            }
+                        }).setNeutralButton("무르기", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Toast("굿");
+                            }
+                        }).show();
+
+                    }
+                });
+            }
+        }).setNeutralButton("아니오", new DialogInterface.OnClickListener()
+        {
+            public void onClick(DialogInterface dialog, int which)
+            {
+
+            }
+        }).show();
+    }
+
+    public void change_password(View view){
+        Intent intent = new Intent(context,Password_resetActivity.class);
+        startActivity(intent);
+    }
+
+    public void change_location(View view){
+        Intent intent = new Intent(getActivity(), PopupActivity.class);
+        intent.putExtra("myAccount",myAccount);
+        startActivityForResult(intent,101);
     }
 
     public void logout_dialog(View view){

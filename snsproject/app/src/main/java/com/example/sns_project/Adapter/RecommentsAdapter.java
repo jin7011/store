@@ -36,11 +36,10 @@ import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.SEC;
 
-public class RecommentsAdapter extends RecyclerView.Adapter<RecommentsAdapter.RecommentsHolder> {
+public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Activity activity;
     private ArrayList<RecommentInfo> recomments = new ArrayList<>();
-    private Named named = new Named();
     PostInfo postInfo;
 
     public void RecommentInfo_DiffUtil(ArrayList<RecommentInfo> newcomments) {
@@ -59,7 +58,7 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecommentsAdapter.Re
     }
 
     //holder
-    public class RecommentsHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
+    public static class RecommentsHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
 
         TextView contentT ;
         TextView dateT ;
@@ -82,10 +81,10 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecommentsAdapter.Re
 
     @NonNull
     @Override
-    public RecommentsAdapter.RecommentsHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
         //todo 클릭이벤트 만들어줘야함.
         View view  =  LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recomments,parent,false);
-        RecommentsAdapter.RecommentsHolder recommentsHolder = new RecommentsAdapter.RecommentsHolder(view);
+        RecommentsAdapter.RecommentsHolder recommentsHolder = new RecommentsHolder(view);
 
         recommentsHolder.good_btn.setOnClickListener(new View.OnClickListener() { //좋아요
             @Override
@@ -110,7 +109,9 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecommentsAdapter.Re
 
     @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull RecommentsAdapter.RecommentsHolder holder, int position) { //포지션에 맞게 이미지 셋업
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder commentsHolder, int position) { //포지션에 맞게 이미지 셋업
+
+        RecommentsHolder holder = (RecommentsHolder)commentsHolder;
 
         RecommentInfo recommentInfo = recomments.get(position);
         Log.d("asss",recommentInfo.getContents());
@@ -152,7 +153,6 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecommentsAdapter.Re
         AlertDialog alertDialog = alert.create();
         alertDialog.show();
     }
-
 
     public void OthersDialog(){
         final String[] items = {"알림설정","쪽지보내기","신고"};

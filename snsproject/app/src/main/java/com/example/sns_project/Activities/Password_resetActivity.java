@@ -4,7 +4,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,10 +14,13 @@ import com.example.sns_project.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class Password_resetActivity extends AppCompatActivity {
 
-    EditText mail;
+    TextView mail;
+    private FirebaseAuth mAuth;
+    private FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,9 +28,14 @@ public class Password_resetActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_password_reset);
 
+        mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
+
         mail = findViewById(R.id.mail);
+        mail.setText(user.getEmail());
         Button sendButton = findViewById(R.id.send_btn);
-        Button gologin = findViewById(R.id.gologin_btn);
+        Button goback = findViewById(R.id.cancel_btn);
+
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -35,7 +43,7 @@ public class Password_resetActivity extends AppCompatActivity {
             }
         });
 
-        gologin.setOnClickListener(new View.OnClickListener() {
+        goback.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();

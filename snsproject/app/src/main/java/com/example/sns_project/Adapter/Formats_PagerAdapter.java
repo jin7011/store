@@ -19,7 +19,6 @@ import static com.example.sns_project.util.Named.IMAGE_TYPE;
 import static com.example.sns_project.util.Named.VIDEO_TYPE;
 
 public class Formats_PagerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private Named named = new Named();
     private ArrayList<String> formats;
     private Context context;
     public Video_ExoUtil exoUtil;

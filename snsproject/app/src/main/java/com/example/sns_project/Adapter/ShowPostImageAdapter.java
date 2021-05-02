@@ -19,7 +19,7 @@ import com.example.sns_project.R;
 
 import java.util.ArrayList;
 
-public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdapter.ShowPostImageHolder>{
+public class ShowPostImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     private Activity activity;
     private ArrayList<String> formats;
@@ -42,7 +42,7 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
 
     @NonNull
     @Override
-    public ShowPostImageAdapter.ShowPostImageHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
 
         ImageView imageView = (ImageView) LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
         ShowPostImageHolder showPostImageHolder = new ShowPostImageHolder(imageView);
@@ -58,19 +58,12 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ShowPostImageHolder holder, int position) { //포지션에 맞게 이미지 셋업
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) { //포지션에 맞게 이미지 셋업
 
         Glide.with(activity).load(formats.get(position)).diskCacheStrategy(DiskCacheStrategy.ALL)
                 .transform(new CenterCrop(), new RoundedCorners(85))
-                .override(600,700).thumbnail(0.3f).into(holder.imageView);
+                .override(600,700).thumbnail(0.1f).into(((ShowPostImageHolder)holder).imageView);
         Log.d("포멧리사이클러뷰","성공: "+position+ "url: " +formats.get(position));
-
-//        imageView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//
-//            }
-//        });
 
     }
 
@@ -78,6 +71,5 @@ public class ShowPostImageAdapter extends RecyclerView.Adapter<ShowPostImageAdap
     public int getItemCount() {
         return formats.size();
     }
-
 
 }

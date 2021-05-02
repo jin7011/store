@@ -3,14 +3,12 @@ package com.example.sns_project.Adapter;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -28,7 +26,7 @@ import com.example.sns_project.R;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.util.CommentInfo_DiffUtil;
-import com.example.sns_project.util.Named;
+import com.example.sns_project.util.My_Utility;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,15 +35,15 @@ import java.util.Date;
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.SEC;
-import static com.example.sns_project.util.Named.Write_Recomment;
+import static com.example.sns_project.util.Named.VERTICAL;
 
-public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.CommentsHolder>{
-                                                 //todo 라이브로 댓글리스트관리하다가 어댑터랑 리스트는 다르다는 걸 알고 잘못됨을 느끼는중, 화면전환시에 리사이클러뷰
-    private Named named = new Named();
+public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+
     private PostActivity activity;
     private ArrayList<CommentInfo> comments;      //postinfo에 있는 것을 쓰지않는 이유는 diffutil을 쓰기 위함임 (같은 주소같을 할당하면 변화를 찾을 수 없어서)
     private Listener_CommentHolder listener_commentHolder;
-    PostInfo postInfo;
+    private My_Utility my_utility;
+    private PostInfo postInfo;
 
     public void CommentInfo_DiffUtil(ArrayList<CommentInfo> newcomments) {
         final CommentInfo_DiffUtil diffCallback = new CommentInfo_DiffUtil(this.comments, newcomments);
@@ -56,15 +54,16 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public CommentsAdapter(PostActivity activity,PostInfo postInfo,Listener_CommentHolder listener_commentHolder) {
+    public CommentsAdapter(PostActivity activity,PostInfo postInfo,My_Utility my_utility,Listener_CommentHolder listener_commentHolder) {
         this.postInfo = postInfo;
         this.activity = activity;
+        this.my_utility = my_utility;
         this.listener_commentHolder = listener_commentHolder;
         this.comments = new ArrayList<>();
     }
 
     //holder
-    public class CommentsHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
+    public static class CommentsHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
 
         //R.layout.item_comments에 존재하지 않는 뷰는 일반적으로는 설정하나마나임
         TextView contentT ;
@@ -97,9 +96,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
 
     @NonNull
     @Override
-    public CommentsAdapter.CommentsHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
         View view  =  LayoutInflater.from(parent.getContext()).inflate(R.layout.item_comments,parent,false);
-        CommentsAdapter.CommentsHolder commentsHolder = new CommentsAdapter.CommentsHolder(view);
+        CommentsHolder commentsHolder = new CommentsHolder(view);
 
         commentsHolder.good_btn.setOnClickListener(new View.OnClickListener() { //좋아요
             @Override
@@ -128,11 +127,11 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
         return commentsHolder;
     }
 
-
-
     @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull CommentsAdapter.CommentsHolder holder, int position) { //포지션에 맞게 이미지 셋업
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder commentsHolder, int position) { //포지션에 맞게 이미지 셋업
+
+        CommentsHolder holder = (CommentsHolder)commentsHolder;
 
         CommentInfo commentInfo = comments.get(position);
 
@@ -154,6 +153,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
             RecommentsAdapter recommentsAdapter = new RecommentsAdapter(activity,postInfo);
             Log.d("asss",commentInfo.getRecomments().size()+"");
             holder.recyclerView.setVisibility(View.VISIBLE);
+            my_utility.RecyclerInit(holder.recyclerView,recommentsAdapter,VERTICAL);
             Add_and_Set_RecommentRecyclerView(activity,holder.recyclerView,recommentsAdapter);
             recommentsAdapter.RecommentInfo_DiffUtil(commentInfo.getRecomments());
         }else{

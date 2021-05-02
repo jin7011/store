@@ -286,8 +286,10 @@ public class SignActivity extends AppCompatActivity {
         Intent intent = new Intent(this,MainActivity.class);
         intent.putExtra("myAccount",myAccount);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivityForResult(intent,101);
+//        startActivityForResult(intent,101);
+        startActivity(intent);
     }
+
 
     @Override
     public void onBackPressed() {

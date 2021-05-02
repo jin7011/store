@@ -6,7 +6,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.example.sns_project.Adapter.Formats_PagerAdapter;
 import com.example.sns_project.R;

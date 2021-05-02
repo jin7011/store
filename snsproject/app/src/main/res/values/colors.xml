@@ -17,5 +17,15 @@
     <color name="recomment_background">#2DD4CEDA</color>
     <color name="recomment_background_rec">#19D4CEDA</color>
     <color name="Transparency">#00ff0000</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#FF408C</color>
+    <color name="classicBlue">#004680</color>
+    <color name="invisible">#A34A4A4A</color>
+    <color name="ultra_gray">#939597</color>
+    <color name="illuminating_yellow">#f5df4d</color>
+    <color name="pantone">#ff6d70</color>
+    <color name="sea_pink">#cc8080</color>
+    <color name="conch_shell">#fb8c98</color>
+    <color name="living_coral">#cc8080</color>
+
+
 </resources>

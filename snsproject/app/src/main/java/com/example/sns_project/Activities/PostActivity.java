@@ -12,7 +12,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -22,9 +21,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.example.sns_project.Adapter.CommentsAdapter;
 import com.example.sns_project.Adapter.ShowPostImageAdapter;
@@ -36,7 +32,7 @@ import com.example.sns_project.databinding.ActivityPostBinding;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
-import com.example.sns_project.util.Named;
+import com.example.sns_project.util.My_Utility;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -56,14 +52,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import static com.example.sns_project.util.Named.DeleteResult;
-import static com.example.sns_project.util.Named.Something_IN_Post;
+import static com.example.sns_project.util.Named.DELETE_RESULT;
+import static com.example.sns_project.util.Named.HORIZEN;
+import static com.example.sns_project.util.Named.SOMETHING_IN_POST;
+import static com.example.sns_project.util.Named.VERTICAL;
 
 //이 곳에서 작성한 글과 파일을 볼 수 있으며 댓글과 좋아요 버튼을 누를 수 있다.
 //        작성한 글 db에서 내용을 가져옴으로써 구현하고,
 //        댓글과 좋아요 버튼을 누르면 해당 게시글db에 내용이 추가로 입력되도록한다.
 
 public class PostActivity extends AppCompatActivity {
+
     ActivityPostBinding binding;
     private FirebaseUser user;
     private FirebaseFirestore db;
@@ -72,16 +71,15 @@ public class PostActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private Toolbar toolbar;
     private ActionBar actionBar;
-    private Named named = new Named();
+    private My_Utility my_utility = new My_Utility(this);
     private boolean ACTION = false;
     private CommentsAdapter commentsAdapter;
-    private ArrayList<CommentInfo> comments;
     private LiveData_PostInfo liveData_postInfo;
     private CommentsAdapter.CommentsHolder PostcommentsHolder;
 
     //todo 추가적으로 하는 일(댓글,좋아요,글쓰기)에 대해서 동시적인 작업처리를 해줘야할 때가 왔음 (아마도 트랜젝션이 제일 유일)
     @Override
-    protected void onCreate(Bundle savedInstanceState) { //todo 게시물 내부에 새로고침 만들
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         binding = ActivityPostBinding.inflate(getLayoutInflater());
@@ -274,12 +272,12 @@ public class PostActivity extends AppCompatActivity {
 
     public void Add_and_Set_CommentRecyclerView(PostActivity activity){
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
+//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+//        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
 
-        binding.commentRecycler.setLayoutManager(layoutManager);
-        commentsAdapter = new CommentsAdapter(activity, postInfo, new Listener_CommentHolder() {
+//        binding.commentRecycler.setLayoutManager(layoutManager);
+        commentsAdapter = new CommentsAdapter(activity, postInfo,my_utility, new Listener_CommentHolder() {
             @Override
             public void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder) {
                 CommentInfo commentInfo = postInfo.getComments().get(commentsHolder.getAbsoluteAdapterPosition());
@@ -292,19 +290,21 @@ public class PostActivity extends AppCompatActivity {
                 Toast(""+commentInfo.getContents());
             }
         });
-        binding.commentRecycler.setAdapter(commentsAdapter);
 
-        RecyclerView.ItemAnimator animator = binding.commentRecycler.getItemAnimator();
-        if (animator instanceof SimpleItemAnimator) {
-            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
-        }
+        my_utility.RecyclerInit(binding.commentRecycler,commentsAdapter,VERTICAL);
+
+//        binding.commentRecycler.setAdapter(commentsAdapter);
+//        RecyclerView.ItemAnimator animator = binding.commentRecycler.getItemAnimator();
+//        if (animator instanceof SimpleItemAnimator) {
+//            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+//        }
     }
 
     public void Add_and_Set_ImageRecyclerView(Activity activity, ArrayList<String> formats){
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        binding.formatsRecycler.setLayoutManager(layoutManager);
+//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+//        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+//        binding.formatsRecycler.setLayoutManager(layoutManager);
 
         ShowPostImageAdapter showPostImageAdapter = new ShowPostImageAdapter(activity, formats, new Listener_PostImageHolder() {
             @Override
@@ -316,7 +316,8 @@ public class PostActivity extends AppCompatActivity {
                 PostActivity.this.startActivity(intent);
             }
         });
-        binding.formatsRecycler.setAdapter(showPostImageAdapter);
+        my_utility.RecyclerInit(binding.formatsRecycler,showPostImageAdapter,HORIZEN);
+//        binding.formatsRecycler.setAdapter(showPostImageAdapter);
     }
 
     public void setToolbar(){
@@ -470,7 +471,7 @@ public class PostActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast("삭제되었습니다.");
-                        toMain(DeleteResult,postInfo.getDocid());
+                        toMain(DELETE_RESULT,postInfo.getDocid());
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -572,7 +573,7 @@ public class PostActivity extends AppCompatActivity {
             PostcommentsHolder = null;
         }else {
             if (ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
-                toMain(Something_IN_Post, postInfo.getDocid());
+                toMain(SOMETHING_IN_POST, postInfo.getDocid());
             } else {
                 finish();
             }

@@ -92,6 +92,8 @@
                         android:layout_marginTop="20dp"
                         android:text="지역 변경"
                         android:textColor="#000000"
+                        android:clickable="true"
+                        android:onClick="@{ProfileFragment::change_location}"
                         android:textSize="18sp" />
 
                     <TextView
@@ -100,6 +102,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
                         android:text="비밀번호 변경"
+                        android:onClick="@{ProfileFragment::change_password}"
                         android:textColor="#000000"
                         android:textSize="18sp" />
 
@@ -108,7 +111,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
-                        android:text="이메일 변경"
+                        android:text="내가 쓴 글"
                         android:textColor="#000000"
                         android:textSize="18sp" />
 
@@ -265,6 +268,7 @@
                         android:layout_marginTop="20dp"
                         android:text="회원 탈퇴"
                         android:textColor="#000000"
+                        android:onClick="@{ProfileFragment::withdraw}"
                         android:textSize="18sp" />
 
                     <TextView

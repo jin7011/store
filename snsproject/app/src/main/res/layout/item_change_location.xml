@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/change_locaiont_FrameLayout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    android:background="@drawable/corner_red"
+    android:padding="5dp">
+
+    <TextView
+        android:id="@+id/change_locationT"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="강서구"
+        android:textColor="@color/semi_black"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+</FrameLayout>

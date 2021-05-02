@@ -22,7 +22,7 @@ import com.example.sns_project.data.LiveData_WritePost;
 
 import java.util.ArrayList;
 
-public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddImageHolder> {
+public class AddImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Activity activity;
     private ArrayList<Uri> UriFormats;
@@ -46,23 +46,20 @@ public class AddImageAdapter extends RecyclerView.Adapter<AddImageAdapter.AddIma
 
     @NonNull
     @Override
-    public AddImageHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
 
         ImageView imageView = (ImageView)LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
-        AddImageHolder addImageHolder = new AddImageHolder(imageView);
-
+        RecyclerView.ViewHolder addImageHolder = new AddImageHolder(imageView);
+        setClickListenerOnHolder((AddImageHolder)addImageHolder, addImageHolder.getAbsoluteAdapterPosition());
         return addImageHolder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AddImageHolder holder, int position) { //포지션에 맞게 이미지 셋업
-        setPostData(holder, position);
-    }
-
-    private void setPostData(AddImageHolder holder, int position) {
-        RequestOptions option_circle = new RequestOptions().circleCrop();
-        Glide.with(activity).load(UriFormats.get(position).toString()).transform(new FitCenter()).override(500,500).apply(option_circle).into(holder.imageView);
-        setClickListenerOnHolder(holder, position);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) { //포지션에 맞게 이미지 셋업
+        if (holder instanceof AddImageHolder) {
+            RequestOptions option_circle = new RequestOptions().circleCrop();
+            Glide.with(activity).load(UriFormats.get(position).toString()).transform(new FitCenter()).override(500, 500).apply(option_circle).into(((AddImageHolder)holder).imageView);
+        }
     }
 
     private void setClickListenerOnHolder(AddImageHolder holder, int position) {

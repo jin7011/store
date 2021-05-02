@@ -27,23 +27,18 @@ import com.example.sns_project.fragment.LetterFragment;
 import com.example.sns_project.fragment.ProfileFragment;
 import com.example.sns_project.fragment.SearchFragment;
 import com.example.sns_project.info.MyAccount;
-import com.example.sns_project.info.PostInfo;
-import com.example.sns_project.util.Named;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
-
-import static com.example.sns_project.util.Named.DeleteResult;
+import static com.example.sns_project.util.Named.DELETE_RESULT;
 import static com.example.sns_project.util.Named.None;
-import static com.example.sns_project.util.Named.Something_IN_Post;
-import static com.example.sns_project.util.Named.WriteResult;
+import static com.example.sns_project.util.Named.SOMETHING_IN_POST;
+import static com.example.sns_project.util.Named.WRITE_RESULT;
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
@@ -52,15 +47,13 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private long backKeyPressedTime = 0;
     private Toolbar toolbar;
-    private LiveData_MyData_Main liveDataMyDataMainModel;
+    public LiveData_MyData_Main liveDataMyDataMainModel;
     private MyAccount myAccount;
     private BoardFragment boardFragment;
     private ProfileFragment profileFragment;
     private LetterFragment letterFragment;
     private SearchFragment searchFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
-    private String location;
-    private Named named = new Named();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,51 +69,20 @@ public class MainActivity extends AppCompatActivity {
             public void onChanged(MyAccount myAccount) { //개인프로필을 변경했을 경우 -> 게시판 지역이동 (툴바이름변경,게시판내용변경)
                 binding.setMyAccount(myAccount); //툴바에 해당 지역을 나타내는 textview를 데이터바인딩 하였음. (툴바이름변경)
                 setFragment();
-//                findLocation_and_setfragment(); //게시판 지역에 맞게 재설정 (게시판 내용변경)
             }
         });
 
-        if(AccountInit()){ //계정이 있다면,
-//            findLocation_and_setfragment();
-//            setFragment();
-        }
-        else{
-            Activity(SignActivity.class);
-        }
-
-//        binding.button2.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                FirebaseAuth.getInstance().signOut();
-//                finish();
-//            }
-//        });
-
-    }
-
-    public void findLocation_and_setfragment(){
-
-        DocumentReference locationDoc = db.collection("USER").document(user.getUid());
-
-        locationDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-
-                    if (document.exists()) { //USER에서 location을 찾는 것은 비동기적이기떄문에 함수화 못했꼬, 그래서 우선적으로 지역을 찾자
-
-                        location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
-                        Log.d("지격탐색(main)", location);
-                        setFragment();
-                    }
-                }
-            }
-        });
+        if(AccountInit()){}
+        else{Activity(SignActivity.class);}
 
     }
 
     public void setFragment(){
+
+        boardFragment = null;
+        letterFragment = null;
+        profileFragment = null;
+        searchFragment = null;
 
         boardFragment = new BoardFragment();
 
@@ -134,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.fragment_frame, boardFragment).commitAllowingStateLoss();
+        binding.bottomNav.setSelectedItemId(R.id.menu_home);
 
         binding.bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -198,8 +161,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if(AccountInit()){ //계정이 있다면,
-//            findLocation_and_setfragment();
-//            setFragment();
         }
         else{
             Activity(SignActivity.class);
@@ -212,26 +173,34 @@ public class MainActivity extends AppCompatActivity {
         user = mAuth.getCurrentUser();
         db = FirebaseFirestore.getInstance();
 
-        if (user == null)
+        if (user == null) //자동로그인 확인
             return false;
         else {
-            db.collection("USER").document(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            db.collection("USER").document(user.getUid()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                 @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if(task.isSuccessful()){
-                        DocumentSnapshot document = task.getResult();
-
+                public void onSuccess(DocumentSnapshot document) {
+                    if(document.exists()) {
                         String location = document.getString("location");
                         String image = document.getString("image");
                         String store = document.getString("store");
                         String phone = document.getString("phone");
                         String businessNum = document.getString("businessNum");
 
-                        if( !(myAccount != null && myAccount.getLocation().equals(location) && myAccount.getNickname().equals(user.getDisplayName())) ){
+                        if(myAccount == null) {
+                            Log.d("dasdazz","null"+location);
+                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
+                            liveDataMyDataMainModel.get().setValue(myAccount);
+                        }else if(!myAccount.getLocation().equals(location)){
+                            Log.d("dasdazz","not_null: "+myAccount.getLocation()+", new: "+location);
                             myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
                             liveDataMyDataMainModel.get().setValue(myAccount);
                         }
                     }
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.d("cccccccccaa","실패");
                 }
             });
             return true;
@@ -287,25 +256,30 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 101){
             Intent intent = getIntent();
-            myAccount = (MyAccount)intent.getSerializableExtra("myAccount");
+            myAccount = (MyAccount)intent.getParcelableExtra("myAccount");
             Log.d("From SignActivity","myAccount location: "+myAccount.getLocation());
         }
 
-        if (resultCode == WriteResult) { //글쓰기 리턴값
+        if (resultCode == WRITE_RESULT) { //글쓰기 리턴값
             Log.d("From WriteActivity","requestCode: "+requestCode);
-            boardFragment.postUpdate(WriteResult,None);
+            boardFragment.postUpdate(WRITE_RESULT,None);
         }
 
-        if (resultCode == DeleteResult) { //글삭제 리턴값
+        if (resultCode == DELETE_RESULT) { //글삭제 리턴값
             String docid = data.getStringExtra("docid");
             Log.d("From PostActivity","requestCode: "+requestCode+" docid: "+docid);
-            boardFragment.postUpdate(DeleteResult,docid);
+            boardFragment.postUpdate(DELETE_RESULT,docid);
         }
 
-        if (resultCode == Something_IN_Post) { //좋아요/(댓글추가) 리턴값
+        if (resultCode == SOMETHING_IN_POST) { //좋아요/(댓글추가) 리턴값
             String docid = data.getStringExtra("docid");
             Log.d("From PostActivity","requestCode: "+requestCode+" docid: "+docid);
-            boardFragment.postUpdate(Something_IN_Post,docid);
+            boardFragment.postUpdate(SOMETHING_IN_POST,docid);
+        }
+
+        if(resultCode == SOMETHING_IN_POST){ //지역변경 리턴값
+            AccountInit();
+            Log.d("From PopupAct","myAccount location: "+myAccount.getLocation());
         }
 
     }
@@ -329,7 +303,8 @@ public class MainActivity extends AppCompatActivity {
     public void logout(){
         Intent i = new Intent(MainActivity.this, LoginActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        FirebaseAuth.getInstance().signOut();
+        mAuth.getInstance().signOut();
+        user = null;
         startActivity(i);
         finish();
     }

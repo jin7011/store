@@ -53,7 +53,9 @@ public class LoginActivity extends AppCompatActivity {
         gosignup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                finish();
+                Intent intent = new Intent(LoginActivity.this,SignActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
             }
         });
 
@@ -98,8 +100,6 @@ public class LoginActivity extends AppCompatActivity {
                         } else {
                             Tost("로그인 실패하였습니다.");
                         }
-
-                        // ...
                     }
                 });
     }

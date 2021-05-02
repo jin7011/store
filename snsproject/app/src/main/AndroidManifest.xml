@@ -17,12 +17,16 @@
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Snsproject">
-        <activity android:name=".Activities.View_FormatActivity"></activity>
+        >
+        <activity android:name=".Activities.PopupActivity"  android:theme="@android:style/Theme.Holo.Light.Dialog"/>
+
+        <activity android:name=".Activities.View_FormatActivity" android:theme="@style/Theme.Snsproject"/>
+
         <activity
             android:name=".Activities.PostActivity"
+            android:theme="@style/Theme.Snsproject"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".Activities.PermissionActivity">
+        <activity android:name=".Activities.PermissionActivity" android:theme="@style/Theme.Snsproject">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,11 +35,12 @@
         </activity>
         <activity
             android:name=".Activities.WritePostActivity"
+            android:theme="@style/Theme.Snsproject"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".Activities.Password_resetActivity" />
-        <activity android:name=".Activities.MainActivity" />
-        <activity android:name=".Activities.SignActivity" />
-        <activity android:name=".Activities.LoginActivity" />
+        <activity android:name=".Activities.Password_resetActivity" android:theme="@style/Theme.Snsproject" />
+        <activity android:name=".Activities.MainActivity" android:theme="@style/Theme.Snsproject" />
+        <activity android:name=".Activities.SignActivity" android:theme="@style/Theme.Snsproject"/>
+        <activity android:name=".Activities.LoginActivity" android:theme="@style/Theme.Snsproject" />
     </application>
 
 </manifest>

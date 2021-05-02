@@ -1,8 +1,6 @@
 package com.example.sns_project.fragment;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,9 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.sns_project.Adapter.PostAdapter;
@@ -25,10 +21,9 @@ import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.MyAccount;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
-import com.example.sns_project.util.Named;
+import com.example.sns_project.util.My_Utility;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -38,18 +33,16 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import static com.example.sns_project.util.Named.DOWN_SROLLED;
-import static com.example.sns_project.util.Named.DeleteResult;
-import static com.example.sns_project.util.Named.Something_IN_Post;
+import static com.example.sns_project.util.Named.DELETE_RESULT;
+import static com.example.sns_project.util.Named.SOMETHING_IN_POST;
 import static com.example.sns_project.util.Named.UP_SROLLED;
-import static com.example.sns_project.util.Named.Upload_Limit;
-import static com.example.sns_project.util.Named.WriteResult;
+import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
+import static com.example.sns_project.util.Named.VERTICAL;
+import static com.example.sns_project.util.Named.WRITE_RESULT;
 
 public class BoardFragment extends Fragment {
     //리스트를 라이브에서 관리하고 옵저버로 리사이클러뷰와 리스트를 관리함
@@ -66,7 +59,7 @@ public class BoardFragment extends Fragment {
     private String location;
     private PostAdapter postAdapter;
     private SwipeRefreshLayout swipe;
-    private Named named = new Named();
+    private My_Utility my_utility;
 
     public BoardFragment() {}
 
@@ -96,6 +89,7 @@ public class BoardFragment extends Fragment {
         location = myAccount.getLocation();
         PostListModel = new ViewModelProvider(getActivity()).get(LiveData_PostList.class);
         postList = PostListModel.getPostList();
+        my_utility = new My_Utility(getActivity());
 
         //라이브데이터
         PostList_Observer = new Observer<ArrayList<PostInfo>>() { // 따로 라이프사이클없이 계속돌아가게 해놨음
@@ -109,15 +103,12 @@ public class BoardFragment extends Fragment {
                     Log.d("zxczxc", "newPosts: " + postInfos.size());
                     Log.d("zxczxc", "PostListModel.getPostList: " + PostListModel.getPostList().size());
                     Log.d("zxczxc", "postList: " + postList.size());
-                    if(postInfos.get(0).getHow_Long() == null){
-                        Log.d("널이라구", "널이라구" + postInfos.size());
-                    }
                 }
             }
         };
         PostListModel.get().observeForever(PostList_Observer);
 
-        RecyclerInit(getActivity(),view);
+        RecyclerInit(view);
         Log.d("zz","리사이클러뷰 이닛");
 
         RecyclerView_ScrollListener();
@@ -131,11 +122,11 @@ public class BoardFragment extends Fragment {
 
         if(request == DOWN_SROLLED) //아래로 새로고침할 때
             DownScrolled();
-        else if(request == UP_SROLLED || request == WriteResult) //위로 새로고침하거나 글쓰고 왔을 때
+        else if(request == UP_SROLLED || request == WRITE_RESULT) //위로 새로고침하거나 글쓰고 왔을 때
             UpScrolled();
-        else if(request == Something_IN_Post) // 다른 게시물에 좋아요버튼 누르고 왔을 때
+        else if(request == SOMETHING_IN_POST) // 다른 게시물에 좋아요버튼 누르고 왔을 때
             Good_or_Comment(docid);
-        else if(request == DeleteResult){ // 내 게시물을 삭제하고 왔을 때
+        else if(request == DELETE_RESULT){ // 내 게시물을 삭제하고 왔을 때
             Deleted(docid);
         }
 
@@ -212,7 +203,7 @@ public class BoardFragment extends Fragment {
 
         db.collection(location)
                 .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate)
-                .limit(Upload_Limit)
+                .limit(UPLOAD_LIMIT)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -240,7 +231,7 @@ public class BoardFragment extends Fragment {
                             }
                             PostListModel.get().setValue(newPosts);
                             recyclerView.smoothScrollToPosition(0);
-                            Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
+//                            Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
                         } else {
                             Log.d("실패함", "Error getting documents: ", task.getException());
                         }
@@ -300,7 +291,7 @@ public class BoardFragment extends Fragment {
 
         db.collection(location)
                 .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
-                .limit(Upload_Limit)
+                .limit(UPLOAD_LIMIT)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -334,25 +325,29 @@ public class BoardFragment extends Fragment {
                 });
     }
 
-    private void RecyclerInit(Activity activity,View view) {//저장된 db에서 내용을 뽑아오는 로직
+    private void RecyclerInit(View view) {//저장된 db에서 내용을 뽑아오는 로직
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
         recyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_frag);
+        postAdapter = new PostAdapter(getActivity()); //처음엔 비어있는 list를 넣어줬음
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
-        recyclerView.setLayoutManager(layoutManager);
-        postAdapter = new PostAdapter(activity); //처음엔 비어있는 list를 넣어줬음
-//        postAdapter.setHasStableIds(true); 이걸쓰면 게시물 시간이 재사용되서 리셋이 안되는 이슈가 발생
-//        postAdapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY); //스크롤 저장하는건데 필요없어짐
-        recyclerView.setAdapter(postAdapter);
+//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+//        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
+//        recyclerView.setLayoutManager(layoutManager);
 
-        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
-        if (animator instanceof SimpleItemAnimator) {
-            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
-        }
+////        postAdapter.setHasStableIds(true); 이걸쓰면 게시물 시간이 재사용되서 리셋이 안되는 이슈가 발생
+////        postAdapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY); //스크롤 저장하는건데 필요없어짐
+//        recyclerView.setAdapter(postAdapter);
+//
+//        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
+//        if (animator instanceof SimpleItemAnimator) {
+//            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+//        }
+
+        my_utility.RecyclerInit(recyclerView,postAdapter,VERTICAL);
 
         UpScrolled(); //여기서 리스트를 채우고 갱신 (위로 갱신)
 

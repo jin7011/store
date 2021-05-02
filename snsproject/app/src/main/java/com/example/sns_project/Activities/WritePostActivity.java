@@ -17,14 +17,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.sns_project.Adapter.AddImageAdapter;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_WritePost;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
 import com.example.sns_project.info.PostInfo;
-import com.example.sns_project.util.Named;
+import com.example.sns_project.util.My_Utility;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -46,7 +45,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static com.example.sns_project.util.Named.WriteResult;
+import static com.example.sns_project.util.Named.HORIZEN;
+import static com.example.sns_project.util.Named.WRITE_RESULT;
 
 public class WritePostActivity extends AppCompatActivity {
     ActivityWritePostBinding binding;
@@ -62,8 +62,9 @@ public class WritePostActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private String location;
     private LiveData_WritePost Postmodel;
+    private AddImageAdapter addImageAdapter;
     private Double filesize = 0.0;
-    private Named named = new Named();
+    private My_Utility my_utility = new My_Utility(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +87,11 @@ public class WritePostActivity extends AppCompatActivity {
                 long sum = getFileSize(uris);
                 filesize = Double.parseDouble(String.valueOf(sum));
                 set_filesizeT(filesize);
-                Add_and_SetRecyclerView(WritePostActivity.this);
+
+                if(addImageAdapter == null)
+                    Add_and_SetRecyclerView(my_utility.getActivity());
+                else
+                    addImageAdapter.notifyDataSetChanged();
             }
         });
 
@@ -144,12 +149,14 @@ public class WritePostActivity extends AppCompatActivity {
 
     public void Add_and_SetRecyclerView(Activity activity){
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        binding.ImageRecycler.setLayoutManager(layoutManager);
+//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+//        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+//        binding.ImageRecycler.setLayoutManager(layoutManager);
 
-        AddImageAdapter addImageAdapter = new AddImageAdapter(activity,Postmodel);
-        binding.ImageRecycler.setAdapter(addImageAdapter);
+        addImageAdapter = new AddImageAdapter(activity,Postmodel);
+//        binding.ImageRecycler.setAdapter(addImageAdapter);
+
+        my_utility.RecyclerInit(binding.ImageRecycler,addImageAdapter,HORIZEN);
 
     }
 
@@ -254,7 +261,7 @@ public class WritePostActivity extends AppCompatActivity {
                     public void onSuccess(Void aVoid) {
                         Toast("성공적으로 게시되었습니다.");
                         loaderView.setVisibility(View.GONE);
-                        toMain(WriteResult);
+                        toMain(WRITE_RESULT);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {

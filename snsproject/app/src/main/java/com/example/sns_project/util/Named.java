@@ -1,13 +1,18 @@
 package com.example.sns_project.util;
 
 public class Named {
+    public static final int HORIZEN = 400;
+    public static final int VERTICAL= 401;
+    public static final int GRID= 402;
+
     public static final int DOWN_SROLLED = 500;
     public static final int UP_SROLLED = 501;
-    public static final int Upload_Limit = 20;
+    public static final int UPLOAD_LIMIT = 20;
 
-    public static final int WriteResult = 1000;
-    public static final int DeleteResult = 1001;
-    public static final int Something_IN_Post = 1002;
+    public static final int WRITE_RESULT = 1000;
+    public static final int DELETE_RESULT = 1001;
+    public static final int SOMETHING_IN_POST = 1002;
+    public static final int CHANGED_LOCATION = 1003;
     public static final String None = "None";
 
     public static final int Write_Recomment = 3000;

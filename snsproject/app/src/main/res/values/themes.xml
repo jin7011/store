@@ -10,7 +10,7 @@
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/maincolor</item>
         <!-- Customize your theme here. -->
     </style>
 
@@ -23,6 +23,12 @@
 <!--        <item name="android:fontFamily">@font/fonts</item>-->
 <!--        <item name="android:includeFontPadding">false</item>-->
 <!--    </style> 폰트 삽입했는데 맘에 안들어서 다시 주석처리함 이후에 필요하면 사용할 의향있음-->
+
+    <style name="DialogStyle" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 
 
 </resources>
