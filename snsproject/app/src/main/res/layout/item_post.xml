@@ -109,7 +109,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="3dp"
             android:text="0"
-            android:textColor="#D81B60"
+            android:textColor="@color/pantone"
             android:textSize="12sp" />
     </LinearLayout>
 

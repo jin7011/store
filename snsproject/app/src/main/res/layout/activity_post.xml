@@ -210,7 +210,7 @@
                             android:layout_marginRight="5dp"
                             android:layout_weight="0"
                             android:text="@{String.valueOf(PostInfo.comment)}"
-                            android:textColor="#D81B60"
+                            android:textColor="@color/pantone"
                             android:textSize="12.5sp" />
 
 

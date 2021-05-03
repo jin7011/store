@@ -76,14 +76,19 @@ public class PopupActivity extends Activity {
 
     public void confirm(){
 
-        db.collection("USER").document(myAccount.getId()).update("location",Selected_Location).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                Intent intent = new Intent();
-                setResult(CHANGED_LOCATION,intent);
-                finish();
-            }
-        });
+        if(Selected_Location == null || Selected_Location.length() == 0 || Selected_Location.equals(myAccount.getLocation())) {
+            My_Utility my_utility = new My_Utility(PopupActivity.this);
+            my_utility.Tost("다른지역을 선택해주세요.");
+        }else {
+            db.collection("USER").document(myAccount.getId()).update("location", Selected_Location).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    Intent intent = new Intent();
+                    setResult(CHANGED_LOCATION, intent);
+                    finish();
+                }
+            });
+        }
     }
 
     public void setSelected_Location(String str){

@@ -76,7 +76,7 @@ public class ProfileFragment extends Fragment {
     }
 
     public void withdraw(View view){
-        AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,android.R.style.Theme_DeviceDefault_Light_Dialog);
+        AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,android.R.style.Theme_DeviceDefault_Dialog);
 
         oDialog.setMessage("회원탈퇴를 하시겠습니까?\n사용자의 정보가 모두 삭제되지만,\n\'작성글\'과 \'댓글\'의 내용은 남아있게 됩니다.").setPositiveButton("예", new DialogInterface.OnClickListener()
         {
@@ -86,7 +86,7 @@ public class ProfileFragment extends Fragment {
                 db.collection("USER").document(user.getUid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        oDialog.setMessage("진짜한다..?").setPositiveButton("예", new DialogInterface.OnClickListener() {
+                        oDialog.setMessage("진짜..?").setPositiveButton("예", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -130,8 +130,9 @@ public class ProfileFragment extends Fragment {
 
     public void logout_dialog(View view){
 
+
         AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,
-                android.R.style.Theme_DeviceDefault_Light_Dialog);
+                android.R.style.Theme_DeviceDefault_Dialog);
 
         oDialog.setMessage("로그아웃 하시겠습니까?").setPositiveButton("예", new DialogInterface.OnClickListener()
         {

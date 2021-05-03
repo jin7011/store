@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("dasdazz","null"+location);
                             myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
                             liveDataMyDataMainModel.get().setValue(myAccount);
-                        }else if(!myAccount.getLocation().equals(location)){
+                        }else if(location != null && !myAccount.getLocation().equals(location)){
                             Log.d("dasdazz","not_null: "+myAccount.getLocation()+", new: "+location);
                             myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
                             liveDataMyDataMainModel.get().setValue(myAccount);

@@ -78,6 +78,7 @@ public class PostActivity extends AppCompatActivity {
     private CommentsAdapter.CommentsHolder PostcommentsHolder;
 
     //todo 추가적으로 하는 일(댓글,좋아요,글쓰기)에 대해서 동시적인 작업처리를 해줘야할 때가 왔음 (아마도 트랜젝션이 제일 유일)
+    //todo 댓글에 좋아요 기능추가해야함.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
