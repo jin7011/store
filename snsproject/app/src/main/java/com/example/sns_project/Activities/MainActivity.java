@@ -244,10 +244,12 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case R.id.toolbar_main_write_post_btn:{
                 Activity(WritePostActivity.class);
+                break;
             }
             case R.id.toolbar_main_search:{
                 //todo 서치액티비티
                 Activity(SearchActivity.class,myAccount.getLocation());
+                break;
             }
             case R.id.toolbar_main_reset:{
                 item.setEnabled(false);
@@ -260,6 +262,7 @@ public class MainActivity extends AppCompatActivity {
                         item.setEnabled(true);
                     }
                 }, 1500); //딜레이 타임 조절
+                break;
             }
         }
 
@@ -288,19 +291,19 @@ public class MainActivity extends AppCompatActivity {
 
         if (resultCode == WRITE_RESULT) { //글쓰기 리턴값
             Log.d("From WriteActivity","requestCode: "+requestCode);
-            boardFragment.postUpdate(WRITE_RESULT,None);
+            boardFragment.PostUpdate(WRITE_RESULT,None);
         }
 
         if (resultCode == DELETE_RESULT) { //글삭제 리턴값
             String docid = data.getStringExtra("docid");
             Log.d("From PostActivity","requestCode: "+requestCode+" docid: "+docid);
-            boardFragment.postUpdate(DELETE_RESULT,docid);
+            boardFragment.PostUpdate(DELETE_RESULT,docid);
         }
 
         if (resultCode == SOMETHING_IN_POST) { //좋아요/(댓글추가) 리턴값
             String docid = data.getStringExtra("docid");
             Log.d("From PostActivity","requestCode: "+requestCode+" docid: "+docid);
-            boardFragment.postUpdate(SOMETHING_IN_POST,docid);
+            boardFragment.PostUpdate(SOMETHING_IN_POST,docid);
         }
 
         if(resultCode == SOMETHING_IN_POST){ //지역변경 리턴값

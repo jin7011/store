@@ -50,16 +50,16 @@ public class SearchActivity extends AppCompatActivity {
 
                 postControler.Search_Post(keyword, new Listener_CompletePostInfos() {
                     @Override
-                    public void onComplete(ArrayList<PostInfo> postInfos) {
-                        Log.d("plpl",""+postInfos.size());
-                        if(postInfos.size() == 0) {
+                    public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                        Log.d("plpl",""+ NewPostInfos.size());
+                        if(NewPostInfos.size() == 0) {
                             binding.SearchRecyclerView.setVisibility(View.GONE);
                             binding.cannotfindConstranint.setVisibility(View.VISIBLE);
                         }
                         else {
                             binding.SearchRecyclerView.setVisibility(View.VISIBLE);
                             binding.cannotfindConstranint.setVisibility(View.GONE);
-                            getmore(postInfos);
+                            getmore(NewPostInfos);
                         }
                     }
                 }); //리스트를 쫙 받아오고,

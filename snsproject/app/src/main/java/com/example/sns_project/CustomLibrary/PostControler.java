@@ -22,6 +22,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
+
+/**
+ * use this with my_utility for requesting posts
+ * in recycler_init() after my utility or in same time
+ */
+
 public class PostControler {
 
     private String post_location;
@@ -91,6 +98,167 @@ public class PostControler {
                         }
                     }
                 });
+    }
+
+    public void Request_NewPosts(Listener_CompletePostInfos listener_completePostInfos){
+
+        //최신글 20개를 가져옴.
+        Date NewDate = new Date();
+        ArrayList<PostInfo> newPosts = new ArrayList<>();
+        Log.d("zozozozozo","시작: "+newPosts.size());
+
+        db.collection(post_location)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", NewDate)//업스크롤 효과 (위에서부터 최신상태로)
+                .limit(UPLOAD_LIMIT)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+
+                                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+
+                                Log.d("가져옴", document.getId() + " => " + document.getData());
+                                newPosts.add(new PostInfo(
+                                                document.get("id").toString(),
+                                                document.get("publisher").toString(),
+                                                document.get("title").toString(),
+                                                document.get("contents").toString(),
+                                                (ArrayList<String>) document.getData().get("formats"),
+                                                new Date(document.getDate("createdAt").getTime()),
+                                                document.getId(),
+                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), post_location,
+                                                (ArrayList<String>) document.getData().get("storagepath"), commentInfoArrayList,
+                                                (HashMap<String, Integer>) document.getData().get("good_user")
+                                        )
+                                );
+                            }///////////////////////////////////////////////////////////////////////완료
+                            Log.d("zozozozozo","끝: "+newPosts.size());
+                            listener_completePostInfos.onComplete(newPosts);
+                        } else {
+                            Log.d("실패함", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    }
+
+
+    public void Request_AfterPosts(ArrayList<PostInfo> postlist,Date OldestDate,Listener_CompletePostInfos listener_completePostInfos){
+
+        //시간을 기점으로 이후의 게시물 20개를 가져옴 (NextPosts라고 하려다가 New랑 헷갈려서 After로 바꿈)
+        ArrayList<PostInfo> newPosts = new ArrayList<>();
+        ArrayList<PostInfo> temp = deepCopy(postlist);
+
+        Log.d("zozozozozo","시작: "+newPosts.size());
+
+        db.collection(post_location)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", OldestDate)//업스크롤 효과 (위에서부터 최신상태로)
+                .limit(UPLOAD_LIMIT)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+
+                                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+
+                                Log.d("가져옴", document.getId() + " => " + document.getData());
+                                newPosts.add(new PostInfo(
+                                                document.get("id").toString(),
+                                                document.get("publisher").toString(),
+                                                document.get("title").toString(),
+                                                document.get("contents").toString(),
+                                                (ArrayList<String>) document.getData().get("formats"),
+                                                new Date(document.getDate("createdAt").getTime()),
+                                                document.getId(),
+                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), post_location,
+                                                (ArrayList<String>) document.getData().get("storagepath"), commentInfoArrayList,
+                                                (HashMap<String, Integer>) document.getData().get("good_user")
+                                        )
+                                );
+                            }///////////////////////////////////////////////////////////////////////완료
+                            Log.d("zozozozozo","끝: "+newPosts.size());
+                            temp.addAll(newPosts);
+                            listener_completePostInfos.onComplete(temp);
+                        } else {
+                            Log.d("실패함", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    }
+
+    public void Update_ThePost(ArrayList<PostInfo> postList,String docid,Listener_CompletePostInfos listener_completePostInfos) {
+
+        ArrayList<PostInfo> temp = deepCopy(postList);
+
+        boolean flag = false;
+        int idx = 0;
+
+        for (int x = 0; x < postList.size(); x++) { //해당 게시물의 position을 찾고,
+            PostInfo postInfo = postList.get(x);
+            if (postInfo.getDocid().equals(docid)) {
+                idx = x;
+                flag = true;
+                break;
+            }
+        }
+
+        if(flag) { //해당 게시물이 로드되어있던 거라면, 그것만 갱신
+            final PostInfo[] newpostInfo = new PostInfo[1];
+            int finalIdx = idx; //위 2줄은 비동기랑 맞추려고 어쩔수없이
+
+            db.collection(post_location).document(docid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+                        newpostInfo[0] = new PostInfo(
+                                document.get("id").toString(),
+                                document.get("publisher").toString(),
+                                document.get("title").toString(),
+                                document.get("contents").toString(),
+                                (ArrayList<String>) document.getData().get("formats"),
+                                new Date(document.getDate("createdAt").getTime()),
+                                document.getId(),
+                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), post_location,
+                                (ArrayList<String>) document.getData().get("storagepath"), commentInfoArrayList,
+                                (HashMap<String, Integer>) document.getData().get("good_user")
+                        );
+                        temp.remove(finalIdx);
+                        temp.add(finalIdx, newpostInfo[0]);
+                        listener_completePostInfos.onComplete(temp);
+                    }
+                }
+            });
+        }
+
+    }
+
+    public void Delete_ThePost(ArrayList<PostInfo> postList,String docid,Listener_CompletePostInfos listener_completePostInfos){
+
+        for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
+            if(postList.get(x).getDocid().equals(docid)){
+                ArrayList<PostInfo> temp;
+                temp = deepCopy(postList);
+                temp.remove(x);
+                listener_completePostInfos.onComplete(temp);
+                break;
+            }
+        }
+
+    }
+
+    public ArrayList<PostInfo> deepCopy(ArrayList<PostInfo> oldone){
+
+        ArrayList<PostInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++)
+            newone.add(new PostInfo(oldone.get(x)));
+
+        return newone;
     }
 
     public ArrayList<CommentInfo> get_commentArray_from_Firestore(DocumentSnapshot document){

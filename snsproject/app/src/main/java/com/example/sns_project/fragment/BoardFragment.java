@@ -15,32 +15,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.sns_project.Adapter.PostAdapter;
+import com.example.sns_project.CustomLibrary.PostControler;
+import com.example.sns_project.Listener.Listener_CompletePostInfos;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostList;
-import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.MyAccount;
 import com.example.sns_project.info.PostInfo;
-import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.My_Utility;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
 import static com.example.sns_project.util.Named.DOWN_SROLLED;
 import static com.example.sns_project.util.Named.DELETE_RESULT;
 import static com.example.sns_project.util.Named.SOMETHING_IN_POST;
 import static com.example.sns_project.util.Named.UP_SROLLED;
-import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
 import static com.example.sns_project.util.Named.VERTICAL;
 import static com.example.sns_project.util.Named.WRITE_RESULT;
 
@@ -52,7 +43,7 @@ public class BoardFragment extends Fragment {
     private FirebaseAuth mAuth;
     private MyAccount myAccount;
     private FirebaseFirestore db;
-    private ArrayList<PostInfo> postList; //fragment에서 갱신하는 임시리스트
+    private ArrayList<PostInfo> Loaded_Posts; //fragment에서 갱신하는 임시리스트
     private LiveData_PostList PostListModel; //postList 임시리스트를 라이브자료에 넣음으로써 리사이클러뷰를 갱신함
     private Observer<ArrayList<PostInfo>> PostList_Observer;
     private RecyclerView recyclerView;
@@ -60,6 +51,8 @@ public class BoardFragment extends Fragment {
     private PostAdapter postAdapter;
     private SwipeRefreshLayout swipe;
     private My_Utility my_utility;
+    private PostControler postControler;
+    private boolean ISUPSCROLL = false;
 
     public BoardFragment() {}
 
@@ -88,7 +81,7 @@ public class BoardFragment extends Fragment {
         myAccount = (MyAccount)bundle.getParcelable("Myaccount");
         location = myAccount.getLocation();
         PostListModel = new ViewModelProvider(getActivity()).get(LiveData_PostList.class);
-        postList = PostListModel.getPostList();
+        Loaded_Posts = PostListModel.getPostList();
 
         //라이브데이터
         PostList_Observer = new Observer<ArrayList<PostInfo>>() { // 따로 라이프사이클없이 계속돌아가게 해놨음
@@ -97,11 +90,16 @@ public class BoardFragment extends Fragment {
                 if(postInfos != null && postAdapter != null) {
                     postAdapter.PostInfoDiffUtil(postInfos);
                     PostListModel.setpostList(postInfos);
-                    postList.clear();
-                    postList.addAll(PostListModel.getPostList());
+                    Loaded_Posts.clear();
+                    Loaded_Posts.addAll(PostListModel.getPostList());
+                    if(ISUPSCROLL){
+                        Log.d("아니왠왜농ㄴ","스크롤위로");
+                        ISUPSCROLL = false;
+                        recyclerView.smoothScrollToPosition(0);
+                    }
                     Log.d("zxczxc", "newPosts: " + postInfos.size());
                     Log.d("zxczxc", "PostListModel.getPostList: " + PostListModel.getPostList().size());
-                    Log.d("zxczxc", "postList: " + postList.size());
+                    Log.d("zxczxc", "postList: " + Loaded_Posts.size());
                 }
             }
         };
@@ -117,7 +115,7 @@ public class BoardFragment extends Fragment {
     //삭제
     //댓글/좋아요
     //새로고침(이전꺼좋으니까 수정만)
-    public void postUpdate(int request,String docid){
+    public void PostUpdate(int request, String docid){
 
         if(request == DOWN_SROLLED) //아래로 새로고침할 때
             DownScrolled();
@@ -136,192 +134,44 @@ public class BoardFragment extends Fragment {
         //(좋아요 누르고 나옴) 스크롤을 가능한 유지하고, 리스트 상태를 새로 고침.
         //아무래도 리셋할거 없이 해당 포지션을 어댑터에서 전달하고 그걸actvity에서 받아와서 수정한다음 이쪽으로
         //넘겨주고 그것만 처리하는게 깔끔할 듯. 그 이후에 diffutil사용
-        boolean flag = false;
-        int idx = 0;
-
-        for(int x =0; x<postList.size(); x++) { //해당 게시물의 position을 찾고,
-            PostInfo postInfo = postList.get(x);
-            if(postInfo.getDocid().equals(docid)){
-                idx = x;
-                flag = true;
-                break;
+        postControler.Update_ThePost(Loaded_Posts, docid, new Listener_CompletePostInfos() {
+            @Override
+            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                PostListModel.get().setValue(NewPostInfos);
             }
-        }
-
-        if(flag){ //해당 게시물이 로드되어있던 거라면, 그것만 갱신
-            final PostInfo[] newpostInfo = new PostInfo[1];
-            int finalIdx = idx; //위 2줄은 비동기랑 맞추려고 어쩔수없이
-            db.collection(location).document(docid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-                        newpostInfo[0] = new PostInfo(
-                                document.get("id").toString(),
-                                document.get("publisher").toString(),
-                                document.get("title").toString(),
-                                document.get("contents").toString(),
-                                (ArrayList<String>) document.getData().get("formats"),
-                                new Date(document.getDate("createdAt").getTime()),
-                                document.getId(),
-                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
-                                (HashMap<String, Integer>)document.getData().get("good_user")
-                        );
-                        ArrayList<PostInfo> temp;
-                        temp = deepCopy(postList);
-                        temp.remove(finalIdx);
-                        temp.add(finalIdx,newpostInfo[0]);
-                        PostListModel.get().setValue(temp);
-                    }
-                }
-            });
-        }
-
+        });
     }
 
     private void Deleted(String docid) { //삭제
 
-        for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
-            if(postList.get(x).getDocid().equals(docid)){
-                ArrayList<PostInfo> temp;
-                temp = deepCopy(postList);
-                temp.remove(x);
-                PostListModel.get().setValue(temp);
-                break;
+        postControler.Delete_ThePost(Loaded_Posts, docid, new Listener_CompletePostInfos() {
+            @Override
+            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                PostListModel.get().setValue(NewPostInfos);
             }
-        }
+        });
     }
 
     public void UpScrolled() {
         // (글생성/새로고침) 스크롤 맨위로
-
-        Date newdate = new Date();
-        ArrayList<PostInfo> newPosts = new ArrayList<>();
-
-        db.collection(location)
-                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate)
-                .limit(UPLOAD_LIMIT)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-
-                                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-
-                                Log.d("가져옴", document.getId() + " => " + document.getData());
-                                newPosts.add(new PostInfo(
-                                                document.get("id").toString(),
-                                                document.get("publisher").toString(),
-                                                document.get("title").toString(),
-                                                document.get("contents").toString(),
-                                                (ArrayList<String>) document.getData().get("formats"),
-                                                new Date(document.getDate("createdAt").getTime()),
-                                                document.getId(),
-                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                //아무래도 여기서 데이터 가져올때 형변환이 제대로 안된거같은 기분이 든다.
-                                                (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
-                                                (HashMap<String, Integer>)document.getData().get("good_user")
-                                        )
-                                );
-                            }
-                            PostListModel.get().setValue(newPosts);
-                            recyclerView.smoothScrollToPosition(0);
-//                            Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
-                        } else {
-                            Log.d("실패함", "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-
-    }
-
-    public ArrayList<CommentInfo> get_commentArray_from_Firestore(DocumentSnapshot document){
-
-        ArrayList<CommentInfo> commentInfoArrayList = new ArrayList<>();
-
-        if(((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size() != 0){
-            for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size(); x++) {
-                HashMap<String, Object> commentsmap = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
-
-                CommentInfo commentInfo = new CommentInfo((String) commentsmap.get("contents"), (String) commentsmap.get("publisher"),
-                        ((Timestamp)commentsmap.get("createdAt")).toDate(),
-                        (String) commentsmap.get("id"),
-                        ((Long)(commentsmap.get("good"))).intValue(),
-                        get_RecommentArray_from_commentsmap(commentsmap),
-                        (String) commentsmap.get("key")
-                );
-
-                commentInfoArrayList.add(commentInfo);
+        postControler.Request_NewPosts(new Listener_CompletePostInfos() {
+            @Override
+            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                PostListModel.get().setValue(NewPostInfos);
+                ISUPSCROLL = true; // 새로고침은 특별히 스크롤이 맨위로 올라가게 된다.
             }
-        }
-
-        return commentInfoArrayList;
+        });
     }
-
-    public ArrayList<RecommentInfo> get_RecommentArray_from_commentsmap(HashMap<String, Object> commentsmap ){
-        ArrayList<RecommentInfo> recommentInfoArrayList = new ArrayList<>();
-        ArrayList<HashMap<String, Object>> recomments = (ArrayList<HashMap<String, Object>>)commentsmap.get("recomments");
-
-        for(int x=0; x<recomments.size(); x++) {
-            HashMap<String, Object> recommentsmap = recomments.get(x);
-            RecommentInfo recommentInfo = new RecommentInfo(
-                    (String)recommentsmap.get("contents"),
-                    (String)recommentsmap.get("publisher"),
-                    ((Timestamp)recommentsmap.get("createdAt")).toDate(),
-                    (String)recommentsmap.get("id"),
-                    ((Long)(recommentsmap.get("good"))).intValue()
-            );
-
-            recommentInfoArrayList.add(recommentInfo);
-        }
-
-        return recommentInfoArrayList;
-    }
-
 
     public void DownScrolled(){
-        ArrayList<PostInfo> newPosts = new ArrayList<>();
-        ArrayList<PostInfo> temp = deepCopy(postList);
-        Date date = postList.size() == 0 ? new Date() : postList.get(postList.size() - 1).getCreatedAt();
+        Date date = Loaded_Posts.size() == 0 ? new Date() : Loaded_Posts.get(Loaded_Posts.size() - 1).getCreatedAt();
 
-        db.collection(location)
-                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", date)
-                .limit(UPLOAD_LIMIT)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-
-                                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-
-                                Log.d("가져옴", document.getId() + " => " + document.getData());
-                                newPosts.add(new PostInfo(
-                                                document.get("id").toString(),
-                                                document.get("publisher").toString(),
-                                                document.get("title").toString(),
-                                                document.get("contents").toString(),
-                                                (ArrayList<String>) document.getData().get("formats"),
-                                                new Date(document.getDate("createdAt").getTime()),
-                                                document.getId(),
-                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), location,
-                                                (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
-                                        (HashMap<String, Integer>)document.getData().get("good_user")
-                                        )
-                                );
-                            }
-                            temp.addAll(newPosts);
-                            PostListModel.get().setValue(temp);
-                        } else {
-                            Log.d("실패함", "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
+        postControler.Request_AfterPosts(Loaded_Posts,date, new Listener_CompletePostInfos() {
+            @Override
+            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                PostListModel.get().setValue(NewPostInfos);
+            }
+        });
     }
 
     private void RecyclerInit(View view) {//저장된 db에서 내용을 뽑아오는 로직
@@ -333,6 +183,7 @@ public class BoardFragment extends Fragment {
         postAdapter = new PostAdapter(getActivity()); //처음엔 비어있는 list를 넣어줬음
         my_utility = new My_Utility(getActivity(),recyclerView,postAdapter);
         my_utility.RecyclerInit(VERTICAL);
+        postControler = new PostControler(location,my_utility);
         UpScrolled(); //여기서 리스트를 채우고 갱신 (위로 갱신)
 
     }
@@ -377,16 +228,6 @@ public class BoardFragment extends Fragment {
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             }
         });
-    }
-
-    public ArrayList<PostInfo> deepCopy(ArrayList<PostInfo> oldone){
-
-        ArrayList<PostInfo> newone = new ArrayList<>();
-
-        for(int x=0; x<oldone.size(); x++)
-            newone.add(new PostInfo(oldone.get(x)));
-
-        return newone;
     }
 
 }

@@ -23,10 +23,6 @@ public class My_Utility {
     private RecyclerView recyclerView;
     private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
 
-//    public My_Utility(Activity activity){
-//        this.activity = activity;
-//    }
-
     public My_Utility(Activity activity,RecyclerView recyclerView,RecyclerView.Adapter<RecyclerView.ViewHolder> adapter){
         this.activity = activity;
         this.recyclerView = recyclerView;
