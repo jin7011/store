@@ -89,7 +89,7 @@ public class WritePostActivity extends AppCompatActivity {
                 set_filesizeT(filesize);
 
                 if(addImageAdapter == null)
-                    Add_and_SetRecyclerView(my_utility.getActivity());
+                    Add_and_SetRecyclerView();
                 else
                     addImageAdapter.notifyDataSetChanged();
             }
@@ -147,13 +147,13 @@ public class WritePostActivity extends AppCompatActivity {
 
     }
 
-    public void Add_and_SetRecyclerView(Activity activity){
+    public void Add_and_SetRecyclerView(){
 
 //        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
 //        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
 //        binding.ImageRecycler.setLayoutManager(layoutManager);
 
-        addImageAdapter = new AddImageAdapter(activity,Postmodel);
+        addImageAdapter = new AddImageAdapter(this,Postmodel);
 //        binding.ImageRecycler.setAdapter(addImageAdapter);
 
         my_utility = new My_Utility(this,binding.ImageRecycler,addImageAdapter);
