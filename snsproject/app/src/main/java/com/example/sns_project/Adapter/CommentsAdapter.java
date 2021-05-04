@@ -54,10 +54,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public CommentsAdapter(PostActivity activity,PostInfo postInfo,My_Utility my_utility,Listener_CommentHolder listener_commentHolder) {
+    public CommentsAdapter(PostActivity activity,PostInfo postInfo,Listener_CommentHolder listener_commentHolder) {
         this.postInfo = postInfo;
         this.activity = activity;
-        this.my_utility = my_utility;
         this.listener_commentHolder = listener_commentHolder;
         this.comments = new ArrayList<>();
     }
@@ -153,7 +152,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             RecommentsAdapter recommentsAdapter = new RecommentsAdapter(activity,postInfo);
             Log.d("asss",commentInfo.getRecomments().size()+"");
             holder.recyclerView.setVisibility(View.VISIBLE);
-            my_utility.RecyclerInit(holder.recyclerView,recommentsAdapter,VERTICAL);
+
+            my_utility = new My_Utility(activity,holder.recyclerView,recommentsAdapter);
+            my_utility.RecyclerInit(VERTICAL);
             Add_and_Set_RecommentRecyclerView(activity,holder.recyclerView,recommentsAdapter);
             recommentsAdapter.RecommentInfo_DiffUtil(commentInfo.getRecomments());
         }else{

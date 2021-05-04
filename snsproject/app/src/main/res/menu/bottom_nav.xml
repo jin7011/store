@@ -3,12 +3,12 @@
     <item
         android:title="Home"
         android:id="@+id/menu_home"
-        android:icon="@drawable/ic_home_bottomnavigation"
+        android:icon="@drawable/ic_storefront_bottomnavigation"
         />
     <item
-        android:title="Search"
-        android:id="@+id/menu_search"
-        android:icon="@drawable/ic_search_bottomnavigation"
+        android:title="Notification"
+        android:id="@+id/menu_notification"
+        android:icon="@drawable/ic_notifications_bottomnavigation"
         />
     <item
         android:title="Letter"

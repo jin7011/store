@@ -12,15 +12,28 @@ import static com.example.sns_project.util.Named.GRID;
 import static com.example.sns_project.util.Named.HORIZEN;
 import static com.example.sns_project.util.Named.VERTICAL;
 
+/**
+use for recyclerview_init() and then
+you can use PostControler with this for ~ by jin
+**/
+
 public class My_Utility {
 
     private Activity activity;
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
 
-    public My_Utility(Activity activity){
+//    public My_Utility(Activity activity){
+//        this.activity = activity;
+//    }
+
+    public My_Utility(Activity activity,RecyclerView recyclerView,RecyclerView.Adapter<RecyclerView.ViewHolder> adapter){
         this.activity = activity;
+        this.recyclerView = recyclerView;
+        this.adapter = adapter;
     }
 
-    public void RecyclerInit(RecyclerView recyclerView,RecyclerView.Adapter<RecyclerView.ViewHolder> adapter,int orientation) {
+    public void RecyclerInit(int orientation) {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
 
@@ -58,5 +71,11 @@ public class My_Utility {
 
     public Activity getActivity() {
         return activity;
+    }
+    public RecyclerView getRecyclerView() {
+        return recyclerView;
+    }
+    public RecyclerView.Adapter<RecyclerView.ViewHolder> getAdapter() {
+        return adapter;
     }
 }

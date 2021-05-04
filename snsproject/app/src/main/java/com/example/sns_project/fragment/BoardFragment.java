@@ -82,14 +82,13 @@ public class BoardFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) { //view가 완전히 완료된 이후에 나오는 메서드라서 이곳에 findby~ 써야 안전함
         super.onViewCreated(view, savedInstanceState);
-        swipe = view.findViewById(R.id.swipe);
+        swipe = view.findViewById(R.id.swipe_board);
 
         Bundle bundle = getArguments();
         myAccount = (MyAccount)bundle.getParcelable("Myaccount");
         location = myAccount.getLocation();
         PostListModel = new ViewModelProvider(getActivity()).get(LiveData_PostList.class);
         postList = PostListModel.getPostList();
-        my_utility = new My_Utility(getActivity());
 
         //라이브데이터
         PostList_Observer = new Observer<ArrayList<PostInfo>>() { // 따로 라이프사이클없이 계속돌아가게 해놨음
@@ -332,23 +331,8 @@ public class BoardFragment extends Fragment {
 
         recyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_frag);
         postAdapter = new PostAdapter(getActivity()); //처음엔 비어있는 list를 넣어줬음
-
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-//        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
-//        recyclerView.setLayoutManager(layoutManager);
-
-////        postAdapter.setHasStableIds(true); 이걸쓰면 게시물 시간이 재사용되서 리셋이 안되는 이슈가 발생
-////        postAdapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY); //스크롤 저장하는건데 필요없어짐
-//        recyclerView.setAdapter(postAdapter);
-//
-//        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
-//        if (animator instanceof SimpleItemAnimator) {
-//            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
-//        }
-
-        my_utility.RecyclerInit(recyclerView,postAdapter,VERTICAL);
-
+        my_utility = new My_Utility(getActivity(),recyclerView,postAdapter);
+        my_utility.RecyclerInit(VERTICAL);
         UpScrolled(); //여기서 리스트를 채우고 갱신 (위로 갱신)
 
     }
@@ -366,7 +350,7 @@ public class BoardFragment extends Fragment {
         });
 
         swipe.setColorSchemeResources(
-                R.color.maincolor
+                R.color.pantone
         );
 
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

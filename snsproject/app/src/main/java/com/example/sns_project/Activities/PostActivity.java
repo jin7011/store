@@ -71,7 +71,7 @@ public class PostActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private Toolbar toolbar;
     private ActionBar actionBar;
-    private My_Utility my_utility = new My_Utility(this);
+    private My_Utility my_utility;
     private boolean ACTION = false;
     private CommentsAdapter commentsAdapter;
     private LiveData_PostInfo liveData_postInfo;
@@ -278,7 +278,7 @@ public class PostActivity extends AppCompatActivity {
 //        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
 
 //        binding.commentRecycler.setLayoutManager(layoutManager);
-        commentsAdapter = new CommentsAdapter(activity, postInfo,my_utility, new Listener_CommentHolder() {
+        commentsAdapter = new CommentsAdapter(activity, postInfo, new Listener_CommentHolder() {
             @Override
             public void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder) {
                 CommentInfo commentInfo = postInfo.getComments().get(commentsHolder.getAbsoluteAdapterPosition());
@@ -292,7 +292,8 @@ public class PostActivity extends AppCompatActivity {
             }
         });
 
-        my_utility.RecyclerInit(binding.commentRecycler,commentsAdapter,VERTICAL);
+        my_utility = new My_Utility(this,binding.commentRecycler,commentsAdapter);
+        my_utility.RecyclerInit(VERTICAL);
 
 //        binding.commentRecycler.setAdapter(commentsAdapter);
 //        RecyclerView.ItemAnimator animator = binding.commentRecycler.getItemAnimator();
@@ -317,7 +318,8 @@ public class PostActivity extends AppCompatActivity {
                 PostActivity.this.startActivity(intent);
             }
         });
-        my_utility.RecyclerInit(binding.formatsRecycler,showPostImageAdapter,HORIZEN);
+        my_utility = new My_Utility(this,binding.formatsRecycler,showPostImageAdapter);
+        my_utility.RecyclerInit(HORIZEN);
 //        binding.formatsRecycler.setAdapter(showPostImageAdapter);
     }
 

@@ -38,8 +38,8 @@ public class ProfileFragment extends Fragment {
     private FirebaseAuth mAuth;
     private FirebaseUser user;
 
-    public ProfileFragment(MainActivity activity) {
-        this.activity = activity;
+    public ProfileFragment() {
+        this.activity = (MainActivity) getActivity();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class ProfileFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater,R.layout.fragment_profile,container,false);
         View view = binding.getRoot();
@@ -79,7 +79,7 @@ public class ProfileFragment extends Fragment {
     public void withdraw(View view){
         AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,android.R.style.Theme_DeviceDefault_Dialog);
 
-        oDialog.setMessage("회원탈퇴를 하시겠습니까?\n사용자의 정보가 모두 삭제되지만,\n\'작성글\'과 \'댓글\'의 내용은 남아있게 됩니다.")
+        oDialog.setMessage("회원탈퇴를 하시겠습니까?\n사용자의 정보가 모두 삭제되지만,\n'작성글'과 '댓글'의 내용은 남아있게 됩니다.")
                 .setPositiveButton("예", new DialogInterface.OnClickListener()
         {
             @Override

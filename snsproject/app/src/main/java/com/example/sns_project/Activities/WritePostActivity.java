@@ -64,7 +64,7 @@ public class WritePostActivity extends AppCompatActivity {
     private LiveData_WritePost Postmodel;
     private AddImageAdapter addImageAdapter;
     private Double filesize = 0.0;
-    private My_Utility my_utility = new My_Utility(this);
+    private My_Utility my_utility;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,7 +156,8 @@ public class WritePostActivity extends AppCompatActivity {
         addImageAdapter = new AddImageAdapter(activity,Postmodel);
 //        binding.ImageRecycler.setAdapter(addImageAdapter);
 
-        my_utility.RecyclerInit(binding.ImageRecycler,addImageAdapter,HORIZEN);
+        my_utility = new My_Utility(this,binding.ImageRecycler,addImageAdapter);
+        my_utility.RecyclerInit(HORIZEN);
 
     }
 
@@ -176,7 +177,8 @@ public class WritePostActivity extends AppCompatActivity {
                         location = document.getString("location"); //USER안에서 location을 찾아오는 쿼리(?)
                         Log.d("지격탐색",location);
 
-                        final DocumentReference documentReference = postInfo == null ? db.collection(location).document() : db.collection(location).document(postInfo.getDocid());
+                        final DocumentReference documentReference
+                                = postInfo == null ? db.collection(location).document() : db.collection(location).document(postInfo.getDocid());
                         final Date date = postInfo == null ? new Date() : postInfo.getCreatedAt();
                         final ArrayList<String> formatList = new ArrayList<>();
                         final ArrayList<String> storagePath = new ArrayList<>();
@@ -185,10 +187,10 @@ public class WritePostActivity extends AppCompatActivity {
 
                         if(UriFormats != null) {
                             Log.d("imageList"," 갯수: "+UriFormats.size());
-                            uploadPosts(UriFormats,documentReference,formatList,storagePath,postInfo);
+                            Upload_Post(UriFormats,documentReference,formatList,storagePath,postInfo);
 
                         }else{ //파일없이 글만 올리는 경우
-                            UploadPost(documentReference, postInfo);
+                            Update_Store(documentReference, postInfo);
                         }
                     }
 
@@ -197,7 +199,7 @@ public class WritePostActivity extends AppCompatActivity {
         });
     }
 
-    private void uploadPosts(final ArrayList<Uri> mediaUris, DocumentReference documentReference, final ArrayList<String> formatList, ArrayList<String> storagePath, PostInfo postInfo) {
+    private void Upload_Post(final ArrayList<Uri> mediaUris, DocumentReference documentReference, final ArrayList<String> formatList, ArrayList<String> storagePath, PostInfo postInfo) {
 
         if(formatList.size() == mediaUris.size())
             return;
@@ -233,14 +235,14 @@ public class WritePostActivity extends AppCompatActivity {
                             if(formatList.size() < mediaUris.size()) {
                                 formatList.add(uri.toString()); //다운로드를 위한 uri
                                 storagePath.add(storagepath); //이후에 storage 수정과 삭제를 위한 storage경로
-                                uploadPosts(mediaUris, documentReference, formatList, storagePath, postInfo); //Recursion
+                                Upload_Post(mediaUris, documentReference, formatList, storagePath, postInfo); //Recursion
                                 Log.d("포멧올리는 과정", "size: " + formatList.size()+"medi size : "+mediaUris);
                             }
                             if (formatList.size() == mediaUris.size()) { //재귀함수를 반복하다가 마지막 포멧까지 올리고 나서 내용을 firestore에 게시글을 올릴 시점.
                                 Log.d("한번만 튀어나오면댐", "제발: " + formatList.size());
                                 postInfo.setFormats(formatList);
                                 postInfo.setStoragePath(storagePath);
-                                UploadPost(documentReference, postInfo);
+                                Update_Store(documentReference, postInfo);
                             }
                         }
                     }).addOnFailureListener(new OnFailureListener() {
@@ -254,7 +256,7 @@ public class WritePostActivity extends AppCompatActivity {
             });
         }
     }
-    private void UploadPost(DocumentReference documentReference,final PostInfo postInfo) {
+    private void Update_Store(DocumentReference documentReference, final PostInfo postInfo) {
         documentReference.set(postInfo.getPostInfo())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override

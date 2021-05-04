@@ -26,10 +26,11 @@ public class PopupActivity extends Activity {
 
     private MyAccount myAccount;
     private FirebaseFirestore db;
-    String Selected_Location;
-    TextView textView;
-    Button cancel;
-    Button confirm;
+    private  String Selected_Location;
+    private TextView textView;
+    private  Button cancel;
+    private  My_Utility my_utility;
+    private  Button confirm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,11 +64,11 @@ public class PopupActivity extends Activity {
 
         textView.setText(myAccount.getLocation());
         String[] arr =  getResources().getStringArray(R.array.my_array);
-        My_Utility my_utility = new My_Utility(this);
 
         RecyclerView recyclerView = findViewById(R.id.ChangeLocation_RecyclerView);
         Change_LocationAdapter adapter = new Change_LocationAdapter(this,arr,myAccount.getLocation());
-        my_utility.RecyclerInit(recyclerView,adapter,GRID);
+        my_utility = new My_Utility(this,recyclerView,adapter);
+        my_utility.RecyclerInit(GRID);
     }
 
     public void setTextView(String str){
@@ -77,7 +78,6 @@ public class PopupActivity extends Activity {
     public void confirm(){
 
         if(Selected_Location == null || Selected_Location.length() == 0 || Selected_Location.equals(myAccount.getLocation())) {
-            My_Utility my_utility = new My_Utility(PopupActivity.this);
             my_utility.Tost("다른지역을 선택해주세요.");
         }else {
             db.collection("USER").document(myAccount.getId()).update("location", Selected_Location).addOnCompleteListener(new OnCompleteListener<Void>() {

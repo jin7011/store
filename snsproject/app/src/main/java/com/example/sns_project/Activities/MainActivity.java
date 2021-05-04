@@ -1,5 +1,6 @@
 package com.example.sns_project.Activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
@@ -25,7 +26,7 @@ import com.example.sns_project.databinding.ActivityMainBinding;
 import com.example.sns_project.fragment.BoardFragment;
 import com.example.sns_project.fragment.LetterFragment;
 import com.example.sns_project.fragment.ProfileFragment;
-import com.example.sns_project.fragment.SearchFragment;
+import com.example.sns_project.fragment.NotificationFragment;
 import com.example.sns_project.info.MyAccount;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private BoardFragment boardFragment;
     private ProfileFragment profileFragment;
     private LetterFragment letterFragment;
-    private SearchFragment searchFragment;
+    private NotificationFragment notificationFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
 
     @Override
@@ -82,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         boardFragment = null;
         letterFragment = null;
         profileFragment = null;
-        searchFragment = null;
+        notificationFragment = null;
 
         boardFragment = new BoardFragment();
 
@@ -105,22 +106,24 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.menu_home:
                         if(boardFragment == null) {
                             boardFragment = new BoardFragment();
+                            boardFragment.setArguments(bundle);
                             fragmentManager.beginTransaction().add(R.id.fragment_frame, boardFragment).commit();
                         }
 
                         if(boardFragment != null) fragmentManager.beginTransaction().show(boardFragment).commit();
                         if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
-                        if(searchFragment != null) fragmentManager.beginTransaction().hide(searchFragment).commit();
+                        if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
                         if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
                         return true;
-                    case R.id.menu_search:
+                    case R.id.menu_notification:
 
-                        if(searchFragment == null) {
-                            searchFragment = new SearchFragment();
-                            fragmentManager.beginTransaction().add(R.id.fragment_frame, searchFragment).commit();
+                        if(notificationFragment == null) {
+                            notificationFragment = new NotificationFragment();
+                            notificationFragment.setArguments(bundle);
+                            fragmentManager.beginTransaction().add(R.id.fragment_frame, notificationFragment).commit();
                         }
 
-                        if(searchFragment!= null) fragmentManager.beginTransaction().show(searchFragment).commit();
+                        if(notificationFragment != null) fragmentManager.beginTransaction().show(notificationFragment).commit();
                         if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
                         if(boardFragment != null) fragmentManager.beginTransaction().hide(boardFragment).commit();
                         if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
@@ -129,25 +132,26 @@ public class MainActivity extends AppCompatActivity {
 
                         if(letterFragment == null) {
                             letterFragment = new LetterFragment();
+                            letterFragment.setArguments(bundle);
                             fragmentManager.beginTransaction().add(R.id.fragment_frame, letterFragment).commit();
                         }
 
                         if(letterFragment!= null) fragmentManager.beginTransaction().show(letterFragment).commit();
                         if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
-                        if(searchFragment != null) fragmentManager.beginTransaction().hide(searchFragment).commit();
+                        if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
                         if(boardFragment!= null) fragmentManager.beginTransaction().hide(boardFragment).commit();
                         return true;
                     case R.id.menu_profile:
 
                         if(profileFragment == null) {
-                            profileFragment = new ProfileFragment(MainActivity.this);
+                            profileFragment = new ProfileFragment();
                             profileFragment.setArguments(bundle);
                             fragmentManager.beginTransaction().add(R.id.fragment_frame, profileFragment).commit();
                         }
 
                         if(profileFragment != null) fragmentManager.beginTransaction().show(profileFragment).commit();
                         if(boardFragment != null) fragmentManager.beginTransaction().hide(boardFragment).commit();
-                        if(searchFragment != null) fragmentManager.beginTransaction().hide(searchFragment).commit();
+                        if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
                         if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
                         return true;
                     default:
@@ -219,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void setToolbar(){
+    public void setToolbar(){ //기본툴바를 커스텀으로
         toolbar = (Toolbar)findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
@@ -228,20 +232,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) { //커스텀툴바의 메뉴를 적용해주기
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.toolbar_main_menu, menu);
         return true;
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) { //툴바의 메뉴이벤트 적용
         switch (item.getItemId()){
             case R.id.toolbar_main_write_post_btn:{
                 Activity(WritePostActivity.class);
             }
+            case R.id.toolbar_main_search:{
+                //todo 서치액티비티
+                Activity(SearchActivity.class,myAccount.getLocation());
+            }
             case R.id.toolbar_main_reset:{
-
                 item.setEnabled(false);
                 boardFragment.UpScrolled();
 
@@ -252,14 +260,20 @@ public class MainActivity extends AppCompatActivity {
                         item.setEnabled(true);
                     }
                 }, 1500); //딜레이 타임 조절
-
             }
         }
+
         return super.onOptionsItemSelected(item);
     }
 
     public void Activity(Class c){
         Intent intent = new Intent(this,c);
+        startActivityForResult(intent,1);
+    }
+
+    public void Activity(Class c,String location){
+        Intent intent = new Intent(this,c);
+        intent.putExtra("location",location);
         startActivityForResult(intent,1);
     }
 
