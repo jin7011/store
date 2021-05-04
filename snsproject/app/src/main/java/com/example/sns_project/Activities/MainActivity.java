@@ -161,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if(AccountInit()){ //계정이 있다면,
+            Log.d("resume_accountinit(): ",user.getEmail());
         }
         else{
             Activity(SignActivity.class);
@@ -186,14 +187,23 @@ public class MainActivity extends AppCompatActivity {
                         String phone = document.getString("phone");
                         String businessNum = document.getString("businessNum");
 
+                        Log.d("dasdazz",location);
                         if(myAccount == null) {
+                            //처음 어플 켰을 때
                             Log.d("dasdazz","null"+location);
                             myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
                             liveDataMyDataMainModel.get().setValue(myAccount);
                         }else if(location != null && !myAccount.getLocation().equals(location)){
+                            //지역변경을 하고 왔을 때의 처리
                             Log.d("dasdazz","not_null: "+myAccount.getLocation()+", new: "+location);
                             myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
                             liveDataMyDataMainModel.get().setValue(myAccount);
+                        }
+
+                        if(location == null){
+                            //비정상적인 경로임. auth에는 계정이 남아있고, user 스토리지에는 계정이 안지워진 상태.
+                            Log.d("dasdazz","스토리지 널");
+                            logout();
                         }
                     }
                 }
@@ -203,7 +213,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("cccccccccaa","실패");
                 }
             });
+
             return true;
+
         }
     }
 
@@ -303,8 +315,8 @@ public class MainActivity extends AppCompatActivity {
     public void logout(){
         Intent i = new Intent(MainActivity.this, LoginActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        mAuth.getInstance().signOut();
-        user = null;
+        mAuth.signOut();
+        myAccount = null;
         startActivity(i);
         finish();
     }

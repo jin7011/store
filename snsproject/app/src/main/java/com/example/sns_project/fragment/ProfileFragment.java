@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,41 +79,48 @@ public class ProfileFragment extends Fragment {
     public void withdraw(View view){
         AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,android.R.style.Theme_DeviceDefault_Dialog);
 
-        oDialog.setMessage("회원탈퇴를 하시겠습니까?\n사용자의 정보가 모두 삭제되지만,\n\'작성글\'과 \'댓글\'의 내용은 남아있게 됩니다.").setPositiveButton("예", new DialogInterface.OnClickListener()
+        oDialog.setMessage("회원탈퇴를 하시겠습니까?\n사용자의 정보가 모두 삭제되지만,\n\'작성글\'과 \'댓글\'의 내용은 남아있게 됩니다.")
+                .setPositiveButton("예", new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
-                db.collection("USER").document(user.getUid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        oDialog.setMessage("진짜..?").setPositiveButton("예", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if (task.isSuccessful()) {
-                                            logout();
-                                        }
-                                    }
-                                });
-                            }
-                        }).setNeutralButton("무르기", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Toast("굿");
-                            }
-                        }).show();
 
+                oDialog.setMessage("진짜..?").setPositiveButton("예", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        db.collection("USER").document(myAccount.getId()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if(task.isSuccessful()) {
+                                    user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                logout();
+                                            }
+                                        }
+                                    });
+                                }
+                                else
+                                    Log.d("asdzzzxcccaa","스토리지 제거 실패");
+                            }
+                        });
                     }
-                });
+
+                }).setNeutralButton("무르기", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast("굿");
+                    }
+                }).show();
+
             }
         }).setNeutralButton("아니오", new DialogInterface.OnClickListener()
         {
             public void onClick(DialogInterface dialog, int which)
             {
-
             }
         }).show();
     }
@@ -129,7 +137,6 @@ public class ProfileFragment extends Fragment {
     }
 
     public void logout_dialog(View view){
-
 
         AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,
                 android.R.style.Theme_DeviceDefault_Dialog);

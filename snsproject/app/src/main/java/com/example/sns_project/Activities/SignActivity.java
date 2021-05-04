@@ -24,6 +24,7 @@ import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivitySignUpBinding;
 import com.example.sns_project.info.MyAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -157,10 +158,14 @@ public class SignActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.getText().toString(),
                                     binding.phoneNum.getText().toString(),BUSINESSNUMBER);
-                            db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge());
-                            Log.d("updateUserProfile", "User profile updated.");
-                            loader.setVisibility(View.GONE);
-                            MainActivity(myAccount);
+                            db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    Log.d("updateUserProfile", "User profile updated.");
+                                    loader.setVisibility(View.GONE);
+                                    MainActivity(myAccount);
+                                }
+                            });
                         }
                     }
                 });
