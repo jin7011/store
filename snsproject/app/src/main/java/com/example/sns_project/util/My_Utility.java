@@ -8,6 +8,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
+import com.example.sns_project.Adapter.PostAdapter;
+import com.example.sns_project.info.PostInfo;
+
+import java.util.ArrayList;
+
 import static com.example.sns_project.util.Named.GRID;
 import static com.example.sns_project.util.Named.HORIZEN;
 import static com.example.sns_project.util.Named.VERTICAL;
@@ -47,6 +52,12 @@ public class My_Utility {
         layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
 //        postAdapter.setHasStableIds(true); 이걸쓰면 게시물 시간이 재사용되서 리셋이 안되는 이슈가 발생
 //        postAdapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY); //스크롤 저장하는건데 필요없어짐
+
+        if(adapter instanceof PostAdapter) {
+            ((PostAdapter) adapter).setLinearLayoutManager(layoutManager);
+            ((PostAdapter) adapter).setRecyclerView(recyclerView);
+        }
+
         recyclerView.setAdapter(adapter);
 
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();

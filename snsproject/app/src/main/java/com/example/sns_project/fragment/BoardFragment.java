@@ -26,9 +26,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.Date;
 
-import static com.example.sns_project.util.Named.DOWN_SROLLED;
 import static com.example.sns_project.util.Named.DELETE_RESULT;
 import static com.example.sns_project.util.Named.SOMETHING_IN_POST;
 import static com.example.sns_project.util.Named.UP_SROLLED;
@@ -92,6 +90,7 @@ public class BoardFragment extends Fragment {
                     PostListModel.setpostList(postInfos);
                     Loaded_Posts.clear();
                     Loaded_Posts.addAll(PostListModel.getPostList());
+
                     if(ISUPSCROLL){
                         Log.d("아니왠왜농ㄴ","스크롤위로");
                         ISUPSCROLL = false;
@@ -117,9 +116,7 @@ public class BoardFragment extends Fragment {
     //새로고침(이전꺼좋으니까 수정만)
     public void PostUpdate(int request, String docid){
 
-        if(request == DOWN_SROLLED) //아래로 새로고침할 때
-            DownScrolled();
-        else if(request == UP_SROLLED || request == WRITE_RESULT) //위로 새로고침하거나 글쓰고 왔을 때
+        if(request == UP_SROLLED || request == WRITE_RESULT) //위로 새로고침하거나 글쓰고 왔을 때
             UpScrolled();
         else if(request == SOMETHING_IN_POST) // 다른 게시물에 좋아요버튼 누르고 왔을 때
             Good_or_Comment(docid);
@@ -157,18 +154,19 @@ public class BoardFragment extends Fragment {
         postControler.Request_NewPosts(new Listener_CompletePostInfos() {
             @Override
             public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                ISUPSCROLL = true;
+                postAdapter.NoMore_Load(false); //새로고침하면 false처리해서 포스트를 받을수 있게 하자(downscrol)
                 PostListModel.get().setValue(NewPostInfos);
-                ISUPSCROLL = true; // 새로고침은 특별히 스크롤이 맨위로 올라가게 된다.
             }
         });
     }
 
     public void DownScrolled(){
-        Date date = Loaded_Posts.size() == 0 ? new Date() : Loaded_Posts.get(Loaded_Posts.size() - 1).getCreatedAt();
-
-        postControler.Request_AfterPosts(Loaded_Posts,date, new Listener_CompletePostInfos() {
+        postControler.Request_Posts(Loaded_Posts, new Listener_CompletePostInfos() {
             @Override
             public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                Log.d("새로가져온 글 갯수",": "+ (NewPostInfos.size()-Loaded_Posts.size()) );
+                postAdapter.NoMore_Load( (NewPostInfos.size()-Loaded_Posts.size()) == 0); //새로가져온게 없다면, 다운스크롤했을 때, 리스너가 if문에서 막힘. 가져온게 하나라도 있다면 다름
                 PostListModel.get().setValue(NewPostInfos);
             }
         });
@@ -180,7 +178,21 @@ public class BoardFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
 
         recyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_frag);
-        postAdapter = new PostAdapter(getActivity()); //처음엔 비어있는 list를 넣어줬음
+        postAdapter = new PostAdapter(getActivity(), new PostAdapter.OnLoadMoreListener() { //아래로 스크롤 되었을 때에,
+            @Override
+            public void onLoadMore() {
+                postAdapter.setProgressMore(true);
+                recyclerView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ///////이부분에을 자신의 프로젝트에 맞게 설정하면 됨
+                        //다음 페이지? 내용을 불러오는 부분
+                        DownScrolled();
+                        //////////////////////////////////////////////////
+                    }
+                }, 1000);
+            }
+        }); //처음엔 비어있는 list를 넣어줬음
         my_utility = new My_Utility(getActivity(),recyclerView,postAdapter);
         my_utility.RecyclerInit(VERTICAL);
         postControler = new PostControler(location,my_utility);
@@ -190,20 +202,7 @@ public class BoardFragment extends Fragment {
 
     public void RecyclerView_ScrollListener(){
 
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) { //아래 갱신
-                super.onScrolled(recyclerView, dx, dy);
-                if (!recyclerView.canScrollVertically(1)) { //끝에 도달하면 추가
-                    DownScrolled();
-                }
-            }
-        });
-
-        swipe.setColorSchemeResources(
-                R.color.pantone
-        );
-
+        swipe.setColorSchemeResources(R.color.pantone);
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {

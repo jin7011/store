@@ -3,15 +3,18 @@ package com.example.sns_project.Adapter;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -28,7 +31,9 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import static com.example.sns_project.util.Named.HOUR;
+import static com.example.sns_project.util.Named.LOADING_VIEWTYPE;
 import static com.example.sns_project.util.Named.MIN;
+import static com.example.sns_project.util.Named.POSTING_VIEWTYPE;
 import static com.example.sns_project.util.Named.SEC;
 
 public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -36,17 +41,40 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Activity activity;
     private ArrayList<PostInfo> postList = new ArrayList<>();
 
+    private OnLoadMoreListener onLoadMoreListener; //todo take care of if after eating dinner
+    private LinearLayoutManager mLinearLayoutManager;
+
+    private boolean NoMore_Load = false;
+    private int visibleThreshold = 1;
+    int firstVisibleItem, visibleItemCount, totalItemCount, lastVisibleItem;
+
+    public interface OnLoadMoreListener{
+        void onLoadMore();
+//        void Updated();
+    }
+
     public void PostInfoDiffUtil(ArrayList<PostInfo> newPosts) {
         final PostInfo_DiffUtil diffCallback = new PostInfo_DiffUtil(this.postList, newPosts);
         final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
+        final PostAdapter postAdapter = this;
 
-        this.postList.clear();
-        this.postList.addAll(newPosts);
-        diffResult.dispatchUpdatesTo(this);
+        new Handler().post(new Runnable() { // 디프유틸이 스크롤리스너에 의해서 boardfrag에서 백그라운드로 작동하니까 내부 동작도 이렇게 해주자.
+            @Override
+            public void run() {
+                Clear_AddAll(newPosts);
+                diffResult.dispatchUpdatesTo(postAdapter);
+            }
+        });
+//        diffResult.dispatchUpdatesTo(this);
     }
 
-    public PostAdapter(Activity activity) {
+    public PostAdapter(Activity activity,OnLoadMoreListener onLoadMoreListener) {
         this.activity = activity;
+        this.onLoadMoreListener = onLoadMoreListener;
+    }
+
+    public void setLinearLayoutManager(LinearLayoutManager linearLayoutManager){
+        this.mLinearLayoutManager=linearLayoutManager;
     }
 
     //holder
@@ -74,17 +102,26 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+    public static class LoadingHolder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
+        ProgressBar loading;
+        public LoadingHolder(@NonNull View itemView) {
+            super(itemView);
+            loading = itemView.findViewById(R.id.pBar_recyclerview_loader);
+        }
+    }
+
     @NonNull
     @Override
-    public  RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
 
-        View view  =  LayoutInflater.from(parent.getContext()).inflate(R.layout.item_post,parent,false);
-        PostAdapter.PostHolder postHolder = new PostAdapter.PostHolder(view);
+        if(viewType == POSTING_VIEWTYPE) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_post, parent, false);
+            PostAdapter.PostHolder postHolder = new PostAdapter.PostHolder(view);
 
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(activity, PostActivity.class);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(activity, PostActivity.class);
 //                Log.d("포스트어댑터","getCreatedAt: "+postList.get(postHolder.getBindingAdapterPosition()).getCreatedAt());
 //                Log.d("포스트어댑터","getDocid: "+postList.get(postHolder.getBindingAdapterPosition()).getDocid());
 //                Log.d("포스트어댑터","getGood_user: "+postList.get(postHolder.getBindingAdapterPosition()).getGood_user());
@@ -97,12 +134,15 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 //                Log.d("포스트어댑터","getPublisher: "+postList.get(postHolder.getBindingAdapterPosition()).getPublisher());
 //                Log.d("포스트어댑터","getTitle: "+postList.get(postHolder.getBindingAdapterPosition()).getTitle());
 //                Log.d("포스트어댑터","getStoragePath: "+postList.get(postHolder.getBindingAdapterPosition()).getStoragePath());
-                intent.putExtra("postInfo", (PostInfo)postList.get(postHolder.getBindingAdapterPosition()));
-                activity.startActivityForResult(intent,2);
-            }
-        });
-
-        return postHolder;
+                    intent.putExtra("postInfo", (PostInfo) postList.get(postHolder.getBindingAdapterPosition()));
+                    activity.startActivityForResult(intent, 2);
+                }
+            });
+            return postHolder;
+        }else{
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_recyclerview_loader, parent, false);
+            return new LoadingHolder(view);
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -138,7 +178,48 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return postList.size();
     }
 
-    public static String formatTimeString(Date postdate,Date nowDate){
+    @Override
+    public int getItemViewType(int position) {
+        return postList.get(position) != null ? POSTING_VIEWTYPE : LOADING_VIEWTYPE;
+    }
+
+    public void setRecyclerView(RecyclerView mView){
+        mView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                visibleItemCount = recyclerView.getChildCount();
+                totalItemCount = mLinearLayoutManager.getItemCount();
+                firstVisibleItem = mLinearLayoutManager.findFirstVisibleItemPosition();
+                lastVisibleItem = mLinearLayoutManager.findLastVisibleItemPosition();
+//                Log.d("total", totalItemCount + "");
+//                Log.d("visible", visibleItemCount + "");
+//                Log.d("first", firstVisibleItem + "");
+//                Log.d("last", lastVisibleItem + "");
+                if (!NoMore_Load && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold) && totalItemCount != 0) {
+                    if (onLoadMoreListener != null) {
+                        onLoadMoreListener.onLoadMore();
+                    }
+                    NoMore_Load = true;
+                }
+            }
+        });
+    }
+
+    public void setProgressMore(final boolean isProgress) {
+        if (isProgress) {
+            ArrayList<PostInfo> temp = deepCopy(postList); //딥카피해서 널넣고 디프해줌
+            temp.add(null);
+            this.PostInfoDiffUtil(temp); //디프의 결과는 얕은카피되므로 postlist = temp가 됨 -> postlist의 마지막은 널.
+        }
+        //디프내부에서는 널값을 항상 다른 아이템으로 표시하였음.
+    }
+
+    public void NoMore_Load(boolean NoMore_Load) {
+        this.NoMore_Load = NoMore_Load;
+    }
+
+    public static String formatTimeString(Date postdate, Date nowDate){
 
         long ctime = nowDate.getTime();
         long regTime = postdate.getTime();
@@ -162,4 +243,22 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return msg;
     }
 
+    public ArrayList<PostInfo> deepCopy(ArrayList<PostInfo> oldone){
+
+        ArrayList<PostInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++) {
+            if (oldone.get(x) == null) {
+                newone.add(null);
+            }else
+                newone.add(new PostInfo(oldone.get(x)));
+        }
+
+        return newone;
+    }
+
+    public void Clear_AddAll(ArrayList<PostInfo> newPosts){
+        this.postList.clear();
+        this.postList.addAll(newPosts);
+    }
 }

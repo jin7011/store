@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import static com.example.sns_project.util.Named.SEARCH_LIMIT;
 import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
 
 /**
@@ -44,14 +45,18 @@ public class PostControler {
         this.adapter = my_utility.getAdapter();
     }
 
-    public void Search_Post(String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
+    public void Search_Post(ArrayList<PostInfo> Loaded_Posts,String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
 
-        Date newdate = new Date();
         ArrayList<PostInfo> newPosts = new ArrayList<>();
+        ArrayList<PostInfo> temp = deepCopy(Loaded_Posts);
+
+        Date OldestDate = Loaded_Posts.size() == 0 ? new Date() : Loaded_Posts.get(Loaded_Posts.size() - 1).getCreatedAt();
+
         Log.d("zozozozozo","시작: "+newPosts.size());
 
         db.collection(post_location)
-                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", newdate)//업스크롤 효과 (위에서부터 최신상태로)
+                .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", OldestDate)//업스크롤 효과 (위에서부터 최신상태로)
+                .limit(SEARCH_LIMIT)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -86,8 +91,8 @@ public class PostControler {
 
                             }///////////////////////////////////////////////////////////////////////완료
                             Log.d("zozozozozo","끝: "+newPosts.size());
-                            listener_completePostInfos.onComplete(newPosts);
-
+                            temp.addAll(newPosts);
+                            listener_completePostInfos.onComplete(temp);
 //                            2021-05-04 22:46:56.748 10381-10381/com.example.sns_project D/zozozozozo: 시작: 0
 //                            2021-05-04 22:46:57.269 10381-10381/com.example.sns_project D/zozozozozo: 찾은거: zxczxcz
 //                            2021-05-04 22:46:57.270 10381-10381/com.example.sns_project D/zozozozozo: 찾은거: asdasd
@@ -144,11 +149,13 @@ public class PostControler {
     }
 
 
-    public void Request_AfterPosts(ArrayList<PostInfo> postlist,Date OldestDate,Listener_CompletePostInfos listener_completePostInfos){
+    public void Request_Posts(ArrayList<PostInfo> Loaded_Posts, Listener_CompletePostInfos listener_completePostInfos){
 
         //시간을 기점으로 이후의 게시물 20개를 가져옴 (NextPosts라고 하려다가 New랑 헷갈려서 After로 바꿈)
         ArrayList<PostInfo> newPosts = new ArrayList<>();
-        ArrayList<PostInfo> temp = deepCopy(postlist);
+        ArrayList<PostInfo> temp = deepCopy(Loaded_Posts);
+
+        Date OldestDate = Loaded_Posts.size() == 0 ? new Date() : Loaded_Posts.get(Loaded_Posts.size() - 1).getCreatedAt();
 
         Log.d("zozozozozo","시작: "+newPosts.size());
 
@@ -255,8 +262,11 @@ public class PostControler {
 
         ArrayList<PostInfo> newone = new ArrayList<>();
 
-        for(int x=0; x<oldone.size(); x++)
+        for(int x=0; x<oldone.size(); x++) {
+            if(oldone.get(x)==null)
+                continue;
             newone.add(new PostInfo(oldone.get(x)));
+        }
 
         return newone;
     }

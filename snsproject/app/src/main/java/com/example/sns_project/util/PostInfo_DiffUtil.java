@@ -40,6 +40,12 @@ public class PostInfo_DiffUtil extends DiffUtil.Callback{
         final PostInfo oldpost = oldPosts.get(oldItemPosition);
         final PostInfo newpost = newPosts.get(newItemPosition);
 
+        if(oldpost == null || newpost ==null) { //리사이클러뷰의 다운스크롤을 위해 넣은 로딩홀더를 다른 아이템취급하기 위함임
+//            Log.d("무슨일ㄹㅇ리이ㅣ", "old: " + oldItemPosition);
+//            Log.d("무슨일ㄹㅇ리이ㅣ", "new: " + newItemPosition);
+            return false;
+        }
+
         return oldpost.getDocid().equals(newpost.getDocid());
     }
 
@@ -47,8 +53,15 @@ public class PostInfo_DiffUtil extends DiffUtil.Callback{
     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) { //item이 같아도 수정된다면 내용이 다르다는 것을 인식시켜줘야 내용이 바뀜
         final PostInfo oldpost = oldPosts.get(oldItemPosition);
         final PostInfo newpost = newPosts.get(newItemPosition);
-        Log.d("같나","old: "+ oldpost.getGood()+" oldid: "+oldpost.getDocid()+" new: "+ newpost.getGood()+" newid: "+newpost.getDocid());
 
+
+        if(oldpost == null || newpost ==null) { //리사이클러뷰의 다운스크롤을 위해 넣은 로딩홀더를 다른 아이템취급하기 위함임
+//            Log.d("무슨일ㄹㅇ리이ㅣ", "old: " + oldItemPosition);
+//            Log.d("무슨일ㄹㅇ리이ㅣ", "new: " + newItemPosition);
+            return false;
+        }
+
+//        Log.d("같나","old: "+ oldpost.getGood()+" oldid: "+oldpost.getDocid()+" new: "+ newpost.getGood()+" newid: "+newpost.getDocid());
         if(oldpost.getHow_Long() != null && newpost.getHow_Long() == null) { //새로 받아온 배열이 기존의 시간과 차이가 있을 때 표기(방금전,3분전)를 다르게 하기 위해서
             Date date = new Date();
             newpost.setHow_Long(formatTimeString(newpost.getCreatedAt(), date));

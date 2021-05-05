@@ -2,8 +2,9 @@ package com.example.sns_project.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -13,11 +14,10 @@ import android.view.inputmethod.InputMethodManager;
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.Listener.Listener_CompletePostInfos;
-import com.example.sns_project.R;
+import com.example.sns_project.data.LiveData_PostList;
 import com.example.sns_project.databinding.ActivitySearchBinding;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.util.My_Utility;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
@@ -26,14 +26,14 @@ import static com.example.sns_project.util.Named.VERTICAL;
 public class SearchActivity extends AppCompatActivity {
 
     private ActivitySearchBinding binding;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private String post_location;
     private My_Utility my_utility;
+    private LiveData_PostList PostListModel;
     private PostControler postControler ;
     private PostAdapter adapter;
-    private int curIDX = 0;
-    private SwipeRefreshLayout swipe;
     private  RecyclerView recyclerView;
+    private ArrayList<PostInfo> Loaded_Posts= new ArrayList<>();
+    private String KeyWord;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,17 +41,31 @@ public class SearchActivity extends AppCompatActivity {
         binding = ActivitySearchBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        PostListModel = new ViewModelProvider(SearchActivity.this).get(LiveData_PostList.class);
+        PostListModel.get().observe(this, new Observer<ArrayList<PostInfo>>() {
+            @Override
+            public void onChanged(ArrayList<PostInfo> postInfos) {
+                adapter.PostInfoDiffUtil(postInfos);
+                Loaded_Posts.clear();
+                Loaded_Posts.addAll(postInfos);
+            }
+        });
+
         binding.searchET.setQueryHint("제목/내용/글쓴이");
         binding.searchET.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String keyword) {
-                curIDX = 0; //검색할 때마다 초기화해주자.
+                //검색을 통해서 처음으로 리스트를 만들고, 리사이클러뷰의 데이터를 생성하는 부분,
+                Loaded_Posts.clear();
+                adapter.NoMore_Load(false);
+                KeyWord = keyword;
                 hideKeyPad();
 
-                postControler.Search_Post(keyword, new Listener_CompletePostInfos() {
+                postControler.Search_Post(Loaded_Posts,KeyWord, new Listener_CompletePostInfos() { //아무것도 없는 상태에서 처음 검색.
                     @Override
                     public void onComplete(ArrayList<PostInfo> NewPostInfos) {
                         Log.d("plpl",""+ NewPostInfos.size());
+
                         if(NewPostInfos.size() == 0) {
                             binding.SearchRecyclerView.setVisibility(View.GONE);
                             binding.cannotfindConstranint.setVisibility(View.VISIBLE);
@@ -59,13 +73,12 @@ public class SearchActivity extends AppCompatActivity {
                         else {
                             binding.SearchRecyclerView.setVisibility(View.VISIBLE);
                             binding.cannotfindConstranint.setVisibility(View.GONE);
-                            getmore(NewPostInfos);
+                            First_Search();//아무것도 없는 상태에서 처음 검색.
                         }
                     }
                 }); //리스트를 쫙 받아오고,
                 return true;
             }
-
             @Override
             public boolean onQueryTextChange(String newText) {
                 return false;
@@ -80,53 +93,51 @@ public class SearchActivity extends AppCompatActivity {
 
     public void set_recycler(){
         recyclerView = binding.SearchRecyclerView;
-        adapter = new PostAdapter(this);
-        swipe = binding.swipeSearch;
+        adapter = new PostAdapter(this, new PostAdapter.OnLoadMoreListener() {
+            @Override
+            public void onLoadMore() {
+                adapter.setProgressMore(true);
+                recyclerView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        DownScrolled(); //처음 검색한 이후에 스크롤을 내리면서 추가로 데이터를 받아올 때
+                    }
+                }, 1000);
+            }
+        });
         my_utility = new My_Utility(this,recyclerView,adapter);
         my_utility.RecyclerInit(VERTICAL);
     }
 
-    public void getmore(ArrayList<PostInfo> postInfos){
-
-        ArrayList<PostInfo> newposts = new ArrayList<>();
-
-        for(int x = curIDX; (x<postInfos.size()) && (x<curIDX+20) ; x++){
-            curIDX = x;
-            newposts.add(postInfos.get(x));
-        }
-
-        adapter.PostInfoDiffUtil(newposts);
+    private void DownScrolled() {
+        //몇 개가 결과로 나오든 간에 애매하게 나오면 결과가 0개가 될 때까지 다운스크롤을 화면을 채울 때까지 진행한다.
+        postControler.Search_Post(Loaded_Posts, KeyWord, new Listener_CompletePostInfos() {
+            @Override
+            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                Log.d("다운스크롤써치",""+(NewPostInfos.size()-Loaded_Posts.size()));
+                adapter.NoMore_Load( (NewPostInfos.size() - Loaded_Posts.size()) == 0 );
+                PostListModel.get().setValue(NewPostInfos);
+                //그러므로 결과가 0개여도 null값이 제거되서 나온 결과인 NewPostInfos를 한번 디프해줘야 로딩창이 사라진다. (기존 boardfrag와 로직이 같음)
+            }
+        });
     }
 
-    public void RecyclerView_ScrollListener(){
-
-//        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) { //아래 갱신
-//                super.onScrolled(recyclerView, dx, dy);
-//                if (!recyclerView.canScrollVertically(1)) { //끝에 도달하면 추가
-//                    DownScrolled();
-//                }
-//            }
-//        });
-
-        swipe.setColorSchemeResources(
-                R.color.pantone
-        );
-
-        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+    private void First_Search(){
+        postControler.Search_Post(Loaded_Posts, KeyWord, new Listener_CompletePostInfos() {
             @Override
-            public void onRefresh() {
-                recyclerView.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        //swipe 업데이트는 다르게 해줄 필요가 있는게 당기면 위로 정보가 업데이트 되어야 하는데 지금같은 경운 date를 기반으로 아래로 새로고침되니까 새로운 글이 나오지않음
-                        //swipe를 할경우 기존의 List의 뒷부분은 다 지우고 앞부분부터 새로 받아와야함
-                        //반면에 삭제는 가지고 있는 리스트를 그대로 유지하고 내가 쓴 글의 position만 지우고 갱신함.
-//                        removeScrollPullUpListener();
-                        swipe.setRefreshing(false);
-                    }
-                },1000);
+            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+
+                if(NewPostInfos.size() == 0) {
+                    binding.SearchRecyclerView.setVisibility(View.GONE);
+                    binding.cannotfindConstranint.setVisibility(View.VISIBLE);
+                    adapter.NoMore_Load(true);
+                }
+                else {
+                    binding.SearchRecyclerView.setVisibility(View.VISIBLE);
+                    binding.cannotfindConstranint.setVisibility(View.GONE);
+                    PostListModel.get().setValue(NewPostInfos);
+                    adapter.NoMore_Load(false);
+                }
             }
         });
     }

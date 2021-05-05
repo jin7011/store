@@ -62,22 +62,15 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_search"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="5dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/search_linear">
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/Search_RecyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp" />
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/search_linear"
+            />
 </androidx.constraintlayout.widget.ConstraintLayout>

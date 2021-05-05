@@ -37,7 +37,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import static com.example.sns_project.util.Named.DELETE_RESULT;
-import static com.example.sns_project.util.Named.None;
+import static com.example.sns_project.util.Named.NONE;
 import static com.example.sns_project.util.Named.SOMETHING_IN_POST;
 import static com.example.sns_project.util.Named.WRITE_RESULT;
 
@@ -248,7 +248,8 @@ public class MainActivity extends AppCompatActivity {
             }
             case R.id.toolbar_main_search:{
                 //todo 서치액티비티
-                Activity(SearchActivity.class,myAccount.getLocation());
+                if(myAccount != null)
+                    Activity(SearchActivity.class,myAccount.getLocation());
                 break;
             }
             case R.id.toolbar_main_reset:{
@@ -291,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (resultCode == WRITE_RESULT) { //글쓰기 리턴값
             Log.d("From WriteActivity","requestCode: "+requestCode);
-            boardFragment.PostUpdate(WRITE_RESULT,None);
+            boardFragment.PostUpdate(WRITE_RESULT, NONE);
         }
 
         if (resultCode == DELETE_RESULT) { //글삭제 리턴값
@@ -306,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
             boardFragment.PostUpdate(SOMETHING_IN_POST,docid);
         }
 
-        if(resultCode == SOMETHING_IN_POST){ //지역변경 리턴값
+        if(resultCode == WRITE_RESULT){ //지역변경 리턴값
             AccountInit();
             Log.d("From PopupAct","myAccount location: "+myAccount.getLocation());
         }
