@@ -1,7 +1,6 @@
 package com.example.sns_project.Adapter;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
@@ -17,20 +16,23 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.Activities.PostActivity;
-import com.example.sns_project.Listener.Listener_CommentHolder;
+import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.util.CommentInfo_DiffUtil;
 import com.example.sns_project.util.My_Utility;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
@@ -39,11 +41,15 @@ import static com.example.sns_project.util.Named.VERTICAL;
 
 public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
+    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private FirebaseUser user = mAuth.getCurrentUser();
     private PostActivity activity;
     private ArrayList<CommentInfo> comments;      //postinfo에 있는 것을 쓰지않는 이유는 diffutil을 쓰기 위함임 (같은 주소같을 할당하면 변화를 찾을 수 없어서)
-    private Listener_CommentHolder listener_commentHolder;
     private My_Utility my_utility;
+    private Listener_CommentHolder listener_commentHolder;
+    private Listener_Pressed_goodbtn listener_pressed_goodbtn;
     private PostInfo postInfo;
+    private PostControler postControler;
 
     public void CommentInfo_DiffUtil(ArrayList<CommentInfo> newcomments) {
         final CommentInfo_DiffUtil diffCallback = new CommentInfo_DiffUtil(this.comments, newcomments);
@@ -54,11 +60,20 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public CommentsAdapter(PostActivity activity,PostInfo postInfo,Listener_CommentHolder listener_commentHolder) {
+    public interface Listener_CommentHolder{
+        void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder);
+    }
+
+    public interface Listener_Pressed_goodbtn{
+        void onClicked_goodbtn(PostInfo NewPostInfo);
+    }
+
+    public CommentsAdapter(PostActivity activity,PostInfo postInfo,Listener_CommentHolder listener_commentHolder,Listener_Pressed_goodbtn listener_pressed_goodbtn) {
         this.postInfo = postInfo;
         this.activity = activity;
-        this.listener_commentHolder = listener_commentHolder;
         this.comments = new ArrayList<>();
+        this.listener_commentHolder = listener_commentHolder;
+        this.listener_pressed_goodbtn = listener_pressed_goodbtn;
     }
 
     //holder
@@ -75,6 +90,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         LinearLayout commentbody;
         LinearLayout commentbody_goodframe;
         RecyclerView recyclerView;
+        LinearLayout goodNum_Layout;
+
 
         public CommentsHolder(@NonNull View itemView) {
             super(itemView);
@@ -89,8 +106,32 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             recyclerView = itemView.findViewById(R.id.recommentRecycler);
             commentbody = itemView.findViewById(R.id.commentbody_comments);
             commentbody_goodframe = itemView.findViewById(R.id.good_btn_Frame);
-
+            goodNum_Layout = itemView.findViewById(R.id.comment_GoodLayout);
         }
+    }
+
+    private PostInfo Clicked_GoodPost(int position) {
+
+        CommentInfo commentInfo = comments.get(position);
+
+        int goodNum = commentInfo.getGood(); //해당 댓글의 좋아요 갯수
+        HashMap<String, Integer> good_users = new HashMap<>(commentInfo.getGood_user());
+
+        Log.d("zxczzaasdqq",""+commentInfo.getGood_user());
+        Log.d("zxczzaasdqq",""+commentInfo.getGood_user().size());
+
+        //if
+        if(!good_users.containsKey(user.getUid())) { //좋아요를 누른적이 없다면,
+            good_users.put(user.getUid(), 1); //좋아요 누른 본인의 아이디 넣고,
+
+            PostInfo NewPostInfo = new PostInfo(postInfo);
+
+            NewPostInfo.getComments().get(position).setGood(goodNum + 1);
+            NewPostInfo.getComments().get(position).setGood_user(good_users);
+
+            return NewPostInfo;
+        }else
+            return null;
     }
 
     @NonNull
@@ -102,6 +143,26 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         commentsHolder.good_btn.setOnClickListener(new View.OnClickListener() { //좋아요
             @Override
             public void onClick(View v) {
+
+                PostInfo NewPostInfo = Clicked_GoodPost(commentsHolder.getAbsoluteAdapterPosition());
+
+                Log.d("aoao",""+NewPostInfo);
+
+                if(NewPostInfo != null) {
+                    postControler.Set_UniPost(NewPostInfo, new PostControler.Listener_Complete_Set_PostInfo() {
+                        @Override
+                        public void onComplete_Set_PostInfo() {
+                            postControler.Get_UniPost(NewPostInfo.getDocid(), new PostControler.Listener_Complete_Get_PostInfo() {
+                                @Override
+                                public void onComplete_Get_PostInfo(PostInfo postInfo) {
+                                    listener_pressed_goodbtn.onClicked_goodbtn(postInfo);
+                                }
+                            });
+                        }
+                    });
+                }else{
+                    Toast("이미 좋아요를 눌렀어요!");
+                }
             }
         });
 
@@ -133,6 +194,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         CommentsHolder holder = (CommentsHolder)commentsHolder;
 
         CommentInfo commentInfo = comments.get(position);
+        Log.d("zpzp",commentInfo.getGood_user()+""+holder.getAbsoluteAdapterPosition());
 
         holder.contentT.setText(commentInfo.getContents());
         holder.dateT.setText(formatTimeString(commentInfo.getCreatedAt(),new Date()));
@@ -155,20 +217,18 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             my_utility = new My_Utility(activity,holder.recyclerView,recommentsAdapter);
             my_utility.RecyclerInit(VERTICAL);
-            Add_and_Set_RecommentRecyclerView(activity,holder.recyclerView,recommentsAdapter);
+            postControler = new PostControler(postInfo.getLocation(),my_utility);
             recommentsAdapter.RecommentInfo_DiffUtil(commentInfo.getRecomments());
         }else{
             holder.recyclerView.setVisibility(View.GONE);
         }
 
-    }
-
-    public void Add_and_Set_RecommentRecyclerView(Activity activity,RecyclerView recyclerView,RecommentsAdapter recommentsAdapter){
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(recommentsAdapter);
+        if(commentInfo.getGood() != 0){
+            holder.goodNum_Layout.setVisibility(View.VISIBLE);
+            holder.goodNum.setText(String.valueOf(commentInfo.getGood()));
+        }else{
+            holder.goodNum_Layout.setVisibility(View.GONE);
+        }
 
     }
 
@@ -287,6 +347,11 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             msg = new SimpleDateFormat("MM월dd일").format(postdate);
         }
         return msg;
+    }
+
+
+    public void Toast(String str){
+        Toast.makeText(activity,str,Toast.LENGTH_SHORT).show();
     }
 
 }

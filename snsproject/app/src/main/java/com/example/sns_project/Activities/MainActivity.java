@@ -247,7 +247,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
             case R.id.toolbar_main_search:{
-                //todo 서치액티비티
                 if(myAccount != null)
                     Activity(SearchActivity.class,myAccount.getLocation());
                 break;

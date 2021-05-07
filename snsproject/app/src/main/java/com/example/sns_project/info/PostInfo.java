@@ -233,6 +233,8 @@ public class PostInfo implements Parcelable{
             for (int i = 0; i < size; i++) {
                 good_user.put(in.readString(), in.readInt());
             }
+        }else{
+            good_user = new HashMap<>();
         }
 
         comments = in.createTypedArrayList(CommentInfo.CREATOR);

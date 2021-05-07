@@ -16,7 +16,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.CustomLibrary.PostControler;
-import com.example.sns_project.Listener.Listener_CompletePostInfos;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostList;
 import com.example.sns_project.info.MyAccount;
@@ -96,9 +95,14 @@ public class BoardFragment extends Fragment {
                         ISUPSCROLL = false;
                         recyclerView.smoothScrollToPosition(0);
                     }
-                    Log.d("zxczxc", "newPosts: " + postInfos.size());
-                    Log.d("zxczxc", "PostListModel.getPostList: " + PostListModel.getPostList().size());
-                    Log.d("zxczxc", "postList: " + Loaded_Posts.size());
+//                    Log.d("zxczxc", "newPosts: " + postInfos.size());
+//                    Log.d("zxczxc", "PostListModel.getPostList: " + PostListModel.getPostList().size());
+//                    Log.d("zxczxc", "postList: " + Loaded_Posts.size());
+                    for(int x=0; x<Loaded_Posts.size(); x++) {
+                        for(int y=0; y<Loaded_Posts.get(x).getComments().size(); y++) {
+                            Log.d("zxczxc", "postList: "+x+","+y+" : " + Loaded_Posts.get(x).getComments().get(y).getGood_user());
+                        }
+                    }
                 }
             }
         };
@@ -131,9 +135,9 @@ public class BoardFragment extends Fragment {
         //(좋아요 누르고 나옴) 스크롤을 가능한 유지하고, 리스트 상태를 새로 고침.
         //아무래도 리셋할거 없이 해당 포지션을 어댑터에서 전달하고 그걸actvity에서 받아와서 수정한다음 이쪽으로
         //넘겨주고 그것만 처리하는게 깔끔할 듯. 그 이후에 diffutil사용
-        postControler.Update_ThePost(Loaded_Posts, docid, new Listener_CompletePostInfos() {
+        postControler.Update_UniPost(Loaded_Posts, docid, new PostControler.Listener_CompletePostInfos() {
             @Override
-            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+            public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
                 PostListModel.get().setValue(NewPostInfos);
             }
         });
@@ -141,9 +145,9 @@ public class BoardFragment extends Fragment {
 
     private void Deleted(String docid) { //삭제
 
-        postControler.Delete_ThePost(Loaded_Posts, docid, new Listener_CompletePostInfos() {
+        postControler.Delete_ThePost(Loaded_Posts, docid, new PostControler.Listener_CompletePostInfos() {
             @Override
-            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+            public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
                 PostListModel.get().setValue(NewPostInfos);
             }
         });
@@ -151,9 +155,9 @@ public class BoardFragment extends Fragment {
 
     public void UpScrolled() {
         // (글생성/새로고침) 스크롤 맨위로
-        postControler.Request_NewPosts(new Listener_CompletePostInfos() {
+        postControler.Request_NewPosts(new PostControler.Listener_CompletePostInfos() {
             @Override
-            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+            public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
                 ISUPSCROLL = true;
                 postAdapter.NoMore_Load(false); //새로고침하면 false처리해서 포스트를 받을수 있게 하자(downscrol)
                 PostListModel.get().setValue(NewPostInfos);
@@ -162,9 +166,9 @@ public class BoardFragment extends Fragment {
     }
 
     public void DownScrolled(){
-        postControler.Request_Posts(Loaded_Posts, new Listener_CompletePostInfos() {
+        postControler.Request_Posts(Loaded_Posts, new PostControler.Listener_CompletePostInfos() {
             @Override
-            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+            public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
                 Log.d("새로가져온 글 갯수",": "+ (NewPostInfos.size()-Loaded_Posts.size()) );
                 postAdapter.NoMore_Load( (NewPostInfos.size()-Loaded_Posts.size()) == 0); //새로가져온게 없다면, 다운스크롤했을 때, 리스너가 if문에서 막힘. 가져온게 하나라도 있다면 다름
                 PostListModel.get().setValue(NewPostInfos);

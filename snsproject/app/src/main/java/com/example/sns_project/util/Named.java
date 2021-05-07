@@ -7,6 +7,8 @@ public class Named {
     public static final int LOADING_VIEWTYPE = 1919;
     public static final int POSTING_VIEWTYPE = 1920;
 
+    public static final int POSTHODER_TO_POSTACTIVITY = 1001;
+
     public static final int DOWN_SROLLED = 500;
     public static final int UP_SROLLED = 501;
     public static final int UPLOAD_LIMIT = 20;

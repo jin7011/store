@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -33,6 +34,7 @@ import java.util.Date;
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.LOADING_VIEWTYPE;
 import static com.example.sns_project.util.Named.MIN;
+import static com.example.sns_project.util.Named.POSTHODER_TO_POSTACTIVITY;
 import static com.example.sns_project.util.Named.POSTING_VIEWTYPE;
 import static com.example.sns_project.util.Named.SEC;
 
@@ -65,7 +67,6 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 diffResult.dispatchUpdatesTo(postAdapter);
             }
         });
-//        diffResult.dispatchUpdatesTo(this);
     }
 
     public PostAdapter(Activity activity,OnLoadMoreListener onLoadMoreListener) {
@@ -134,8 +135,9 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 //                Log.d("포스트어댑터","getPublisher: "+postList.get(postHolder.getBindingAdapterPosition()).getPublisher());
 //                Log.d("포스트어댑터","getTitle: "+postList.get(postHolder.getBindingAdapterPosition()).getTitle());
 //                Log.d("포스트어댑터","getStoragePath: "+postList.get(postHolder.getBindingAdapterPosition()).getStoragePath());
+                Log.d("포스트어댑터","comment_good_user: "+postList.get(postHolder.getBindingAdapterPosition()).getComments().get(postHolder.getAbsoluteAdapterPosition()).getGood_user());
                     intent.putExtra("postInfo", (PostInfo) postList.get(postHolder.getBindingAdapterPosition()));
-                    activity.startActivityForResult(intent, 2);
+                    activity.startActivityForResult(intent, POSTHODER_TO_POSTACTIVITY);
                 }
             });
             return postHolder;

@@ -24,7 +24,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sns_project.Adapter.CommentsAdapter;
 import com.example.sns_project.Adapter.ShowPostImageAdapter;
-import com.example.sns_project.Listener.Listener_CommentHolder;
 import com.example.sns_project.Listener.Listener_PostImageHolder;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostInfo;
@@ -51,6 +50,7 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import static com.example.sns_project.util.Named.DELETE_RESULT;
 import static com.example.sns_project.util.Named.HORIZEN;
@@ -120,6 +120,11 @@ public class PostActivity extends AppCompatActivity {
         Log.d("포스트액티","getTitle: "+postInfo.getTitle());
         Log.d("포스트액티","getStoragePath: "+postInfo.getStoragePath());
 
+        Log.d("포스트어댑터","comment_good_user: "+postInfo.getComments().size());
+        for(int x=0; x<postInfo.getComments().size(); x++) {
+            Log.d("포스트어댑터", "comment_good_user: " + x + ": ,.,." + postInfo.getComments().get(x).getGood_user());
+        }
+
         setPost();
         setToolbar();
         Add_and_Set_CommentRecyclerView(this);
@@ -142,7 +147,6 @@ public class PostActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void setPost() {
-
         if (postInfo.getFormats() != null && postInfo.getFormats().size() != 0) {
             Log.d("겟포멧 널아님 입성","입성");
             binding.formatsLinearLayout.setVisibility(View.VISIBLE);
@@ -202,7 +206,7 @@ public class PostActivity extends AppCompatActivity {
         String comment = binding.AddCommentT.getText().toString();
         Date date = new Date();
 
-        CommentInfo commentInfo = new CommentInfo(comment,user.getDisplayName(),date,user.getUid(),0,new ArrayList<>(),
+        CommentInfo commentInfo = new CommentInfo(comment,user.getDisplayName(),date,user.getUid(),0,new HashMap<String,Integer>(),new ArrayList<>(),
                 postInfo.getDocid()+date.getTime());
         DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
 
@@ -219,13 +223,10 @@ public class PostActivity extends AppCompatActivity {
 
                         Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader,docref);
 
+                    }else{
+                        Toast("삭제된 게시물입니다.");
                     }
                 }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast("삭제된 게시물입니다.");
             }
         });
     }
@@ -235,10 +236,9 @@ public class PostActivity extends AppCompatActivity {
         db.runTransaction(new Transaction.Function<Void>() {
             @Override
             public Void apply(Transaction transaction) throws FirebaseFirestoreException {
-                DocumentSnapshot snapshot = transaction.get(docref);
-
+//                DocumentSnapshot snapshot = transaction.get(docref);
                 //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
-                transaction.update(docref, "comment", commentnum+1);
+                transaction.update(docref, "comment", commentInfoArrayList.size()+1);
                 transaction.update(docref, "comments", commentInfoArrayList);
 
                 // Success
@@ -247,14 +247,13 @@ public class PostActivity extends AppCompatActivity {
         }).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                newpostInfo.setComment(commentnum+1); //댓글수 +1
+                newpostInfo.setComment(commentInfoArrayList.size()+1); //댓글수 +1
                 newpostInfo.getComments().clear();
                 newpostInfo.getComments().addAll(commentInfoArrayList);
-                liveData_postInfo.get().setValue(newpostInfo);
+                liveData_postInfo.get().setValue(newpostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
+                loader.setVisibility(View.GONE); //로딩화면 제거
 
-                binding.commentNumPostT.setText(commentInfoArrayList.size()+"");
-                loader.setVisibility(View.GONE);
-                binding.AddCommentT.setText(null);
+                binding.AddCommentT.setText(null); //댓글창 클리어
 
                 if(PostcommentsHolder != null){
                     commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
@@ -273,40 +272,32 @@ public class PostActivity extends AppCompatActivity {
 
     public void Add_and_Set_CommentRecyclerView(PostActivity activity){
 
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-//        layoutManager.setItemPrefetchEnabled(true); //렌더링 퍼포먼스 향상
-
-//        binding.commentRecycler.setLayoutManager(layoutManager);
-        commentsAdapter = new CommentsAdapter(activity, postInfo, new Listener_CommentHolder() {
+        commentsAdapter = new CommentsAdapter(activity, postInfo,
+                new CommentsAdapter.Listener_CommentHolder() { //대댓글을 위해서 확인을 누르고 대댓글을 달려는 순간 나오는 리스너
             @Override
             public void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder) {
                 CommentInfo commentInfo = postInfo.getComments().get(commentsHolder.getAbsoluteAdapterPosition());
-                if(PostcommentsHolder == null)
+                if (PostcommentsHolder == null)
                     PostcommentsHolder = commentsHolder;
-                else{
+                else {
                     commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
                     PostcommentsHolder = commentsHolder;
                 }
-                Toast(""+commentInfo.getContents());
+                Toast("" + commentInfo.getContents());
+            }
+        }, new CommentsAdapter.Listener_Pressed_goodbtn() { //댓글의 좋아요 버튼을 눌러서 나온 리스너
+            @Override
+            public void onClicked_goodbtn(PostInfo NewPostInfo) {
+                liveData_postInfo.get().setValue(NewPostInfo);
             }
         });
 
         my_utility = new My_Utility(this,binding.commentRecycler,commentsAdapter);
         my_utility.RecyclerInit(VERTICAL);
 
-//        binding.commentRecycler.setAdapter(commentsAdapter);
-//        RecyclerView.ItemAnimator animator = binding.commentRecycler.getItemAnimator();
-//        if (animator instanceof SimpleItemAnimator) {
-//            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
-//        }
     }
 
     public void Add_and_Set_ImageRecyclerView(Activity activity, ArrayList<String> formats){
-
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-//        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-//        binding.formatsRecycler.setLayoutManager(layoutManager);
 
         ShowPostImageAdapter showPostImageAdapter = new ShowPostImageAdapter(activity, formats, new Listener_PostImageHolder() {
             @Override
@@ -320,7 +311,6 @@ public class PostActivity extends AppCompatActivity {
         });
         my_utility = new My_Utility(this,binding.formatsRecycler,showPostImageAdapter);
         my_utility.RecyclerInit(HORIZEN);
-//        binding.formatsRecycler.setAdapter(showPostImageAdapter);
     }
 
     public void setToolbar(){
@@ -498,17 +488,26 @@ public class PostActivity extends AppCompatActivity {
 
         if(((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size() != 0){
             for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size(); x++) {
+
                 HashMap<String, Object> commentsmap = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
+                Object bring = (Object)commentsmap.get("good_user");
+                HashMap<String,Integer> goodusers = new HashMap<>( (Map<? extends String, ? extends Integer>) bring);
+
+                Log.d("plaas",x+""+goodusers);
 
                 CommentInfo commentInfo = new CommentInfo((String) commentsmap.get("contents"), (String) commentsmap.get("publisher"),
                         ((Timestamp)commentsmap.get("createdAt")).toDate(),
                         (String) commentsmap.get("id"),
                         ((Long)(commentsmap.get("good"))).intValue(),
+                        goodusers,
                         get_RecommentArray_from_commentsmap(commentsmap),
                         (String) commentsmap.get("key")
                 );
-
                 commentInfoArrayList.add(commentInfo);
+
+                for(int xy=0; xy<commentInfoArrayList.size(); xy++){
+                    Log.d("Postcontrol2",xy+""+commentInfoArrayList.get(xy).getGood_user()+"");
+                }
             }
         }
 

@@ -15,7 +15,6 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.CustomLibrary.PostControler;
-import com.example.sns_project.Listener.Listener_CompletePostInfos;
 import com.example.sns_project.data.LiveData_PostList;
 import com.example.sns_project.databinding.ActivitySearchBinding;
 import com.example.sns_project.info.PostInfo;
@@ -64,9 +63,9 @@ public class SearchActivity extends AppCompatActivity {
                 KeyWord = keyword;
                 hideKeyPad();
 
-                postControler.Search_Post(Loaded_Posts,KeyWord, new Listener_CompletePostInfos() { //아무것도 없는 상태에서 처음 검색.
+                postControler.Search_Post(Loaded_Posts,KeyWord, new PostControler.Listener_CompletePostInfos() { //아무것도 없는 상태에서 처음 검색.
                     @Override
-                    public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                    public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
                         Log.d("plpl",""+ NewPostInfos.size());
 
                         if(NewPostInfos.size() == 0) {
@@ -114,9 +113,9 @@ public class SearchActivity extends AppCompatActivity {
 
     private void DownScrolled() {
         //몇 개가 결과로 나오든 간에 애매하게 나오면 결과가 0개가 될 때까지 다운스크롤을 화면을 채울 때까지 진행한다.
-        postControler.Search_Post(Loaded_Posts, KeyWord, new Listener_CompletePostInfos() {
+        postControler.Search_Post(Loaded_Posts, KeyWord, new PostControler.Listener_CompletePostInfos() {
             @Override
-            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+            public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
                 Log.d("다운스크롤써치",""+(NewPostInfos.size()-Loaded_Posts.size()));
                 adapter.NoMore_Load( (NewPostInfos.size() - Loaded_Posts.size()) == 0 );
                 PostListModel.get().setValue(NewPostInfos);
@@ -126,9 +125,9 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void First_Search(){
-        postControler.Search_Post(Loaded_Posts, KeyWord, new Listener_CompletePostInfos() {
+        postControler.Search_Post(Loaded_Posts, KeyWord, new PostControler.Listener_CompletePostInfos() {
             @Override
-            public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+            public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
 
                 if(NewPostInfos.size() == 0) {
                     binding.SearchRecyclerView.setVisibility(View.GONE);
@@ -155,9 +154,9 @@ public class SearchActivity extends AppCompatActivity {
                 docid = data.getStringExtra("docid");
             }
             Log.d("From PostActivity","requestCode: "+requestCode+" docid: "+docid);
-            postControler.Update_ThePost(Loaded_Posts, docid, new Listener_CompletePostInfos() {
+            postControler.Update_UniPost(Loaded_Posts, docid, new PostControler.Listener_CompletePostInfos() {
                 @Override
-                public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
                     PostListModel.get().setValue(NewPostInfos);
                 }
             });
