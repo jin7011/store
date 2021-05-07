@@ -354,10 +354,8 @@ public class PostControler {
                 Object bring = (Object)commentsmap.get("good_user");
                 HashMap<String,Integer> goodusers = new HashMap<>( (Map<? extends String, ? extends Integer>) bring);
 
-                for(Map.Entry e : goodusers.entrySet()){
+                for(Map.Entry e : goodusers.entrySet())
                     Log.d("Postcontrol",e.getKey()+", "+e.getValue());
-
-                }
 
                 CommentInfo commentInfo = new CommentInfo((String) commentsmap.get("contents"), (String) commentsmap.get("publisher"),
                         ((Timestamp)commentsmap.get("createdAt")).toDate(),
