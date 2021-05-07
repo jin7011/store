@@ -474,7 +474,7 @@ public class PostActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast("삭제되었습니다.");
-                        toMain(DELETE_RESULT,postInfo.getDocid());
+                        GoBack(DELETE_RESULT,postInfo.getDocid());
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -485,7 +485,7 @@ public class PostActivity extends AppCompatActivity {
                 });
     }
 
-    public void toMain(int result,String docid){ //게시물번호를 넘겨주고 frag에서 처리하기위함.
+    public void GoBack(int result, String docid){ //게시물번호를 넘겨주고 frag에서 처리하기위함.
         Intent intent = new Intent();
         intent.putExtra("docid",docid);
         setResult(result,intent);
@@ -576,7 +576,7 @@ public class PostActivity extends AppCompatActivity {
             PostcommentsHolder = null;
         }else {
             if (ACTION) { //좋아요 버튼 눌렀으면 리스트 리셋
-                toMain(SOMETHING_IN_POST, postInfo.getDocid());
+                GoBack(SOMETHING_IN_POST, postInfo.getDocid());
             } else {
                 finish();
             }

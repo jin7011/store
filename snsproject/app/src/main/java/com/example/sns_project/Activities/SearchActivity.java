@@ -1,11 +1,13 @@
 package com.example.sns_project.Activities;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -21,6 +23,7 @@ import com.example.sns_project.util.My_Utility;
 
 import java.util.ArrayList;
 
+import static com.example.sns_project.util.Named.SOMETHING_IN_POST;
 import static com.example.sns_project.util.Named.VERTICAL;
 
 public class SearchActivity extends AppCompatActivity {
@@ -140,6 +143,25 @@ public class SearchActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == SOMETHING_IN_POST) { //좋아요/(댓글추가) 리턴값
+            String docid = null;
+            if (data != null) {
+                docid = data.getStringExtra("docid");
+            }
+            Log.d("From PostActivity","requestCode: "+requestCode+" docid: "+docid);
+            postControler.Update_ThePost(Loaded_Posts, docid, new Listener_CompletePostInfos() {
+                @Override
+                public void onComplete(ArrayList<PostInfo> NewPostInfos) {
+                    PostListModel.get().setValue(NewPostInfos);
+                }
+            });
+        }
     }
 
     public void hideKeyPad(){

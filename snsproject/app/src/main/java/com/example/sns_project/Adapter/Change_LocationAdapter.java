@@ -61,13 +61,13 @@ public class Change_LocationAdapter extends RecyclerView.Adapter<RecyclerView.Vi
             @Override
             public void onClick(View v) {
                 if(pre_selected == null){ //첫 선택이라면,
-                    holder.frame.setBackgroundResource(R.drawable.coner_pink);
+                    holder.frame.setBackgroundResource(R.drawable.corner_red);
                     pre_selected = holder;
                     activity.setTextView(prelocation+" -> "+holder.location.getText().toString());
                     activity.setSelected_Location(holder.location.getText().toString());
                 }else{
-                    pre_selected.frame.setBackgroundResource(R.drawable.corner_red);
-                    holder.frame.setBackgroundResource(R.drawable.coner_pink);
+                    pre_selected.frame.setBackgroundResource(R.drawable.corner_black);
+                    holder.frame.setBackgroundResource(R.drawable.corner_red);
                     pre_selected = holder;
                     activity.setTextView(prelocation+" -> "+holder.location.getText().toString());
                     activity.setSelected_Location(holder.location.getText().toString());
