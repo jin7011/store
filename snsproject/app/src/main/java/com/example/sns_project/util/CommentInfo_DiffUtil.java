@@ -1,7 +1,5 @@
 package com.example.sns_project.util;
 
-import android.util.Log;
-
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 
@@ -19,36 +17,40 @@ import static com.example.sns_project.util.Named.SEC;
 
 public class CommentInfo_DiffUtil extends DiffUtil.Callback {
 
-    private final ArrayList<CommentInfo> oldPosts;
-    private final ArrayList<CommentInfo> newPosts;
+    private final ArrayList<CommentInfo> OldComments;
+    private final ArrayList<CommentInfo> NewComments;
+    private final PostInfo OldPost;
+    private final PostInfo NewPost;
 
-    public CommentInfo_DiffUtil(ArrayList<CommentInfo> oldPosts, ArrayList<CommentInfo> newPosts) {
-        this.oldPosts = oldPosts;
-        this.newPosts = newPosts;
+    public CommentInfo_DiffUtil(PostInfo OldPost, PostInfo NewPost) {
+        this.OldPost = OldPost;
+        this.NewPost = NewPost;
+        this.OldComments = OldPost.getComments();
+        this.NewComments = NewPost.getComments();
     }
 
     @Override
     public int getOldListSize() {
-        return oldPosts.size();
+        return OldComments.size();
     }
 
     @Override
     public int getNewListSize() {
-        return newPosts.size();
+        return NewComments.size();
     }
 
     @Override
     public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-        final CommentInfo oldpost = oldPosts.get(oldItemPosition);
-        final CommentInfo newpost = newPosts.get(newItemPosition);
+        final CommentInfo oldpost = OldComments.get(oldItemPosition);
+        final CommentInfo newpost = NewComments.get(newItemPosition);
 
         return oldpost.getKey().equals(newpost.getKey());
     }
 
     @Override
     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) { //item이 같아도 수정된다면 내용이 다르다는 것을 인식시켜줘야 내용이 바뀜
-        final CommentInfo oldpost = oldPosts.get(oldItemPosition);
-        final CommentInfo newpost = newPosts.get(newItemPosition);
+        final CommentInfo oldpost = OldComments.get(oldItemPosition);
+        final CommentInfo newpost = NewComments.get(newItemPosition);
 
         //        Log.d("같나","old: "+ oldpost.getGood()+" oldid: "+oldpost.getDocid()+" new: "+ newpost.getGood()+" newid: "+newpost.getDocid());
 

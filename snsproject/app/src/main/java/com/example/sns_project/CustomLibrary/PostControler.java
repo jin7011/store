@@ -49,6 +49,10 @@ public class PostControler {
         this.adapter = my_utility.getAdapter();
     }
 
+    public PostControler(String post_location){
+        this.post_location = post_location;
+    }
+
     public interface Listener_Complete_Get_PostInfo{
         void onComplete_Get_PostInfo(PostInfo postInfo);
     }

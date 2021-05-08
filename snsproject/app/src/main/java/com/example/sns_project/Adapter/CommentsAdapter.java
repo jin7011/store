@@ -41,22 +41,23 @@ import static com.example.sns_project.util.Named.VERTICAL;
 
 public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
-    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
-    private FirebaseUser user = mAuth.getCurrentUser();
-    private PostActivity activity;
-    private ArrayList<CommentInfo> comments;      //postinfo에 있는 것을 쓰지않는 이유는 diffutil을 쓰기 위함임 (같은 주소같을 할당하면 변화를 찾을 수 없어서)
-    private My_Utility my_utility;
-    private Listener_CommentHolder listener_commentHolder;
-    private Listener_Pressed_goodbtn listener_pressed_goodbtn;
+    private final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private final FirebaseUser user = mAuth.getCurrentUser();
+    private final PostActivity activity;
+    private final ArrayList<CommentInfo> comments;      //postinfo에 있는 것을 쓰지않는 이유는 diffutil을 쓰기 위함임 (같은 주소같을 할당하면 변화를 찾을 수 없어서)
+    private final Listener_CommentHolder listener_commentHolder;
+    private final Listener_Pressed_goodbtn listener_pressed_goodbtn;
     private PostInfo postInfo;
-    private PostControler postControler;
+    private final PostControler postControler;
 
-    public void CommentInfo_DiffUtil(ArrayList<CommentInfo> newcomments) {
-        final CommentInfo_DiffUtil diffCallback = new CommentInfo_DiffUtil(this.comments, newcomments);
+    public void CommentInfo_DiffUtil(PostInfo NewPostInfo) {
+        final CommentInfo_DiffUtil diffCallback = new CommentInfo_DiffUtil(this.postInfo, NewPostInfo);
         final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
 
         this.comments.clear();
-        this.comments.addAll(newcomments);
+        this.comments.addAll(NewPostInfo.getComments());
+        this.postInfo = new PostInfo(NewPostInfo); // 포스트를 어댑터에서 맘대로 가지고 놀기때문에 원본이 바뀔 수가 있으나, 게시물에서 나왔을 때는 메인에서 새롭게 db에서 정보를 가져오기 때문에 원본은 필요없다.
+
         diffResult.dispatchUpdatesTo(this);
     }
 
@@ -74,6 +75,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.comments = new ArrayList<>();
         this.listener_commentHolder = listener_commentHolder;
         this.listener_pressed_goodbtn = listener_pressed_goodbtn;
+        this.postControler = new PostControler(postInfo.getLocation());
     }
 
     //holder
@@ -217,9 +219,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             Log.d("asss",commentInfo.getRecomments().size()+"");
             holder.recyclerView.setVisibility(View.VISIBLE);
 
-            my_utility = new My_Utility(activity,holder.recyclerView,recommentsAdapter);
+            My_Utility my_utility = new My_Utility(activity, holder.recyclerView, recommentsAdapter);
             my_utility.RecyclerInit(VERTICAL);
-            postControler = new PostControler(postInfo.getLocation(),my_utility);
             recommentsAdapter.RecommentInfo_DiffUtil(commentInfo.getRecomments());
         }else{
             holder.recyclerView.setVisibility(View.GONE);

@@ -95,7 +95,7 @@ public class PostActivity extends AppCompatActivity {
         liveData_postInfo.get().observe(this, new Observer<PostInfo>() { // 전반적인 게시물의 내용
             @Override
             public void onChanged(PostInfo postInfo) {
-                commentsAdapter.CommentInfo_DiffUtil(postInfo.getComments());
+                commentsAdapter.CommentInfo_DiffUtil(postInfo); // 댓글어댑터 내부에서 postinfo를 최신으로 받아서 처리해야 db사용이 원할해지므로 포스트 자체를 넘겨주었다. (좋아요,댓글 수 등등 때문에)
                 Log.d("포스트액티zx","getComment: "+postInfo.getComment());
                 binding.setPostInfo(postInfo);
                 ACTION = true;
@@ -182,8 +182,8 @@ public class PostActivity extends AppCompatActivity {
                             String holder_comment_key = postInfo.getComments().get(PostcommentsHolder.getAbsoluteAdapterPosition()).getKey();
 
                             if(db_comment_key.equals(holder_comment_key)){ //db에서 대댓글을 달려고하는 해당 댓글을 key값으로 찾았다면,
-                                commentInfoArrayList.get(x).getRecomments().add(recommentInfo);
-                                Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader,docref);
+                                commentInfoArrayList.get(x).getRecomments().add(recommentInfo); // 댓글배열안에 대댓글리스트를 수정해서 넣어주고, DB에 댓글배열을 통으로 넣어줌
+                                Set_CommentDB(commentInfoArrayList,newpostInfo,loader,docref);
                             }
                         }
                     }
@@ -216,12 +216,11 @@ public class PostActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
-                        int commentnum =  ((Long)document.get("comment")).intValue();
                         ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
                         PostInfo newpostInfo = liveData_postInfo.get().getValue(); //얕은 복사라 사실상 다같이 지워지고 다같이 리셋되지만, 걍 쓰기엔 변수명이 너무 길어서 새로 팠음
-                        commentInfoArrayList.add(commentInfo);
+                        commentInfoArrayList.add(commentInfo);//댓글 배열에 추가하고
 
-                        Set_CommentDB(commentInfoArrayList,newpostInfo,commentnum,loader,docref);
+                        Set_CommentDB(commentInfoArrayList,newpostInfo,loader,docref);
 
                     }else{
                         Toast("삭제된 게시물입니다.");
@@ -231,15 +230,16 @@ public class PostActivity extends AppCompatActivity {
         });
     }
 
-    public void Set_CommentDB(ArrayList<CommentInfo> commentInfoArrayList,PostInfo newpostInfo,int commentnum,RelativeLayout loader, DocumentReference docref){
+    public void Set_CommentDB(ArrayList<CommentInfo> commentInfoArrayList,PostInfo newpostInfo,RelativeLayout loader, DocumentReference docref){
 
         db.runTransaction(new Transaction.Function<Void>() {
             @Override
             public Void apply(Transaction transaction) throws FirebaseFirestoreException {
 //                DocumentSnapshot snapshot = transaction.get(docref);
                 //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
-                transaction.update(docref, "comment", commentInfoArrayList.size()+1);
+                transaction.update(docref, "comment", commentInfoArrayList.size());
                 transaction.update(docref, "comments", commentInfoArrayList);
+                Log.d("zqwqw",""+commentInfoArrayList.size());
 
                 // Success
                 return null;
@@ -247,7 +247,8 @@ public class PostActivity extends AppCompatActivity {
         }).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                newpostInfo.setComment(commentInfoArrayList.size()+1); //댓글수 +1
+                newpostInfo.setComment(commentInfoArrayList.size()); //댓글수 +1
+                Log.d("zqwqw2",""+commentInfoArrayList.size());
                 newpostInfo.getComments().clear();
                 newpostInfo.getComments().addAll(commentInfoArrayList);
                 liveData_postInfo.get().setValue(newpostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
