@@ -78,8 +78,8 @@ public class PostActivity extends AppCompatActivity {
     private LiveData_PostInfo liveData_postInfo;
     private CommentsAdapter.CommentsHolder PostcommentsHolder;
     private PostControler postControler;
+    private RelativeLayout loader;
 
-    //todo 추가적으로 하는 일(댓글,좋아요,글쓰기)에 대해서 동시적인 작업처리를 해줘야할 때가 왔음 (아마도 트랜젝션이 제일 유일)
     //todo 댓글에 좋아요 기능추가해야함.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +92,7 @@ public class PostActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference();
+        loader = findViewById(R.id.loaderLyaout);
 
         liveData_postInfo = new ViewModelProvider(this).get(LiveData_PostInfo.class);
         liveData_postInfo.get().observe(this, new Observer<PostInfo>() { // 전반적인 게시물의 내용
@@ -155,16 +156,13 @@ public class PostActivity extends AppCompatActivity {
             binding.formatsLinearLayout.setVisibility(View.VISIBLE);
             Add_and_Set_ImageRecyclerView(PostActivity.this,postInfo.getFormats());
         }
-
     }
+
     private void add_recomment(){
-        //todo transaction
         if(PostcommentsHolder == null)
             return;
 
-        RelativeLayout loader = findViewById(R.id.loaderLyaout);
-        loader.setVisibility(View.VISIBLE); //로딩화면
-        hideKeyPad(); //보기안좋으니까 키패드 내리고
+        Loading(true);
 
         String key = postInfo.getComments().get(PostcommentsHolder.getAbsoluteAdapterPosition()).getKey();
         String comment = binding.AddCommentT.getText().toString();
@@ -179,26 +177,18 @@ public class PostActivity extends AppCompatActivity {
                 else
                     Toast("삭제된 게시물/댓글입니다.");
 
-                loader.setVisibility(View.GONE); //로딩화면 제거
-                binding.AddCommentT.setText(null); //댓글창 클리어
-                if(PostcommentsHolder != null){
-                    commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
-                    PostcommentsHolder = null;
-                }
+                Loading(false);
             }
             @Override
             public void onFailed() {
-                loader.setVisibility(View.GONE);
+                Loading(false);
                 Toast("삭제된 게시물/댓글입니다.");
             }
         });
     }
 
     private void add_comment(){
-        //todo transaction
-        RelativeLayout loader = findViewById(R.id.loaderLyaout);
-        loader.setVisibility(View.VISIBLE); //로딩화면
-        hideKeyPad(); //보기안좋으니까 키패드 내리고
+        Loading(true);
 
         final String[] comment = {binding.AddCommentT.getText().toString()};
         Date date = new Date();
@@ -210,18 +200,12 @@ public class PostActivity extends AppCompatActivity {
             @Override
             public void onComplete_Set_PostInfo(PostInfo postInfo) {
                 liveData_postInfo.get().setValue(postInfo); //최신 게시판 상태를 모델에 셋시켜줌.
-                loader.setVisibility(View.GONE); //로딩화면 제거
 
-                binding.AddCommentT.setText(null); //댓글창 클리어
-
-                if(PostcommentsHolder != null){
-                    commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
-                    PostcommentsHolder = null;
-                }
+                Loading(false);
             }
             @Override
             public void onFailed() {
-            loader.setVisibility(View.GONE);
+                Loading(false);
             Toast("댓글에 실패했습니다.");
             }
         });
@@ -505,6 +489,21 @@ public class PostActivity extends AppCompatActivity {
 
     public void Toast(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
+    }
+
+    private void Loading(boolean ready){
+        if(ready){
+            loader.setVisibility(View.VISIBLE); //로딩화면
+            hideKeyPad(); //보기안좋으니까 키패드 내리고
+        }else{
+            loader.setVisibility(View.GONE); //로딩화면 제거
+            binding.AddCommentT.setText(null); //댓글창 클리어
+
+            if(PostcommentsHolder != null){
+                commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
+                PostcommentsHolder = null;
+            }
+        }
     }
 
 }
