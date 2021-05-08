@@ -40,10 +40,10 @@ public class CommentInfo implements Parcelable {
         this.createdAt = p.getCreatedAt();
         this.id = p.getId();
         this.good = p.getGood();
-        this.DateFormate_for_layout = p.DateFormate_for_layout;
-        this.good_user = p.good_user;
-        this.recomments = p.getRecomments();
-        this.key = p.key;
+        this.DateFormate_for_layout = p.getDateFormate_for_layout();
+        this.good_user = p.getGood_user();
+        this.recomments = deepCopy_RecommentInfo(p.getRecomments());
+        this.key = p.getKey();
     }
 
     protected CommentInfo(Parcel in) {
@@ -168,4 +168,17 @@ public class CommentInfo implements Parcelable {
     public void setGood_user(HashMap<String, Integer> good_user) {
         this.good_user = good_user;
     }
+
+    public ArrayList<RecommentInfo> deepCopy_RecommentInfo(ArrayList<RecommentInfo> oldone){
+
+        ArrayList<RecommentInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++) {
+            if(oldone.get(x)==null)
+                continue;
+            newone.add(new RecommentInfo(oldone.get(x)));
+        }
+        return newone;
+    }
+
 }

@@ -29,8 +29,8 @@ public class PermissionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_permission);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //todo 가끔 여기서 java.lang.IllegalStateException: Only fullscreen activities can request orientation
+        setContentView(R.layout.activity_permission);
 
         if (!isGrantedPermission()) {
             createPermissionDialog();

@@ -43,8 +43,8 @@ public class PostInfo implements Parcelable{
         this.location = p.getLocation();
         this.storagePath = p.getStoragePath();
         this.good_user = p.getGood_user();
-        this.comments = p.getComments();
-        this.DateFormate_for_layout = p.DateFormate_for_layout;
+        this.comments = deepCopy_CommentInfo(p.getComments());
+        this.DateFormate_for_layout = p.getDateFormate_for_layout();
     }
 
     public PostInfo(String id, String publisher, String title, String contents, Date createdAt, String docid, String location) {
@@ -284,5 +284,18 @@ public class PostInfo implements Parcelable{
             return new PostInfo[size];
         }
     };
+
+
+    public ArrayList<CommentInfo> deepCopy_CommentInfo(ArrayList<CommentInfo> oldone){
+
+        ArrayList<CommentInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++) {
+            if(oldone.get(x)==null)
+                continue;
+            newone.add(new CommentInfo(oldone.get(x)));
+        }
+        return newone;
+    }
 
 }

@@ -342,7 +342,19 @@ public class PostControler {
                 continue;
             newone.add(new CommentInfo(oldone.get(x)));
         }
+        return newone;
+    }
 
+
+    public ArrayList<RecommentInfo> deepCopy_RecommentInfo(ArrayList<RecommentInfo> oldone){
+
+        ArrayList<RecommentInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++) {
+            if(oldone.get(x)==null)
+                continue;
+            newone.add(new RecommentInfo(oldone.get(x)));
+        }
         return newone;
     }
 

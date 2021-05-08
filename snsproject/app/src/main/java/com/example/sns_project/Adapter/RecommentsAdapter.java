@@ -54,7 +54,6 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     public RecommentsAdapter(Activity activity,PostInfo postInfo) {
         this.postInfo = postInfo;
         this.activity = activity;
-        Log.d("asss","불렸음1");
     }
 
     //holder

@@ -1,5 +1,7 @@
 package com.example.sns_project.util;
 
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 
@@ -25,8 +27,9 @@ public class CommentInfo_DiffUtil extends DiffUtil.Callback {
     public CommentInfo_DiffUtil(PostInfo OldPost, PostInfo NewPost) {
         this.OldPost = OldPost;
         this.NewPost = NewPost;
-        this.OldComments = OldPost.getComments();
-        this.NewComments = NewPost.getComments();
+        this.OldComments = this.OldPost.getComments();
+        this.NewComments = this.NewPost.getComments();
+        Log.d("같z나zxc","old: " + OldPost.hashCode() + " new: "+ NewPost.hashCode());
     }
 
     @Override
@@ -60,6 +63,8 @@ public class CommentInfo_DiffUtil extends DiffUtil.Callback {
     private boolean is_same_recomment(CommentInfo oldpost, CommentInfo newpost) {
         ArrayList<RecommentInfo> oldrecomments = oldpost.getRecomments();
         ArrayList<RecommentInfo> newrecomments = newpost.getRecomments();
+
+//        Log.d("같나","old: " + oldrecomments.hashCode() + " new: "+ newrecomments.hashCode());
 
         if(oldrecomments.size() == newrecomments.size()){
             for(int x=0; x<newrecomments.size(); x++){

@@ -1,5 +1,7 @@
 package com.example.sns_project.util;
 
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import com.example.sns_project.info.RecommentInfo;
@@ -15,6 +17,8 @@ public class RecommentInfo_DiffUtil extends DiffUtil.Callback {
     public RecommentInfo_DiffUtil(ArrayList<RecommentInfo> oldPosts, ArrayList<RecommentInfo> newPosts) {
         this.oldPosts = oldPosts;
         this.newPosts = newPosts;
+
+        Log.d("rfrf",newPosts.hashCode()+" , "+oldPosts.hashCode());
     }
 
     @Override
@@ -32,10 +36,11 @@ public class RecommentInfo_DiffUtil extends DiffUtil.Callback {
         final RecommentInfo oldpost = oldPosts.get(oldItemPosition);
         final RecommentInfo newpost = newPosts.get(newItemPosition);
 
-        String olddate = new SimpleDateFormat("yyyy:MM:dd:HH:mm:ss").format(oldpost.getCreatedAt());
-        String newDate = new SimpleDateFormat("yyyy:MM:dd:HH:mm:ss").format(newpost.getCreatedAt());
 
-        return olddate.equals(newDate);
+        long olddate = oldpost.getCreatedAt().getTime();
+        long newdate = newpost.getCreatedAt().getTime();
+
+        return olddate == newdate;
     }
 
     @Override

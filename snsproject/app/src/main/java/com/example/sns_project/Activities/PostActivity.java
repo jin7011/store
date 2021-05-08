@@ -94,17 +94,18 @@ public class PostActivity extends AppCompatActivity {
         liveData_postInfo = new ViewModelProvider(this).get(LiveData_PostInfo.class);
         liveData_postInfo.get().observe(this, new Observer<PostInfo>() { // 전반적인 게시물의 내용
             @Override
-            public void onChanged(PostInfo postInfo) {
-                commentsAdapter.CommentInfo_DiffUtil(postInfo); // 댓글어댑터 내부에서 postinfo를 최신으로 받아서 처리해야 db사용이 원할해지므로 포스트 자체를 넘겨주었다. (좋아요,댓글 수 등등 때문에)
-                Log.d("포스트액티zx","getComment: "+postInfo.getComment());
-                binding.setPostInfo(postInfo);
+            public void onChanged(PostInfo NewPostInfo) {
+                commentsAdapter.CommentInfo_DiffUtil(NewPostInfo); // 댓글어댑터 내부에서 postinfo를 최신으로 받아서 처리해야 db사용이 원할해지므로 포스트 자체를 넘겨주었다. (좋아요,댓글 수 등등 때문에)
+                binding.setPostInfo(NewPostInfo);
+                postInfo = new PostInfo(NewPostInfo);
+                Log.d("포스트액티zx","post: "+postInfo.hashCode()+", "+NewPostInfo.hashCode());
                 ACTION = true;
             }
         });
 
         Bundle bundle = getIntent().getExtras();
         postInfo = bundle.getParcelable("postInfo");
-        liveData_postInfo.get().setValue(postInfo);
+        liveData_postInfo.get().setValue(new PostInfo(postInfo)); //처음 들어왔을 때 셋팅
 
         Log.d("포스트액티","getComments: "+postInfo.getComments());
         Log.d("포스트액티","getCreatedAt: "+postInfo.getDateFormate_for_layout());
@@ -174,7 +175,6 @@ public class PostActivity extends AppCompatActivity {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
                         ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-                        PostInfo newpostInfo = liveData_postInfo.get().getValue();
                         int commentnum =  ((Long)document.get("comment")).intValue();
 
                         for(int x=0; x<commentInfoArrayList.size(); x++){
@@ -183,16 +183,13 @@ public class PostActivity extends AppCompatActivity {
 
                             if(db_comment_key.equals(holder_comment_key)){ //db에서 대댓글을 달려고하는 해당 댓글을 key값으로 찾았다면,
                                 commentInfoArrayList.get(x).getRecomments().add(recommentInfo); // 댓글배열안에 대댓글리스트를 수정해서 넣어주고, DB에 댓글배열을 통으로 넣어줌
-                                Set_CommentDB(commentInfoArrayList,newpostInfo,loader,docref);
+                                Set_CommentDB(commentInfoArrayList,loader,docref,commentnum);
+                                break;
                             }
                         }
-                    }
+                    }else
+                        Toast("삭제된 게시물/댓글입니다.");
                 }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast("삭제된 게시물/댓글입니다.");
             }
         });
     }
@@ -216,11 +213,11 @@ public class PostActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
-                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-                        PostInfo newpostInfo = liveData_postInfo.get().getValue(); //얕은 복사라 사실상 다같이 지워지고 다같이 리셋되지만, 걍 쓰기엔 변수명이 너무 길어서 새로 팠음
-                        commentInfoArrayList.add(commentInfo);//댓글 배열에 추가하고
 
-                        Set_CommentDB(commentInfoArrayList,newpostInfo,loader,docref);
+                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+                        commentInfoArrayList.add(commentInfo);//댓글 배열에 추가하고
+                        int commentnum = ((Long)document.get("comment")).intValue();
+                        Set_CommentDB(commentInfoArrayList,loader,docref,commentnum);
 
                     }else{
                         Toast("삭제된 게시물입니다.");
@@ -230,28 +227,34 @@ public class PostActivity extends AppCompatActivity {
         });
     }
 
-    public void Set_CommentDB(ArrayList<CommentInfo> commentInfoArrayList,PostInfo newpostInfo,RelativeLayout loader, DocumentReference docref){
+    public void Set_CommentDB(ArrayList<CommentInfo> commentInfoArrayList,RelativeLayout loader, DocumentReference docref,int commentNum){
 
         db.runTransaction(new Transaction.Function<Void>() {
             @Override
             public Void apply(Transaction transaction) throws FirebaseFirestoreException {
 //                DocumentSnapshot snapshot = transaction.get(docref);
                 //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
-                transaction.update(docref, "comment", commentInfoArrayList.size());
+                Log.d("cxca",""+commentNum);
+                transaction.update(docref, "comment", commentNum+1);
                 transaction.update(docref, "comments", commentInfoArrayList);
                 Log.d("zqwqw",""+commentInfoArrayList.size());
-
                 // Success
                 return null;
             }
         }).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                newpostInfo.setComment(commentInfoArrayList.size()); //댓글수 +1
+
+                PostInfo NewPostInfo = new PostInfo(postInfo);
+
+                Log.d("dalaw","post: "+postInfo.hashCode()+", "+NewPostInfo.hashCode());
+                Log.d("dalaw","post: "+postInfo.getComments().hashCode()+", "+NewPostInfo.getComments().hashCode());
+                NewPostInfo.setComment(commentNum+1); //댓글수 +1
                 Log.d("zqwqw2",""+commentInfoArrayList.size());
-                newpostInfo.getComments().clear();
-                newpostInfo.getComments().addAll(commentInfoArrayList);
-                liveData_postInfo.get().setValue(newpostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
+                NewPostInfo.getComments().clear();
+                NewPostInfo.getComments().addAll(commentInfoArrayList);
+                Log.d("dalaw","post: "+postInfo.getComments().hashCode()+", "+NewPostInfo.getComments().hashCode());
+                liveData_postInfo.get().setValue(NewPostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
                 loader.setVisibility(View.GONE); //로딩화면 제거
 
                 binding.AddCommentT.setText(null); //댓글창 클리어
@@ -292,7 +295,7 @@ public class PostActivity extends AppCompatActivity {
                 liveData_postInfo.get().setValue(NewPostInfo);
             }
         });
-
+//todo 지금 라이브데이터의 set이 전역인 postinfo와 얕게 엮여서 문제가 된다, controler를 이용해서 처음 postact에 왔을 때에 깊은 복사로 하나 만들고 그것을 live에 넘겨주자
         my_utility = new My_Utility(this,binding.commentRecycler,commentsAdapter);
         my_utility.RecyclerInit(VERTICAL);
 

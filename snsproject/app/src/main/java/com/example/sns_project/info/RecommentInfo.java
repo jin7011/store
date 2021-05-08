@@ -20,6 +20,14 @@ public class RecommentInfo implements Parcelable{
         this.good = good;
     }
 
+    public RecommentInfo(RecommentInfo p) {
+        this.contents = p.getContents();
+        this.publisher = p.getPublisher();
+        this.createdAt = p.getCreatedAt();
+        this.id = p.getId();
+        this.good = p.getGood();
+    }
+
     protected RecommentInfo(Parcel in) {
         contents = in.readString();
         publisher = in.readString();

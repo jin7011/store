@@ -23,6 +23,7 @@ import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
+import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.CommentInfo_DiffUtil;
 import com.example.sns_project.util.My_Utility;
 import com.google.firebase.auth.FirebaseAuth;
@@ -57,7 +58,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.comments.clear();
         this.comments.addAll(NewPostInfo.getComments());
         this.postInfo = new PostInfo(NewPostInfo); // 포스트를 어댑터에서 맘대로 가지고 놀기때문에 원본이 바뀔 수가 있으나, 게시물에서 나왔을 때는 메인에서 새롭게 db에서 정보를 가져오기 때문에 원본은 필요없다.
-
+        Log.d("djeoqxj","post: "+postInfo.getComments().hashCode()+", "+NewPostInfo.getComments().hashCode());
         diffResult.dispatchUpdatesTo(this);
     }
 
@@ -221,7 +222,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             My_Utility my_utility = new My_Utility(activity, holder.recyclerView, recommentsAdapter);
             my_utility.RecyclerInit(VERTICAL);
-            recommentsAdapter.RecommentInfo_DiffUtil(commentInfo.getRecomments());
+            ArrayList<RecommentInfo> recos = postControler.deepCopy_RecommentInfo(commentInfo.getRecomments());
+            Log.d("rfrf",recos.hashCode()+"");
+            recommentsAdapter.RecommentInfo_DiffUtil(recos);
         }else{
             holder.recyclerView.setVisibility(View.GONE);
         }
