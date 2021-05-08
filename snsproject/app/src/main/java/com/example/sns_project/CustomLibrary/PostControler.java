@@ -10,17 +10,21 @@ import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.My_Utility;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.Transaction;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,10 +63,23 @@ public class PostControler {
 
     public interface Listener_Complete_Set_PostInfo {
         void onComplete_Set_PostInfo();
+//        void onFailed();
+    }
+
+    public interface Listener_Complete_Set_PostInfo_Transaction {
+        void onComplete_Set_PostInfo(PostInfo postInfo);
+        void onFailed();
     }
 
     public interface Listener_CompletePostInfos {
         void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos);
+    }
+
+    public interface Listener_Complete_GoodPress_Post {
+        void onComplete_Good_Post();
+        void onFailed();
+        void AlreadyDone();
+        void CannotSelf();
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts,String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
@@ -290,7 +307,7 @@ public class PostControler {
                         listener_complete_get_postInfo.onComplete_Get_PostInfo(postInfo);
 
                     }else{
-                        my_utility.Tost("존재하지 않는 게시물입니다.");
+                        my_utility.Toast("존재하지 않는 게시물입니다.");
                     }
             }
         });
@@ -306,7 +323,182 @@ public class PostControler {
         });
     }
 
-    public void Delete_ThePost(ArrayList<PostInfo> postList,String docid,Listener_CompletePostInfos listener_completePostInfos){
+    public void Update_ReComments_With_Transaction(String docid,String Key, RecommentInfo NewRecomment,Listener_Complete_Set_PostInfo_Transaction completeListener){
+
+        DocumentReference drf =  db.collection(post_location).document(docid);
+
+        db.runTransaction(new Transaction.Function<PostInfo>() {
+            @Override
+            public PostInfo apply(Transaction transaction) throws FirebaseFirestoreException {
+                boolean isexists = false;
+                int position = 0;
+                DocumentSnapshot snapshot = transaction.get(drf);
+                //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
+
+                //읽기 작업
+                int commentNum = Integer.parseInt(snapshot.getLong("comment").toString());
+                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(snapshot);
+
+                for(int x=0; x<commentInfoArrayList.size(); x++){
+                    if(commentInfoArrayList.get(x).getKey().equals(Key)) {
+                        isexists = true;
+                        position = x;
+                        break;
+                    }
+                }
+
+                if(isexists) {
+
+                    PostInfo postInfo = new PostInfo(
+                            snapshot.get("id").toString(),
+                            snapshot.get("publisher").toString(),
+                            snapshot.get("title").toString(),
+                            snapshot.get("contents").toString(),
+                            (ArrayList<String>) snapshot.getData().get("formats"),
+                            new Date(snapshot.getDate("createdAt").getTime()),
+                            snapshot.getId(),
+                            Integer.parseInt(snapshot.get("good").toString()), Integer.parseInt(snapshot.get("comment").toString()), post_location,
+                            (ArrayList<String>) snapshot.getData().get("storagepath"), commentInfoArrayList,
+                            (HashMap<String, Integer>) snapshot.getData().get("good_user")
+                    );
+
+                    //쓰기작업
+                    commentInfoArrayList.get(position).getRecomments().add(NewRecomment); //해당 대댓글 배열에 추가.
+                    transaction.update(drf, "comment", commentNum + 1);
+                    transaction.update(drf, "comments", commentInfoArrayList); //db에 쓰기
+                    Log.d("zqwqw", "" + commentInfoArrayList.size());
+
+                    //마무리
+                    postInfo.setComment(commentNum + 1);
+                    postInfo.setComments(commentInfoArrayList);
+
+                    // Success
+                    return postInfo;
+                }else
+                    return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<PostInfo>() {
+            @Override
+            public void onSuccess(PostInfo postInfo) {
+                completeListener.onComplete_Set_PostInfo(postInfo);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                completeListener.onFailed();
+            }
+        });
+
+    }
+
+    public void Update_Comments_With_Transaction(String docid,CommentInfo NewComment,Listener_Complete_Set_PostInfo_Transaction completeListener){
+
+        DocumentReference drf =  db.collection(post_location).document(docid);
+
+        db.runTransaction(new Transaction.Function<PostInfo>() {
+            @Override
+            public PostInfo apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(drf);
+                //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
+
+                //읽기 작업
+                int commentNum = Integer.parseInt(snapshot.getLong("comment").toString());
+                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(snapshot);
+
+                for(int x=0; x<commentInfoArrayList.size(); x++){
+                    ArrayList<RecommentInfo> Recomments = new ArrayList<>(NewComment.getRecomments());
+                }
+
+                PostInfo postInfo = new PostInfo(
+                        snapshot.get("id").toString(),
+                        snapshot.get("publisher").toString(),
+                        snapshot.get("title").toString(),
+                        snapshot.get("contents").toString(),
+                        (ArrayList<String>) snapshot.getData().get("formats"),
+                        new Date(snapshot.getDate("createdAt").getTime()),
+                        snapshot.getId(),
+                        Integer.parseInt(snapshot.get("good").toString()), Integer.parseInt(snapshot.get("comment").toString()), post_location,
+                        (ArrayList<String>) snapshot.getData().get("storagepath"), commentInfoArrayList,
+                        (HashMap<String, Integer>) snapshot.getData().get("good_user")
+                );
+
+                //쓰기작업
+                commentInfoArrayList.add(NewComment);
+                transaction.update(drf, "comment", commentNum + 1);
+                transaction.update(drf, "comments", commentInfoArrayList);
+                Log.d("zqwqw", "" + commentInfoArrayList.size());
+
+                //마무리
+                postInfo.setComment(commentNum+1);
+                postInfo.setComments(commentInfoArrayList);
+
+                // Success
+                return postInfo;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<PostInfo>() {
+            @Override
+            public void onSuccess(PostInfo postInfo) {
+                completeListener.onComplete_Set_PostInfo(postInfo);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                completeListener.onFailed();
+            }
+        });
+
+    }
+
+    public void Press_Good_Post(PostInfo postInfo, Listener_Complete_GoodPress_Post complete_goodPress_post){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        //postinfo로 해당게시물에 좋아요를 누른 사람 id를 저장해주고,
+        //좋아요 누른 사람이 중복으로 누르지않게 id를 찾아서 있으면 아닌거고 없으면 좋아요+1
+        if(postInfo.getId().equals(user.getUid())){
+            complete_goodPress_post.CannotSelf();
+        }
+
+        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+        //처음 누른다면
+        //이후에 DB처리
+        db.runTransaction(new Transaction.Function<Boolean>() {
+            @Override
+            public Boolean apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(docref);
+                HashMap<String,Integer> good_users = (HashMap<String,Integer>)snapshot.get("good_user");
+
+                //이후에 백그라운드로 DB처리
+                if(good_users.containsKey(user.getUid())) //중복으로 누른다면
+                {
+                    return false;
+                }else {
+                    good_users.put(user.getUid(), 1);
+                    Long newPopulation = snapshot.getLong("good") + 1;
+                    transaction.update(docref, "good", newPopulation.intValue());
+                    transaction.update(docref, "good_user", good_users);
+
+                    // Success
+                    return true;
+                }
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Boolean>() {
+            @Override
+            public void onSuccess(Boolean isSuccess) {
+                if(isSuccess)
+                    complete_goodPress_post.onComplete_Good_Post();
+                else
+                    complete_goodPress_post.AlreadyDone();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                complete_goodPress_post.onFailed();
+            }
+        });
+    }
+
+    public void Check_Deleted_ThePost(ArrayList<PostInfo> postList, String docid, Listener_CompletePostInfos listener_completePostInfos){
 
         for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
             if(postList.get(x).getDocid().equals(docid)){
@@ -318,7 +510,6 @@ public class PostControler {
             }
         }
     }
-
 
     public ArrayList<PostInfo> deepCopy_ArrayPostInfo(ArrayList<PostInfo> oldone){
 
@@ -344,7 +535,6 @@ public class PostControler {
         }
         return newone;
     }
-
 
     public ArrayList<RecommentInfo> deepCopy_RecommentInfo(ArrayList<RecommentInfo> oldone){
 

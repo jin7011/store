@@ -78,7 +78,7 @@ public class PopupActivity extends Activity {
     public void confirm(){
 
         if(Selected_Location == null || Selected_Location.length() == 0 || Selected_Location.equals(myAccount.getLocation())) {
-            my_utility.Tost("다른지역을 선택해주세요.");
+            my_utility.Toast("다른지역을 선택해주세요.");
         }else {
             db.collection("USER").document(myAccount.getId()).update("location", Selected_Location).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override

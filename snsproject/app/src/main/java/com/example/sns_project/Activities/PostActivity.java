@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sns_project.Adapter.CommentsAdapter;
 import com.example.sns_project.Adapter.ShowPostImageAdapter;
+import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.Listener.Listener_PostImageHolder;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostInfo;
@@ -76,6 +77,7 @@ public class PostActivity extends AppCompatActivity {
     private CommentsAdapter commentsAdapter;
     private LiveData_PostInfo liveData_postInfo;
     private CommentsAdapter.CommentsHolder PostcommentsHolder;
+    private PostControler postControler;
 
     //todo 추가적으로 하는 일(댓글,좋아요,글쓰기)에 대해서 동시적인 작업처리를 해줘야할 때가 왔음 (아마도 트랜젝션이 제일 유일)
     //todo 댓글에 좋아요 기능추가해야함.
@@ -164,32 +166,30 @@ public class PostActivity extends AppCompatActivity {
         loader.setVisibility(View.VISIBLE); //로딩화면
         hideKeyPad(); //보기안좋으니까 키패드 내리고
 
+        String key = postInfo.getComments().get(PostcommentsHolder.getAbsoluteAdapterPosition()).getKey();
         String comment = binding.AddCommentT.getText().toString();
-        RecommentInfo recommentInfo = new RecommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0);
-        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+        RecommentInfo NewRecomment = new RecommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0);
 
-        docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        postControler.Update_ReComments_With_Transaction(postInfo.getDocid(),key, NewRecomment, new PostControler.Listener_Complete_Set_PostInfo_Transaction() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-                        int commentnum =  ((Long)document.get("comment")).intValue();
+            public void onComplete_Set_PostInfo(PostInfo postInfo) {
 
-                        for(int x=0; x<commentInfoArrayList.size(); x++){
-                            String db_comment_key = commentInfoArrayList.get(x).getKey();
-                            String holder_comment_key = postInfo.getComments().get(PostcommentsHolder.getAbsoluteAdapterPosition()).getKey();
+                if(postInfo != null) //해당 댓글이 존재하고 그곳에 대댓글을 다는 것에 문제가 없다면 null이 아니다.
+                    liveData_postInfo.get().setValue(postInfo); //최신 게시판 상태를 모델에 셋시켜줌.
+                else
+                    Toast("삭제된 게시물/댓글입니다.");
 
-                            if(db_comment_key.equals(holder_comment_key)){ //db에서 대댓글을 달려고하는 해당 댓글을 key값으로 찾았다면,
-                                commentInfoArrayList.get(x).getRecomments().add(recommentInfo); // 댓글배열안에 대댓글리스트를 수정해서 넣어주고, DB에 댓글배열을 통으로 넣어줌
-                                Set_CommentDB(commentInfoArrayList,loader,docref,commentnum);
-                                break;
-                            }
-                        }
-                    }else
-                        Toast("삭제된 게시물/댓글입니다.");
+                loader.setVisibility(View.GONE); //로딩화면 제거
+                binding.AddCommentT.setText(null); //댓글창 클리어
+                if(PostcommentsHolder != null){
+                    commentsAdapter.Off_CommentbodyColor(PostcommentsHolder);
+                    PostcommentsHolder = null;
                 }
+            }
+            @Override
+            public void onFailed() {
+                loader.setVisibility(View.GONE);
+                Toast("삭제된 게시물/댓글입니다.");
             }
         });
     }
@@ -200,61 +200,16 @@ public class PostActivity extends AppCompatActivity {
         loader.setVisibility(View.VISIBLE); //로딩화면
         hideKeyPad(); //보기안좋으니까 키패드 내리고
 
-        String comment = binding.AddCommentT.getText().toString();
+        final String[] comment = {binding.AddCommentT.getText().toString()};
         Date date = new Date();
 
-        CommentInfo commentInfo = new CommentInfo(comment,user.getDisplayName(),date,user.getUid(),0,new HashMap<String,Integer>(),new ArrayList<>(),
+        CommentInfo commentInfo = new CommentInfo(comment[0],user.getDisplayName(),date,user.getUid(),0,new HashMap<String,Integer>(),new ArrayList<>(),
                 postInfo.getDocid()+date.getTime());
-        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
 
-        docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        postControler.Update_Comments_With_Transaction(postInfo.getDocid(), commentInfo, new PostControler.Listener_Complete_Set_PostInfo_Transaction() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-
-                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-                        commentInfoArrayList.add(commentInfo);//댓글 배열에 추가하고
-                        int commentnum = ((Long)document.get("comment")).intValue();
-                        Set_CommentDB(commentInfoArrayList,loader,docref,commentnum);
-
-                    }else{
-                        Toast("삭제된 게시물입니다.");
-                    }
-                }
-            }
-        });
-    }
-
-    public void Set_CommentDB(ArrayList<CommentInfo> commentInfoArrayList,RelativeLayout loader, DocumentReference docref,int commentNum){
-
-        db.runTransaction(new Transaction.Function<Void>() {
-            @Override
-            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
-//                DocumentSnapshot snapshot = transaction.get(docref);
-                //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
-                Log.d("cxca",""+commentNum);
-                transaction.update(docref, "comment", commentNum+1);
-                transaction.update(docref, "comments", commentInfoArrayList);
-                Log.d("zqwqw",""+commentInfoArrayList.size());
-                // Success
-                return null;
-            }
-        }).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-
-                PostInfo NewPostInfo = new PostInfo(postInfo);
-
-                Log.d("dalaw","post: "+postInfo.hashCode()+", "+NewPostInfo.hashCode());
-                Log.d("dalaw","post: "+postInfo.getComments().hashCode()+", "+NewPostInfo.getComments().hashCode());
-                NewPostInfo.setComment(commentNum+1); //댓글수 +1
-                Log.d("zqwqw2",""+commentInfoArrayList.size());
-                NewPostInfo.getComments().clear();
-                NewPostInfo.getComments().addAll(commentInfoArrayList);
-                Log.d("dalaw","post: "+postInfo.getComments().hashCode()+", "+NewPostInfo.getComments().hashCode());
-                liveData_postInfo.get().setValue(NewPostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
+            public void onComplete_Set_PostInfo(PostInfo postInfo) {
+                liveData_postInfo.get().setValue(postInfo); //최신 게시판 상태를 모델에 셋시켜줌.
                 loader.setVisibility(View.GONE); //로딩화면 제거
 
                 binding.AddCommentT.setText(null); //댓글창 클리어
@@ -264,14 +219,12 @@ public class PostActivity extends AppCompatActivity {
                     PostcommentsHolder = null;
                 }
             }
-        }).addOnFailureListener(new OnFailureListener() {
             @Override
-            public void onFailure(@NonNull Exception e) {
-                loader.setVisibility(View.GONE);
-                Toast("댓글에 실패했습니다.");
+            public void onFailed() {
+            loader.setVisibility(View.GONE);
+            Toast("댓글에 실패했습니다.");
             }
         });
-
     }
 
     public void Add_and_Set_CommentRecyclerView(PostActivity activity){
@@ -295,9 +248,9 @@ public class PostActivity extends AppCompatActivity {
                 liveData_postInfo.get().setValue(NewPostInfo);
             }
         });
-//todo 지금 라이브데이터의 set이 전역인 postinfo와 얕게 엮여서 문제가 된다, controler를 이용해서 처음 postact에 왔을 때에 깊은 복사로 하나 만들고 그것을 live에 넘겨주자
         my_utility = new My_Utility(this,binding.commentRecycler,commentsAdapter);
         my_utility.RecyclerInit(VERTICAL);
+        postControler = new PostControler(postInfo.getLocation(),my_utility);
 
     }
 
@@ -348,58 +301,39 @@ public class PostActivity extends AppCompatActivity {
 
         //postinfo로 해당게시물에 좋아요를 누른 사람 id를 저장해주고,
         //좋아요 누른 사람이 중복으로 누르지않게 id를 찾아서 있으면 아닌거고 없으면 좋아요+1
-        if(postInfo.getId().equals(user.getUid())){
-            Toast("자신의 게시물에는 좋아요를 누를 수 없습니다.");
-            return;
-        }
-
-        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
-
-        docref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        postControler.Press_Good_Post(postInfo, new PostControler.Listener_Complete_GoodPress_Post() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        HashMap<String,Integer> good_users = (HashMap<String,Integer>) document.getData().get("good_user");
-                        if(good_users.containsKey(user.getUid())) //중복으로 누른다면
-                        {
-                            Toast("이미 눌렀어요!");
-                        }else{ //처음 누른다면
-                            //이후에 백그라운드로 DB처리
-                            db.runTransaction(new Transaction.Function<Void>() {
-                                @Override
-                                public Void apply(Transaction transaction) throws FirebaseFirestoreException {
-                                    DocumentSnapshot snapshot = transaction.get(docref);
-
-                                    //이후에 백그라운드로 DB처리
-                                    good_users.put(user.getUid(),1);
-                                    Long newPopulation = snapshot.getLong("good") + 1;
-                                    transaction.update(docref, "good", newPopulation.intValue());
-                                    transaction.update(docref, "good_user", good_users);
-
-                                    // Success
-                                    return null;
-                                }
-                            }).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    Log.d("트랜잭션좋아요", "Transaction success!");
-                                    String good = binding.goodNumPostT.getText().toString();
-                                    binding.goodNumPostT.setText( ( Integer.parseInt(good)+1 )+"");
-                                    Toast("좋아요!");
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.w("트랜잭션좋아요", "Transaction failure.", e);
-                                }
-                            });
-                        }
-                    }
-                }
+            public void onComplete_Good_Post() {
+                Toast("좋아요!");
+                String good = binding.goodNumPostT.getText().toString();
+                binding.goodNumPostT.setText( ( Integer.parseInt(good)+1 )+"");
             }
 
+            @Override
+            public void onFailed() {
+                Toast("존재하지 않는 게시물/댓글입니다.");
+            }
+
+            @Override
+            public void AlreadyDone() {
+                Toast("이미 눌렀어요!");
+            }
+
+            @Override
+            public void CannotSelf() {
+                Toast("자신의 게시물에는 좋아요를 누를 수 없습니다.");
+            }
+        });
+
+    }
+
+    public void Reset(){
+        postControler.Get_UniPost(postInfo.getDocid(), new PostControler.Listener_Complete_Get_PostInfo() {
+            @Override
+            public void onComplete_Get_PostInfo(PostInfo postInfo) {
+                liveData_postInfo.get().setValue(postInfo);
+                Toast("새로고침 되었습니다.");
+            }
         });
     }
 
@@ -430,34 +364,6 @@ public class PostActivity extends AppCompatActivity {
         }else {
             DB_del();
         }
-
-    }
-
-    public void Reset(){
-
-        db.collection(postInfo.getLocation()).document(postInfo.getDocid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-
-                DocumentSnapshot document = task.getResult();
-                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-
-                PostInfo newpostInfo = new PostInfo(
-                        document.get("id").toString(),
-                        document.get("publisher").toString(),
-                        document.get("title").toString(),
-                        document.get("contents").toString(),
-                        (ArrayList<String>) document.getData().get("formats"),
-                        new Date(document.getDate("createdAt").getTime()),
-                        document.getId(),
-                        Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), document.get("location").toString(),
-                        (ArrayList<String>) document.getData().get("storagepath"),commentInfoArrayList,
-                        (HashMap<String, Integer>)document.getData().get("good_user")
-                );
-                liveData_postInfo.get().setValue(newpostInfo);
-                Toast("새로고침 되었습니다.");
-            }
-        });
 
     }
 

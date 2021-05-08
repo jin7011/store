@@ -72,7 +72,7 @@ public class My_Utility {
 
     }
 
-    public void Tost(String str){
+    public void Toast(String str){
         Toast.makeText(activity,str,Toast.LENGTH_SHORT).show();
     }
 

@@ -145,7 +145,7 @@ public class BoardFragment extends Fragment {
 
     private void Deleted(String docid) { //삭제
 
-        postControler.Delete_ThePost(Loaded_Posts, docid, new PostControler.Listener_CompletePostInfos() {
+        postControler.Check_Deleted_ThePost(Loaded_Posts, docid, new PostControler.Listener_CompletePostInfos() {
             @Override
             public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
                 PostListModel.get().setValue(NewPostInfos);
