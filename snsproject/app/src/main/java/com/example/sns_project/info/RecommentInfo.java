@@ -2,7 +2,13 @@ package com.example.sns_project.info;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+
+import com.example.sns_project.CustomLibrary.PostControler;
+
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RecommentInfo implements Parcelable{
 
@@ -11,13 +17,15 @@ public class RecommentInfo implements Parcelable{
     private Date createdAt;
     private String id;
     private int good;
+    private HashMap<String, Integer> good_user;
 
-    public RecommentInfo(String contents, String publisher, Date createdAt, String id, int good) {
+    public RecommentInfo(String contents, String publisher, Date createdAt, String id, int good,HashMap<String, Integer> good_user) {
         this.contents = contents;
         this.publisher = publisher;
         this.createdAt = createdAt;
         this.id = id;
         this.good = good;
+        this.good_user = good_user;
     }
 
     public RecommentInfo(RecommentInfo p) {
@@ -26,6 +34,7 @@ public class RecommentInfo implements Parcelable{
         this.createdAt = p.getCreatedAt();
         this.id = p.getId();
         this.good = p.getGood();
+        this.good_user = new HashMap<>(p.getGood_user());
     }
 
     protected RecommentInfo(Parcel in) {
@@ -34,6 +43,17 @@ public class RecommentInfo implements Parcelable{
         createdAt = new Date(in.readLong());
         id = in.readString();
         good = in.readInt();
+
+        int size = in.readInt();
+        Log.d("vktmffjqmf2",""+size);
+        if(size != 0) {
+            good_user = new HashMap<>();
+            for (int i = 0; i < size; i++) {
+                good_user.put(in.readString(), in.readInt());
+            }
+        }else{
+            good_user = new HashMap<>();
+        }
     }
 
     @Override
@@ -43,6 +63,15 @@ public class RecommentInfo implements Parcelable{
         dest.writeLong(createdAt.getTime());
         dest.writeString(id);
         dest.writeInt(good);
+
+        dest.writeInt(good_user.size());
+        Log.d("vktmffjqmf",""+good_user.size());
+        for(Map.Entry<String, Integer> entry : good_user.entrySet()) {
+            String key = entry.getKey();
+            int val = Integer.parseInt(String.valueOf(entry.getValue())); //해쉬값에 있는 int가 number형이라 에러났던건데 그거때문에 오래 삽질했음.
+            dest.writeString(key);
+            dest.writeInt(val);
+        }
     }
 
     @Override
@@ -92,6 +121,11 @@ public class RecommentInfo implements Parcelable{
     public void setGood(int good) {
         this.good = good;
     }
-
+    public HashMap<String, Integer> getGood_user() {
+        return good_user;
+    }
+    public void setGood_user(HashMap<String, Integer> good_user) {
+        this.good_user = good_user;
+    }
 }
 

@@ -161,7 +161,7 @@ public class PostActivity extends AppCompatActivity {
 
         String key = postInfo.getComments().get(PostcommentsHolder.getAbsoluteAdapterPosition()).getKey();
         String comment = binding.AddCommentT.getText().toString();
-        RecommentInfo NewRecomment = new RecommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0);
+        RecommentInfo NewRecomment = new RecommentInfo(comment,user.getDisplayName(),new Date(),user.getUid(),0,new HashMap<String,Integer>());
 
         postControler.Update_ReComments_With_Transaction(postInfo.getDocid(),key, NewRecomment, new PostControler.Listener_Complete_Set_PostInfo_Transaction() {
             @Override
@@ -399,12 +399,17 @@ public class PostActivity extends AppCompatActivity {
 
         for(int x=0; x<recomments.size(); x++) {
             HashMap<String, Object> recommentsmap = recomments.get(x);
+
+            Object bring = (Object)recommentsmap.get("good_user");
+            HashMap<String,Integer> goodusers = new HashMap<>( (Map<? extends String, ? extends Integer>) bring);
+
             RecommentInfo recommentInfo = new RecommentInfo(
                     (String)recommentsmap.get("contents"),
                     (String)recommentsmap.get("publisher"),
                     ((Timestamp)recommentsmap.get("createdAt")).toDate(),
                     (String)recommentsmap.get("id"),
-                    ((Long)(recommentsmap.get("good"))).intValue()
+                    ((Long)(recommentsmap.get("good"))).intValue(),
+                    goodusers
                     );
 
             recommentInfoArrayList.add(recommentInfo);

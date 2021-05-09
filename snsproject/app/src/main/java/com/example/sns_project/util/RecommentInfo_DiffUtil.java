@@ -48,7 +48,7 @@ public class RecommentInfo_DiffUtil extends DiffUtil.Callback {
         final RecommentInfo oldpost = oldPosts.get(oldItemPosition);
         final RecommentInfo newpost = newPosts.get(newItemPosition);
 
-        return oldpost.getContents().equals(newpost.getContents()) && oldpost.getId().equals(newpost.getId());
+        return oldpost.getContents().equals(newpost.getContents()) && oldpost.getId().equals(newpost.getId()) && oldpost.getGood() == newpost.getGood();
     }
 
     @Nullable

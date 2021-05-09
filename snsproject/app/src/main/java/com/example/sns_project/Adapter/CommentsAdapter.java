@@ -28,12 +28,10 @@ import com.example.sns_project.util.CommentInfo_DiffUtil;
 import com.example.sns_project.util.My_Utility;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
@@ -113,29 +111,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    private PostInfo Clicked_GoodPost(int position) {
-
-        CommentInfo commentInfo = comments.get(position);
-
-        int goodNum = commentInfo.getGood(); //해당 댓글의 좋아요 갯수
-        HashMap<String, Integer> good_users = new HashMap<>(commentInfo.getGood_user());
-
-        Log.d("zxczzaasdqq",""+commentInfo.getGood_user());
-        Log.d("zxczzaasdqq",""+commentInfo.getGood_user().size());
-
-        if(!good_users.containsKey(user.getUid())) { //좋아요를 누른적이 없다면,
-            good_users.put(user.getUid(), 1); //좋아요 누른 본인의 아이디 넣고,
-
-            PostInfo NewPostInfo = new PostInfo(postInfo);
-
-            NewPostInfo.getComments().get(position).setGood(goodNum + 1);
-            NewPostInfo.getComments().get(position).setGood_user(good_users);
-
-            return NewPostInfo;
-        }else
-            return null;
-    }
-
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
@@ -146,8 +121,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             @Override
             public void onClick(View v) {
               postControler.Press_Good_Comment(postInfo, commentsHolder.getAbsoluteAdapterPosition(), new PostControler.Listener_Complete_GoodPress() {
-
-
                   @Override
                   public void onComplete_Good_Press(PostInfo NewPostInfo) {
                       listener_pressed_goodbtn.onClicked_goodbtn(NewPostInfo);
@@ -159,7 +132,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                   public void AlreadyDone() {Toast("이미 눌렀어요!"); }
                   @Override
                   public void CannotSelf() {Toast("자신의 댓글에는 '좋아요'를 누를 수 없습니다.");}
-
               });
             }
         });
@@ -209,14 +181,20 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
 
         if(commentInfo.getRecomments().size() != 0){
-            RecommentsAdapter recommentsAdapter = new RecommentsAdapter(activity,postInfo);
-            Log.d("asss",commentInfo.getRecomments().size()+"");
+            RecommentsAdapter recommentsAdapter = new RecommentsAdapter(activity, postInfo, commentInfo, new RecommentsAdapter.Listener_Pressed_goodbtn() {
+                @Override
+                public void onClicked_goodbtn(PostInfo NewPostInfo) {
+//                    recommentsAdapter.RecommentInfo_DiffUtil(NewPostInfo.getComments().get(holder.getAbsoluteAdapterPosition()).getRecomments());
+                    listener_pressed_goodbtn.onClicked_goodbtn(NewPostInfo);
+                }
+            });
+//            Log.d("asss",commentInfo.getRecomments().size()+"");
             holder.recyclerView.setVisibility(View.VISIBLE);
 
             My_Utility my_utility = new My_Utility(activity, holder.recyclerView, recommentsAdapter);
             my_utility.RecyclerInit(VERTICAL);
             ArrayList<RecommentInfo> recos = postControler.deepCopy_RecommentInfo(commentInfo.getRecomments());
-            Log.d("rfrf",recos.hashCode()+"");
+//            Log.d("rfrf",recos.hashCode()+"");
             recommentsAdapter.RecommentInfo_DiffUtil(recos);
         }else{
             holder.recyclerView.setVisibility(View.GONE);
@@ -347,7 +325,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
         return msg;
     }
-
 
     public void Toast(String str){
         Toast.makeText(activity,str,Toast.LENGTH_SHORT).show();

@@ -20,6 +20,9 @@ public class Named {
     public static final int CHANGED_LOCATION = 1003;
     public static final String NONE = "None";
 
+    public static final int NOT_EXIST = 1101;
+    public static final int ALREADY_DONE = 1102;
+    public static final int SUCCESS = 1103;
 
     public static final int WRITE_RECOMMENT = 3000;
     public static final int GOOD_COMMENT = 3001;

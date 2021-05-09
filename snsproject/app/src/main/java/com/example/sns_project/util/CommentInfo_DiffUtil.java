@@ -55,7 +55,7 @@ public class CommentInfo_DiffUtil extends DiffUtil.Callback {
         final CommentInfo oldpost = OldComments.get(oldItemPosition);
         final CommentInfo newpost = NewComments.get(newItemPosition);
 
-        //        Log.d("같나","old: "+ oldpost.getGood()+" oldid: "+oldpost.getDocid()+" new: "+ newpost.getGood()+" newid: "+newpost.getDocid());
+                Log.d("같나","old: "+is_same_recomment(oldpost,newpost));
 
         return oldpost.getContents().equals(newpost.getContents()) && oldpost.getId().equals(newpost.getId()) && is_same_recomment(oldpost,newpost) && oldpost.getGood() == newpost.getGood();
     }
@@ -70,11 +70,13 @@ public class CommentInfo_DiffUtil extends DiffUtil.Callback {
             for(int x=0; x<newrecomments.size(); x++){
                 long olddate = oldrecomments.get(x).getCreatedAt().getTime();
                 long newdate = newrecomments.get(x).getCreatedAt().getTime();
+                int oldgood =  oldrecomments.get(x).getGood();
+                int newgood = newrecomments.get(x).getGood();
 
-                if(olddate == newdate)
-                    return true;
+                if(olddate != newdate || oldgood != newgood)
+                    return false;
             }
-            return false;
+            return true;
         }else{
             return false;
         }

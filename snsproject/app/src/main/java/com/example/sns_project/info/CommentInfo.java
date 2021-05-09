@@ -41,7 +41,7 @@ public class CommentInfo implements Parcelable {
         this.id = p.getId();
         this.good = p.getGood();
         this.DateFormate_for_layout = p.getDateFormate_for_layout();
-        this.good_user = p.getGood_user();
+        this.good_user = new HashMap<String,Integer>(p.getGood_user());
         this.recomments = deepCopy_RecommentInfo(p.getRecomments());
         this.key = p.getKey();
     }

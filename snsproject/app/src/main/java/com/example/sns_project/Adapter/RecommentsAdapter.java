@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
@@ -38,8 +39,11 @@ import static com.example.sns_project.util.Named.SEC;
 
 public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private Activity activity;
-    private ArrayList<RecommentInfo> recomments = new ArrayList<>();
+    private final Activity activity;
+    private final ArrayList<RecommentInfo> recomments = new ArrayList<>();
+    private final CommentInfo Parent_CommentInfo;
+    private final PostControler postControler;
+    private final Listener_Pressed_goodbtn listener_pressed_goodbtn;
     PostInfo postInfo;
 
     public void RecommentInfo_DiffUtil(ArrayList<RecommentInfo> newcomments) {
@@ -51,9 +55,16 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public RecommentsAdapter(Activity activity,PostInfo postInfo) {
+    public RecommentsAdapter(Activity activity,PostInfo postInfo,CommentInfo Parent_CommentInfo,Listener_Pressed_goodbtn listener_pressed_goodbtn) {
         this.postInfo = postInfo;
         this.activity = activity;
+        this.Parent_CommentInfo = Parent_CommentInfo;
+        this.postControler = new PostControler(postInfo.getLocation());
+        this.listener_pressed_goodbtn = listener_pressed_goodbtn;
+    }
+
+    public interface Listener_Pressed_goodbtn{
+        void onClicked_goodbtn(PostInfo NewPostInfo);
     }
 
     //holder
@@ -65,6 +76,7 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         TextView nicknameT;
         ImageButton good_btn;
         ImageButton option_btn;
+        LinearLayout Recommentbody_goodframe;
 
         public RecommentsHolder(@NonNull View itemView) {
             super(itemView);
@@ -75,20 +87,32 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             goodNum = itemView.findViewById(R.id.goodNum_RecommentT);
             good_btn = itemView.findViewById(R.id.good_comment_Recomments);
             option_btn = itemView.findViewById(R.id.opt_Recomment);
+            Recommentbody_goodframe = itemView.findViewById(R.id.Recomment_GoodLayout);
         }
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
-        //todo 클릭이벤트 만들어줘야함.
         View view  =  LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recomments,parent,false);
         RecommentsAdapter.RecommentsHolder recommentsHolder = new RecommentsHolder(view);
 
         recommentsHolder.good_btn.setOnClickListener(new View.OnClickListener() { //좋아요
             @Override
             public void onClick(View v) {
-
+                postControler.Press_Good_ReComment(postInfo, Parent_CommentInfo, Parent_CommentInfo.getRecomments().get(recommentsHolder.getAbsoluteAdapterPosition()), new PostControler.Listener_Complete_GoodPress() {
+                    @Override
+                    public void onComplete_Good_Press(PostInfo NewPostInfo) {
+                        listener_pressed_goodbtn.onClicked_goodbtn(NewPostInfo);
+                        Toast("좋아요!");
+                    }
+                    @Override
+                    public void onFailed() {Toast("존재하지 않는 게시물/댓글입니다.");}
+                    @Override
+                    public void AlreadyDone() {Toast("이미 눌렀어요!"); }
+                    @Override
+                    public void CannotSelf() {Toast("자신의 댓글에는 '좋아요'를 누를 수 없습니다.");}
+                });
             }
         });
 
@@ -127,6 +151,13 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             holder.nicknameT.setTextColor(ContextCompat.getColor(activity, R.color.textcolor)); //아니라면 색상변경해줘야 리사이클러뷰 재활용할 때 혼동안옴.
             holder.nicknameT.setTypeface(null, Typeface.NORMAL);
             holder.nicknameT.setText(recommentInfo.getPublisher());
+        }
+
+        if(recommentInfo.getGood() != 0){
+            holder.Recommentbody_goodframe.setVisibility(View.VISIBLE);
+            holder.goodNum.setText(String.valueOf(recommentInfo.getGood()));
+        }else{
+            holder.Recommentbody_goodframe.setVisibility(View.GONE);
         }
 
     }
@@ -211,6 +242,9 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             msg = new SimpleDateFormat("MM월dd일").format(postdate);
         }
         return msg;
+    }
+    public void Toast(String str){
+        Toast.makeText(activity,str,Toast.LENGTH_SHORT).show();
     }
 
 

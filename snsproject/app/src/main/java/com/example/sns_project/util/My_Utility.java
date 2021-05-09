@@ -28,7 +28,7 @@ public class My_Utility {
     private RecyclerView recyclerView;
     private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
 
-    public My_Utility(Activity activity,RecyclerView recyclerView,RecyclerView.Adapter<RecyclerView.ViewHolder> adapter){
+    public My_Utility(Activity activity, RecyclerView recyclerView, RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
         this.activity = activity;
         this.recyclerView = recyclerView;
         this.adapter = adapter;
@@ -38,14 +38,14 @@ public class My_Utility {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
 
-        if(orientation == VERTICAL) {
+        if (orientation == VERTICAL) {
             layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
             recyclerView.setLayoutManager(layoutManager);
-        }else if(orientation == HORIZEN) {
+        } else if (orientation == HORIZEN) {
             layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
             recyclerView.setLayoutManager(layoutManager);
-        }else if(orientation == GRID){
-            GridLayoutManager gridLayoutManager = new GridLayoutManager(activity,3);
+        } else if (orientation == GRID) {
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(activity, 3);
             recyclerView.setLayoutManager(gridLayoutManager);
         }
 
@@ -53,7 +53,7 @@ public class My_Utility {
 //        postAdapter.setHasStableIds(true); 이걸쓰면 게시물 시간이 재사용되서 리셋이 안되는 이슈가 발생
 //        postAdapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY); //스크롤 저장하는건데 필요없어짐
 
-        if(adapter instanceof PostAdapter) {
+        if (adapter instanceof PostAdapter) {
             ((PostAdapter) adapter).setLinearLayoutManager(layoutManager);
             ((PostAdapter) adapter).setRecyclerView(recyclerView);
         }
@@ -72,43 +72,65 @@ public class My_Utility {
 
     }
 
-    public void Toast(String str){
-        Toast.makeText(activity,str,Toast.LENGTH_SHORT).show();
+    public void Toast(String str) {
+        Toast.makeText(activity, str, Toast.LENGTH_SHORT).show();
     }
 
     public Activity getActivity() {
         return activity;
     }
+
     public RecyclerView getRecyclerView() {
         return recyclerView;
     }
+
     public RecyclerView.Adapter<RecyclerView.ViewHolder> getAdapter() {
         return adapter;
     }
 
-    public static class Pair{
-
+    public static class Pair {
         Object result;
-        boolean isSuccess;
-
-        public Pair(){};
-
-        public Pair(Object result,boolean isSuccess){
+        int isSuccess;
+        public Pair() {
+        }
+        public Pair(Object result, int isSuccess) {
             this.isSuccess = isSuccess;
             this.result = result;
         }
-
         public Object getResult() {
             return result;
         }
         public void setResult(Object result) {
             this.result = result;
         }
-        public boolean isSuccess() {
+        public int getIsSuccess() {
             return isSuccess;
         }
-        public void setSuccess(boolean success) {
-            isSuccess = success;
+        public void setIsSuccess(int isSuccess) {
+            this.isSuccess = isSuccess;
+        }
+    }
+
+    public static class IDX_Pair {
+        int result_1;
+        int result_2;
+        public IDX_Pair() {
+        }
+        public IDX_Pair(int result_1, int result_2) {
+            this.result_1 = result_1;
+            this.result_2 = result_2;
+        }
+        public int getResult_1() {
+            return result_1;
+        }
+        public void setResult_1(int result_1) {
+            this.result_1 = result_1;
+        }
+        public int getResult_2() {
+            return result_2;
+        }
+        public void setResult_2(int result_2) {
+            this.result_2 = result_2;
         }
     }
 }

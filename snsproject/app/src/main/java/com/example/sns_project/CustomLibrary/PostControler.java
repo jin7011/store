@@ -25,12 +25,16 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Transaction;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.sns_project.util.Named.ALREADY_DONE;
+import static com.example.sns_project.util.Named.NOT_EXIST;
 import static com.example.sns_project.util.Named.SEARCH_LIMIT;
+import static com.example.sns_project.util.Named.SUCCESS;
 import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
 
 /**
@@ -355,14 +359,14 @@ public class PostControler {
 
     }
 
-    public void Press_Good_Post(PostInfo postInfo, Listener_Complete_GoodPress complete_goodPress_post){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
+    public void Press_Good_Post(PostInfo postInfo, Listener_Complete_GoodPress complete_goodPress){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         //postinfo로 해당게시물에 좋아요를 누른 사람 id를 저장해주고,
         //좋아요 누른 사람이 중복으로 누르지않게 id를 찾아서 있으면 아닌거고 없으면 좋아요+1
         if(postInfo.getId().equals(user.getUid())){
-            complete_goodPress_post.CannotSelf();
+            complete_goodPress.CannotSelf();
         }else {
             DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
             //처음 누른다면
@@ -372,40 +376,45 @@ public class PostControler {
                 public My_Utility.Pair apply(Transaction transaction) throws FirebaseFirestoreException {
                     DocumentSnapshot snapshot = transaction.get(docref);
 
-                    //읽기
-                    PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
-                    HashMap<String, Integer> good_users = postInfo.getGood_user();
+                    if(snapshot.exists()) {
+                        //읽기
+                        PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
+                        HashMap<String, Integer> good_users = postInfo.getGood_user();
 
-                    //이후에 백그라운드로 DB처리
-                    if (good_users.containsKey(user.getUid())) //중복으로 누른다면
-                    {
-                        return new My_Utility.Pair(null, false);
-                    } else {
-                        good_users.put(user.getUid(), 1);
-                        int newPopulation = postInfo.getGood();
-                        newPopulation = newPopulation + 1;
-                        postInfo.setGood(newPopulation);
+                        //이후에 백그라운드로 DB처리
+                        if (good_users.containsKey(user.getUid())) //중복으로 누른다면
+                        {
+                            return new My_Utility.Pair(null, ALREADY_DONE);
+                        } else {
+                            good_users.put(user.getUid(), 1);
+                            int newPopulation = postInfo.getGood();
+                            newPopulation = newPopulation + 1;
+                            postInfo.setGood(newPopulation);
 
-                        //쓰기
-                        transaction.update(docref, "good", newPopulation);
-                        transaction.update(docref, "good_user", good_users);
+                            //쓰기
+                            transaction.update(docref, "good", newPopulation);
+                            transaction.update(docref, "good_user", good_users);
 
-                        // Success
-                        return new My_Utility.Pair(postInfo, true);
-                    }
+                            // Success
+                            return new My_Utility.Pair(postInfo, SUCCESS);
+                        }
+                    }else
+                        return new My_Utility.Pair(null, NOT_EXIST);
                 }
             }).addOnSuccessListener(new OnSuccessListener<My_Utility.Pair>() {
                 @Override
                 public void onSuccess(My_Utility.Pair pair) {
-                    if (pair.isSuccess())
-                        complete_goodPress_post.onComplete_Good_Press((PostInfo) pair.getResult());
-                    else
-                        complete_goodPress_post.AlreadyDone();
+                    if (pair.getIsSuccess() == SUCCESS)
+                        complete_goodPress.onComplete_Good_Press((PostInfo) pair.getResult());
+                    else if(pair.getIsSuccess() == ALREADY_DONE)
+                        complete_goodPress.AlreadyDone();
+                    else if(pair.getIsSuccess() == NOT_EXIST)
+                        complete_goodPress.onFailed();
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    complete_goodPress_post.onFailed();
+                    complete_goodPress.onFailed();
                 }
             });
         }
@@ -414,8 +423,8 @@ public class PostControler {
     public void Press_Good_Comment(PostInfo postInfo,int position,Listener_Complete_GoodPress complete_goodPress){
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
         DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+        String Key = postInfo.getComments().get(position).getKey();
 
         if(postInfo.getComments().get(position).getId().equals(user.getUid())){ //셀프추천
             complete_goodPress.CannotSelf();
@@ -425,29 +434,40 @@ public class PostControler {
                 public My_Utility.Pair apply(Transaction transaction) throws FirebaseFirestoreException {
                     DocumentSnapshot snapshot = transaction.get(docref);
 
-                    //읽기
-                    PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
-                    ArrayList<CommentInfo> comments = postInfo.getComments();
-                    CommentInfo comment = comments.get(position);
+                    if(snapshot.exists()) {
+                        //읽기
+                        PostInfo NewPostInfo = Get_PostInfo_From_Store(snapshot);
+                        ArrayList<CommentInfo> comments = NewPostInfo.getComments();
+                        CommentInfo comment = comments.get(position);
+                        int CommentIDX = 0;
+                        CommentIDX = Find_Comment(comments,Key);
 
-                    if (comment.getGood_user().containsKey(user.getUid())) { //중복추천
-                        return new My_Utility.Pair(null, false);
-                    } else {
-                        comment.getGood_user().put(user.getUid(), 1);
-                        comment.setGood(comment.getGood() + 1);
-                        //쓰기
-                        transaction.update(docref, "comments", comments);
-                        // Success
-                        return new My_Utility.Pair(postInfo, true); //얕은 복사로 이루어졌기때문에 따로 set하지 않아도 변경되었으리라 생각함.
-                    }
+                        if (CommentIDX != -1) //존재한다면,
+                        {
+                            if (comment.getGood_user().containsKey(user.getUid())) { //중복추천
+                                return new My_Utility.Pair(null, ALREADY_DONE);
+                            } else {
+                                comment.getGood_user().put(user.getUid(), 1);
+                                comment.setGood(comment.getGood() + 1);
+                                //쓰기
+                                transaction.update(docref, "comments", comments);
+                                // Success
+                                return new My_Utility.Pair(NewPostInfo, SUCCESS); //얕은 복사로 이루어졌기때문에 따로 set하지 않아도 변경되었으리라 생각함.
+                            }
+                        }else //댓글이 존재하지 않는다면
+                            return new My_Utility.Pair(null, NOT_EXIST);
+                    }else//포스트가 존재하지 않는다면
+                        return new My_Utility.Pair(null, NOT_EXIST);
                 }
             }).addOnSuccessListener(new OnSuccessListener<My_Utility.Pair>() {
                 @Override
                 public void onSuccess(My_Utility.Pair pair) {
-                    if (pair.isSuccess())
+                    if (pair.getIsSuccess() == SUCCESS)
                         complete_goodPress.onComplete_Good_Press((PostInfo) pair.getResult());
-                    else
+                    else if(pair.getIsSuccess() == ALREADY_DONE)
                         complete_goodPress.AlreadyDone();
+                    else if(pair.getIsSuccess() == NOT_EXIST)
+                        complete_goodPress.onFailed();
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -456,6 +476,106 @@ public class PostControler {
                 }
             });
         }
+    }
+
+    public void Press_Good_ReComment(PostInfo postInfo,CommentInfo Parent_Comment,RecommentInfo recomment,Listener_Complete_GoodPress complete_goodPress){
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+
+        if(recomment.getId().equals(user.getUid())){ //셀프추천
+            complete_goodPress.CannotSelf();
+        }else {
+            db.runTransaction(new Transaction.Function<My_Utility.Pair>() {
+                @Override
+                public My_Utility.Pair apply(Transaction transaction) throws FirebaseFirestoreException {
+                    DocumentSnapshot snapshot = transaction.get(docref);
+                    if (snapshot.exists()) {
+                        int CommentIDX = 0;
+                        int RecommentIDX = 0;
+                        //읽기
+                        PostInfo NewPostInfo = Get_PostInfo_From_Store(snapshot);
+                        ArrayList<CommentInfo> comments = NewPostInfo.getComments();
+                        My_Utility.IDX_Pair IDX_pair = Find_Recomments_From_Parent_Comment(NewPostInfo.getComments(), recomment, Parent_Comment.getKey());
+
+                        if (IDX_pair != null) {//가져왔을때 댓글이 존재해야함
+                            CommentIDX = IDX_pair.getResult_1();
+                            RecommentIDX = IDX_pair.getResult_2();
+                            Log.d("cddaa", "" + CommentIDX + "," + RecommentIDX);
+
+                            //둘다 존재하고, 찾았다면
+                            RecommentInfo NewRecomment = comments.get(CommentIDX).getRecomments().get(RecommentIDX);
+                            HashMap<String, Integer> good_user = NewRecomment.getGood_user();
+
+                            if (good_user.containsKey(user.getUid())) { // 중복추천
+                                Log.d("wndqhr","중복추천");
+                                Log.d("wndqhr","중복추천");Log.d("wndqhr","중복추천");Log.d("wndqhr","중복추천");Log.d("wndqhr","중복추천");
+                                return new My_Utility.Pair(null, ALREADY_DONE);
+                            } else {
+                                good_user.put(user.getUid(), 1);
+                                NewRecomment.setGood(NewRecomment.getGood() + 1);
+                                //쓰기
+                                transaction.update(docref, "comments", comments);
+                                // Success
+                                return new My_Utility.Pair(NewPostInfo, SUCCESS);
+                            }
+                        } else //댓글이 삭제되었다면,
+                        {
+                            Log.d("wndqhr","삭제");    Log.d("wndqhr","삭제");    Log.d("wndqhr","삭제");    Log.d("wndqhr","삭제");    Log.d("wndqhr","삭제");
+                            return new My_Utility.Pair(null, NOT_EXIST);
+                        }
+                    } else //포스트가 존재하지 않는다면
+                    {
+                        Log.d("wndqhr","shwhswo"); Log.d("wndqhr","shwhswo"); Log.d("wndqhr","shwhswo"); Log.d("wndqhr","shwhswo"); Log.d("wndqhr","shwhswo"); Log.d("wndqhr","shwhswo"); Log.d("wndqhr","shwhswo"); Log.d("wndqhr","shwhswo");
+                        return new My_Utility.Pair(null, NOT_EXIST);
+
+                    }
+                }
+            }).addOnSuccessListener(new OnSuccessListener<My_Utility.Pair>() {
+                @Override
+                public void onSuccess(My_Utility.Pair pair) {
+                    if (pair.getIsSuccess() == SUCCESS)
+                        complete_goodPress.onComplete_Good_Press((PostInfo) pair.getResult());
+                    else if(pair.getIsSuccess() == ALREADY_DONE)
+                        complete_goodPress.AlreadyDone();
+                    else if(pair.getIsSuccess() == NOT_EXIST)
+                        complete_goodPress.onFailed();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    complete_goodPress.onFailed();
+                }
+            });
+        }
+    }
+
+    public int Find_Comment(ArrayList<CommentInfo> comments, String Key){
+
+        for(int x=0; x<comments.size(); x++){
+            if(comments.get(x).getKey().equals(Key))
+                return x;
+        }
+
+        return -1;
+    }
+
+    public My_Utility.IDX_Pair Find_Recomments_From_Parent_Comment(ArrayList<CommentInfo> comments, RecommentInfo recommentInfo, String Key){
+
+        for(int C_IDX=0; C_IDX<comments.size(); C_IDX++){
+            if(comments.get(C_IDX).getKey().equals(Key)){
+                //해당 댓글의 위치를 찾아서 대댓글 배열을 만들어준다.
+                ArrayList<RecommentInfo> ReComments = comments.get(C_IDX).getRecomments();
+                Log.d("cddaaxz",""+C_IDX);
+                for(int R_IDX=0; R_IDX<ReComments.size();R_IDX++){
+                    //해당 대댓글의 위치를 찾았다면 반환한다.
+                    if(ReComments.get(R_IDX).getCreatedAt().getTime() == recommentInfo.getCreatedAt().getTime()){
+                        return new My_Utility.IDX_Pair(C_IDX,R_IDX);
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public void Check_Deleted_ThePost(ArrayList<PostInfo> postList, String docid, Listener_CompletePostInfos listener_completePostInfos){
@@ -546,12 +666,17 @@ public class PostControler {
 
         for(int x=0; x<recomments.size(); x++) {
             HashMap<String, Object> recommentsmap = recomments.get(x);
+
+            Object bring = (Object)recommentsmap.get("good_user");
+            HashMap<String,Integer> goodusers = new HashMap<>( (Map<? extends String, ? extends Integer>) bring);
+
             RecommentInfo recommentInfo = new RecommentInfo(
                     (String)recommentsmap.get("contents"),
                     (String)recommentsmap.get("publisher"),
                     ((Timestamp)recommentsmap.get("createdAt")).toDate(),
                     (String)recommentsmap.get("id"),
-                    ((Long)(recommentsmap.get("good"))).intValue()
+                    ((Long)(recommentsmap.get("good"))).intValue(),
+                    goodusers
             );
 
             recommentInfoArrayList.add(recommentInfo);
