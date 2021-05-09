@@ -85,4 +85,30 @@ public class My_Utility {
     public RecyclerView.Adapter<RecyclerView.ViewHolder> getAdapter() {
         return adapter;
     }
+
+    public static class Pair{
+
+        Object result;
+        boolean isSuccess;
+
+        public Pair(){};
+
+        public Pair(Object result,boolean isSuccess){
+            this.isSuccess = isSuccess;
+            this.result = result;
+        }
+
+        public Object getResult() {
+            return result;
+        }
+        public void setResult(Object result) {
+            this.result = result;
+        }
+        public boolean isSuccess() {
+            return isSuccess;
+        }
+        public void setSuccess(boolean success) {
+            isSuccess = success;
+        }
+    }
 }

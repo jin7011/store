@@ -33,18 +33,13 @@ import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.My_Utility;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.Transaction;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -170,10 +165,10 @@ public class PostActivity extends AppCompatActivity {
 
         postControler.Update_ReComments_With_Transaction(postInfo.getDocid(),key, NewRecomment, new PostControler.Listener_Complete_Set_PostInfo_Transaction() {
             @Override
-            public void onComplete_Set_PostInfo(PostInfo postInfo) {
+            public void onComplete_Set_PostInfo(PostInfo NewPostInfo) {
 
-                if(postInfo != null) //해당 댓글이 존재하고 그곳에 대댓글을 다는 것에 문제가 없다면 null이 아니다.
-                    liveData_postInfo.get().setValue(postInfo); //최신 게시판 상태를 모델에 셋시켜줌.
+                if(NewPostInfo != null) //해당 댓글이 존재하고 그곳에 대댓글을 다는 것에 문제가 없다면 null이 아니다.
+                    liveData_postInfo.get().setValue(NewPostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
                 else
                     Toast("삭제된 게시물/댓글입니다.");
 
@@ -198,8 +193,8 @@ public class PostActivity extends AppCompatActivity {
 
         postControler.Update_Comments_With_Transaction(postInfo.getDocid(), commentInfo, new PostControler.Listener_Complete_Set_PostInfo_Transaction() {
             @Override
-            public void onComplete_Set_PostInfo(PostInfo postInfo) {
-                liveData_postInfo.get().setValue(postInfo); //최신 게시판 상태를 모델에 셋시켜줌.
+            public void onComplete_Set_PostInfo(PostInfo NewPostInfo) {
+                liveData_postInfo.get().setValue(NewPostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
 
                 Loading(false);
             }
@@ -285,28 +280,18 @@ public class PostActivity extends AppCompatActivity {
 
         //postinfo로 해당게시물에 좋아요를 누른 사람 id를 저장해주고,
         //좋아요 누른 사람이 중복으로 누르지않게 id를 찾아서 있으면 아닌거고 없으면 좋아요+1
-        postControler.Press_Good_Post(postInfo, new PostControler.Listener_Complete_GoodPress_Post() {
+        postControler.Press_Good_Post(postInfo, new PostControler.Listener_Complete_GoodPress() {
             @Override
-            public void onComplete_Good_Post() {
+            public void onComplete_Good_Press(PostInfo NewPostInfo) {
+                liveData_postInfo.get().setValue(NewPostInfo);
                 Toast("좋아요!");
-                String good = binding.goodNumPostT.getText().toString();
-                binding.goodNumPostT.setText( ( Integer.parseInt(good)+1 )+"");
             }
-
             @Override
-            public void onFailed() {
-                Toast("존재하지 않는 게시물/댓글입니다.");
-            }
-
+            public void onFailed() { Toast("존재하지 않는 게시물/댓글입니다."); }
             @Override
-            public void AlreadyDone() {
-                Toast("이미 눌렀어요!");
-            }
-
+            public void AlreadyDone() {Toast("이미 눌렀어요!");}
             @Override
-            public void CannotSelf() {
-                Toast("자신의 게시물에는 좋아요를 누를 수 없습니다.");
-            }
+            public void CannotSelf() { Toast("자신의 게시물에는 '좋아요'를 누를 수 없습니다.");}
         });
 
     }

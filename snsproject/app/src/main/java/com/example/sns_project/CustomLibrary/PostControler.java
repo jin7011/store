@@ -67,7 +67,7 @@ public class PostControler {
     }
 
     public interface Listener_Complete_Set_PostInfo_Transaction {
-        void onComplete_Set_PostInfo(PostInfo postInfo);
+        void onComplete_Set_PostInfo(PostInfo NewPostInfo);
         void onFailed();
     }
 
@@ -75,8 +75,8 @@ public class PostControler {
         void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos);
     }
 
-    public interface Listener_Complete_GoodPress_Post {
-        void onComplete_Good_Post();
+    public interface Listener_Complete_GoodPress {
+        void onComplete_Good_Press(PostInfo NewPostInfo);
         void onFailed();
         void AlreadyDone();
         void CannotSelf();
@@ -85,7 +85,7 @@ public class PostControler {
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts,String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
 
         ArrayList<PostInfo> newPosts = new ArrayList<>();
-        ArrayList<PostInfo> temp = deepCopy_ArrayPostInfo(Loaded_Posts);
+        ArrayList<PostInfo> temp = DeepCopy_ArrayPostInfo(Loaded_Posts);
 
         Date OldestDate = Loaded_Posts.size() == 0 ? new Date() : Loaded_Posts.get(Loaded_Posts.size() - 1).getCreatedAt();
 
@@ -101,40 +101,23 @@ public class PostControler {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
 
-                                String nickname =  document.get("publisher").toString();
-                                String content =  document.get("contents").toString();
-                                String title = document.get("title").toString();
+                                if(document.exists()) {
+                                    String nickname = document.get("publisher").toString();
+                                    String content = document.get("contents").toString();
+                                    String title = document.get("title").toString();
 
-                                if(nickname.contains(KeyWord) || content.contains(KeyWord) || title.contains(KeyWord)) {
+                                    if (nickname.contains(KeyWord) || content.contains(KeyWord) || title.contains(KeyWord)) {
 
-                                    ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-
-                                    Log.d("가져옴", document.getId() + " => " + document.getData());
-                                    newPosts.add(new PostInfo(
-                                                    document.get("id").toString(),
-                                                    document.get("publisher").toString(),
-                                                    document.get("title").toString(),
-                                                    document.get("contents").toString(),
-                                                    (ArrayList<String>) document.getData().get("formats"),
-                                                    new Date(document.getDate("createdAt").getTime()),
-                                                    document.getId(),
-                                                    Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), post_location,
-                                                    (ArrayList<String>) document.getData().get("storagepath"), commentInfoArrayList,
-                                                    (HashMap<String, Integer>) document.getData().get("good_user")
-                                            )
-                                    );
-                                    Log.d("zozozozozo","찾은거: "+title);
+                                        Log.d("가져옴", document.getId() + " => " + document.getData());
+                                        newPosts.add(new PostInfo(Get_PostInfo_From_Store(document)));
+                                        Log.d("zozozozozo", "찾은거: " + title);
+                                    }
                                 }
 
                             }///////////////////////////////////////////////////////////////////////완료
                             Log.d("zozozozozo","끝: "+newPosts.size());
                             temp.addAll(newPosts);
                             listener_completePostInfos.onComplete_Get_PostsArrays(temp);
-//                            2021-05-04 22:46:56.748 10381-10381/com.example.sns_project D/zozozozozo: 시작: 0
-//                            2021-05-04 22:46:57.269 10381-10381/com.example.sns_project D/zozozozozo: 찾은거: zxczxcz
-//                            2021-05-04 22:46:57.270 10381-10381/com.example.sns_project D/zozozozozo: 찾은거: asdasd
-//                            2021-05-04 22:46:57.275 10381-10381/com.example.sns_project D/zozozozozo: 끝: 2
-//                            Snackbar.make(recyclerView,"새로고침 되었습니다.",Snackbar.LENGTH_SHORT).show();
                         } else {
                             Log.d("실패함", "Error getting documents: ", task.getException());
                         }
@@ -159,25 +142,11 @@ public class PostControler {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
 
-                                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
+                                if(document.exists()) {
+                                    Log.d("가져옴", document.getId() + " => " + document.getData());
+                                    newPosts.add(new PostInfo(Get_PostInfo_From_Store(document)));
+                                }
 
-                                for(int x=0; x<commentInfoArrayList.size(); x++)
-                                Log.d("cxc",x+""+commentInfoArrayList.get(x).getGood_user());
-
-                                Log.d("가져옴", document.getId() + " => " + document.getData());
-                                newPosts.add(new PostInfo(
-                                                document.get("id").toString(),
-                                                document.get("publisher").toString(),
-                                                document.get("title").toString(),
-                                                document.get("contents").toString(),
-                                                (ArrayList<String>) document.getData().get("formats"),
-                                                new Date(document.getDate("createdAt").getTime()),
-                                                document.getId(),
-                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), post_location,
-                                                (ArrayList<String>) document.getData().get("storagepath"), commentInfoArrayList,
-                                                (HashMap<String, Integer>) document.getData().get("good_user")
-                                        )
-                                );
                             }///////////////////////////////////////////////////////////////////////완료
                             Log.d("zozozozozo","끝: "+newPosts.size());
                             listener_completePostInfos.onComplete_Get_PostsArrays(newPosts);
@@ -193,7 +162,7 @@ public class PostControler {
 
         //시간을 기점으로 이후의 게시물 20개를 가져옴 (NextPosts라고 하려다가 New랑 헷갈려서 After로 바꿈)
         ArrayList<PostInfo> newPosts = new ArrayList<>();
-        ArrayList<PostInfo> temp = deepCopy_ArrayPostInfo(Loaded_Posts);
+        ArrayList<PostInfo> temp = DeepCopy_ArrayPostInfo(Loaded_Posts);
 
         Date OldestDate = Loaded_Posts.size() == 0 ? new Date() : Loaded_Posts.get(Loaded_Posts.size() - 1).getCreatedAt();
 
@@ -209,22 +178,9 @@ public class PostControler {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
 
-                                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-
                                 Log.d("가져옴", document.getId() + " => " + document.getData());
-                                newPosts.add(new PostInfo(
-                                                document.get("id").toString(),
-                                                document.get("publisher").toString(),
-                                                document.get("title").toString(),
-                                                document.get("contents").toString(),
-                                                (ArrayList<String>) document.getData().get("formats"),
-                                                new Date(document.getDate("createdAt").getTime()),
-                                                document.getId(),
-                                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), post_location,
-                                                (ArrayList<String>) document.getData().get("storagepath"), commentInfoArrayList,
-                                                (HashMap<String, Integer>) document.getData().get("good_user")
-                                        )
-                                );
+                                newPosts.add(new PostInfo( Get_PostInfo_From_Store(document) ) );
+
                             }///////////////////////////////////////////////////////////////////////완료
                             Log.d("zozozozozo","끝: "+newPosts.size());
                             temp.addAll(newPosts);
@@ -238,7 +194,7 @@ public class PostControler {
 
     public void Update_UniPost(ArrayList<PostInfo> postList, String docid, Listener_CompletePostInfos listener_completePostInfos) {
 
-        ArrayList<PostInfo> temp = deepCopy_ArrayPostInfo(postList);
+        ArrayList<PostInfo> temp = DeepCopy_ArrayPostInfo(postList);
 
         boolean flag = false;
         int idx = 0;
@@ -260,24 +216,16 @@ public class PostControler {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
+
                         DocumentSnapshot document = task.getResult();
-                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(document);
-                        newpostInfo[0] = new PostInfo(
-                                document.get("id").toString(),
-                                document.get("publisher").toString(),
-                                document.get("title").toString(),
-                                document.get("contents").toString(),
-                                (ArrayList<String>) document.getData().get("formats"),
-                                new Date(document.getDate("createdAt").getTime()),
-                                document.getId(),
-                                Integer.parseInt(document.get("good").toString()), Integer.parseInt(document.get("comment").toString()), post_location,
-                                (ArrayList<String>) document.getData().get("storagepath"), commentInfoArrayList,
-                                (HashMap<String, Integer>) document.getData().get("good_user")
-                        );
-                        temp.remove(finalIdx);
-                        temp.add(finalIdx, newpostInfo[0]);
-                        listener_completePostInfos.onComplete_Get_PostsArrays(temp);
+                        if(document.exists()) {
+                            newpostInfo[0] = Get_PostInfo_From_Store(document);
+                            temp.remove(finalIdx);
+                            temp.add(finalIdx, newpostInfo[0]);
+                            listener_completePostInfos.onComplete_Get_PostsArrays(temp);
+                        }
                     }
+
                 }
             });
         }
@@ -289,23 +237,8 @@ public class PostControler {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                     if (documentSnapshot.exists()){
-
-                        ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(documentSnapshot);
-
-                        PostInfo postInfo = new PostInfo(
-                                documentSnapshot.get("id").toString(),
-                                documentSnapshot.get("publisher").toString(),
-                                documentSnapshot.get("title").toString(),
-                                documentSnapshot.get("contents").toString(),
-                                (ArrayList<String>) documentSnapshot.getData().get("formats"),
-                                new Date(documentSnapshot.getDate("createdAt").getTime()),
-                                documentSnapshot.getId(),
-                                Integer.parseInt(documentSnapshot.get("good").toString()), Integer.parseInt(documentSnapshot.get("comment").toString()), post_location,
-                                (ArrayList<String>) documentSnapshot.getData().get("storagepath"), commentInfoArrayList,
-                                (HashMap<String, Integer>) documentSnapshot.getData().get("good_user")
-                        );
+                        PostInfo postInfo = Get_PostInfo_From_Store(documentSnapshot);
                         listener_complete_get_postInfo.onComplete_Get_PostInfo(postInfo);
-
                     }else{
                         my_utility.Toast("존재하지 않는 게시물입니다.");
                     }
@@ -337,7 +270,7 @@ public class PostControler {
 
                 //읽기 작업
                 int commentNum = Integer.parseInt(snapshot.getLong("comment").toString());
-                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(snapshot);
+                ArrayList<CommentInfo> commentInfoArrayList = Get_CommentArray_From_Store(snapshot);
 
                 for(int x=0; x<commentInfoArrayList.size(); x++){
                     if(commentInfoArrayList.get(x).getKey().equals(Key)) {
@@ -348,19 +281,8 @@ public class PostControler {
                 }
 
                 if(isexists) {
-
-                    PostInfo postInfo = new PostInfo(
-                            snapshot.get("id").toString(),
-                            snapshot.get("publisher").toString(),
-                            snapshot.get("title").toString(),
-                            snapshot.get("contents").toString(),
-                            (ArrayList<String>) snapshot.getData().get("formats"),
-                            new Date(snapshot.getDate("createdAt").getTime()),
-                            snapshot.getId(),
-                            Integer.parseInt(snapshot.get("good").toString()), Integer.parseInt(snapshot.get("comment").toString()), post_location,
-                            (ArrayList<String>) snapshot.getData().get("storagepath"), commentInfoArrayList,
-                            (HashMap<String, Integer>) snapshot.getData().get("good_user")
-                    );
+                    //읽기작업
+                    PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
 
                     //쓰기작업
                     commentInfoArrayList.get(position).getRecomments().add(NewRecomment); //해당 대댓글 배열에 추가.
@@ -402,25 +324,9 @@ public class PostControler {
                 //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
 
                 //읽기 작업
-                int commentNum = Integer.parseInt(snapshot.getLong("comment").toString());
-                ArrayList<CommentInfo> commentInfoArrayList = get_commentArray_from_Firestore(snapshot);
-
-                for(int x=0; x<commentInfoArrayList.size(); x++){
-                    ArrayList<RecommentInfo> Recomments = new ArrayList<>(NewComment.getRecomments());
-                }
-
-                PostInfo postInfo = new PostInfo(
-                        snapshot.get("id").toString(),
-                        snapshot.get("publisher").toString(),
-                        snapshot.get("title").toString(),
-                        snapshot.get("contents").toString(),
-                        (ArrayList<String>) snapshot.getData().get("formats"),
-                        new Date(snapshot.getDate("createdAt").getTime()),
-                        snapshot.getId(),
-                        Integer.parseInt(snapshot.get("good").toString()), Integer.parseInt(snapshot.get("comment").toString()), post_location,
-                        (ArrayList<String>) snapshot.getData().get("storagepath"), commentInfoArrayList,
-                        (HashMap<String, Integer>) snapshot.getData().get("good_user")
-                );
+                PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
+                ArrayList<CommentInfo> commentInfoArrayList = postInfo.getComments();
+                int commentNum = postInfo.getComment();
 
                 //쓰기작업
                 commentInfoArrayList.add(NewComment);
@@ -449,7 +355,7 @@ public class PostControler {
 
     }
 
-    public void Press_Good_Post(PostInfo postInfo, Listener_Complete_GoodPress_Post complete_goodPress_post){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
+    public void Press_Good_Post(PostInfo postInfo, Listener_Complete_GoodPress complete_goodPress_post){ //좋아요 버튼 누르면 db의 해당 게시물의 좋아요수가 증가한다.
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -457,45 +363,99 @@ public class PostControler {
         //좋아요 누른 사람이 중복으로 누르지않게 id를 찾아서 있으면 아닌거고 없으면 좋아요+1
         if(postInfo.getId().equals(user.getUid())){
             complete_goodPress_post.CannotSelf();
+        }else {
+            DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+            //처음 누른다면
+            //이후에 DB처리
+            db.runTransaction(new Transaction.Function<My_Utility.Pair>() {
+                @Override
+                public My_Utility.Pair apply(Transaction transaction) throws FirebaseFirestoreException {
+                    DocumentSnapshot snapshot = transaction.get(docref);
+
+                    //읽기
+                    PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
+                    HashMap<String, Integer> good_users = postInfo.getGood_user();
+
+                    //이후에 백그라운드로 DB처리
+                    if (good_users.containsKey(user.getUid())) //중복으로 누른다면
+                    {
+                        return new My_Utility.Pair(null, false);
+                    } else {
+                        good_users.put(user.getUid(), 1);
+                        int newPopulation = postInfo.getGood();
+                        newPopulation = newPopulation + 1;
+                        postInfo.setGood(newPopulation);
+
+                        //쓰기
+                        transaction.update(docref, "good", newPopulation);
+                        transaction.update(docref, "good_user", good_users);
+
+                        // Success
+                        return new My_Utility.Pair(postInfo, true);
+                    }
+                }
+            }).addOnSuccessListener(new OnSuccessListener<My_Utility.Pair>() {
+                @Override
+                public void onSuccess(My_Utility.Pair pair) {
+                    if (pair.isSuccess())
+                        complete_goodPress_post.onComplete_Good_Press((PostInfo) pair.getResult());
+                    else
+                        complete_goodPress_post.AlreadyDone();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    complete_goodPress_post.onFailed();
+                }
+            });
         }
+    }
+
+    public void Press_Good_Comment(PostInfo postInfo,int position,Listener_Complete_GoodPress complete_goodPress){
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
-        //처음 누른다면
-        //이후에 DB처리
-        db.runTransaction(new Transaction.Function<Boolean>() {
-            @Override
-            public Boolean apply(Transaction transaction) throws FirebaseFirestoreException {
-                DocumentSnapshot snapshot = transaction.get(docref);
-                HashMap<String,Integer> good_users = (HashMap<String,Integer>)snapshot.get("good_user");
 
-                //이후에 백그라운드로 DB처리
-                if(good_users.containsKey(user.getUid())) //중복으로 누른다면
-                {
-                    return false;
-                }else {
-                    good_users.put(user.getUid(), 1);
-                    Long newPopulation = snapshot.getLong("good") + 1;
-                    transaction.update(docref, "good", newPopulation.intValue());
-                    transaction.update(docref, "good_user", good_users);
+        if(postInfo.getComments().get(position).getId().equals(user.getUid())){ //셀프추천
+            complete_goodPress.CannotSelf();
+        }else {
+            db.runTransaction(new Transaction.Function<My_Utility.Pair>() {
+                @Override
+                public My_Utility.Pair apply(Transaction transaction) throws FirebaseFirestoreException {
+                    DocumentSnapshot snapshot = transaction.get(docref);
 
-                    // Success
-                    return true;
+                    //읽기
+                    PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
+                    ArrayList<CommentInfo> comments = postInfo.getComments();
+                    CommentInfo comment = comments.get(position);
+
+                    if (comment.getGood_user().containsKey(user.getUid())) { //중복추천
+                        return new My_Utility.Pair(null, false);
+                    } else {
+                        comment.getGood_user().put(user.getUid(), 1);
+                        comment.setGood(comment.getGood() + 1);
+                        //쓰기
+                        transaction.update(docref, "comments", comments);
+                        // Success
+                        return new My_Utility.Pair(postInfo, true); //얕은 복사로 이루어졌기때문에 따로 set하지 않아도 변경되었으리라 생각함.
+                    }
                 }
-            }
-        }).addOnSuccessListener(new OnSuccessListener<Boolean>() {
-            @Override
-            public void onSuccess(Boolean isSuccess) {
-                if(isSuccess)
-                    complete_goodPress_post.onComplete_Good_Post();
-                else
-                    complete_goodPress_post.AlreadyDone();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                complete_goodPress_post.onFailed();
-            }
-        });
+            }).addOnSuccessListener(new OnSuccessListener<My_Utility.Pair>() {
+                @Override
+                public void onSuccess(My_Utility.Pair pair) {
+                    if (pair.isSuccess())
+                        complete_goodPress.onComplete_Good_Press((PostInfo) pair.getResult());
+                    else
+                        complete_goodPress.AlreadyDone();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    complete_goodPress.onFailed();
+                }
+            });
+        }
     }
 
     public void Check_Deleted_ThePost(ArrayList<PostInfo> postList, String docid, Listener_CompletePostInfos listener_completePostInfos){
@@ -503,7 +463,7 @@ public class PostControler {
         for(int x =0; x<postList.size(); x++){ //현재 제공되어 있는 리스트에 삭제한 해당 게시물이 존재한다면 간편하게 그것만 제외하고 리셋(깔끔하고 비용이 적게든다고 생각했음)
             if(postList.get(x).getDocid().equals(docid)){
                 ArrayList<PostInfo> temp;
-                temp = deepCopy_ArrayPostInfo(postList);
+                temp = DeepCopy_ArrayPostInfo(postList);
                 temp.remove(x);
                 listener_completePostInfos.onComplete_Get_PostsArrays(temp);
                 break;
@@ -511,7 +471,7 @@ public class PostControler {
         }
     }
 
-    public ArrayList<PostInfo> deepCopy_ArrayPostInfo(ArrayList<PostInfo> oldone){
+    public ArrayList<PostInfo> DeepCopy_ArrayPostInfo(ArrayList<PostInfo> oldone){
 
         ArrayList<PostInfo> newone = new ArrayList<>();
 
@@ -524,7 +484,7 @@ public class PostControler {
         return newone;
     }
 
-    public ArrayList<CommentInfo> deepCopy_CommentInfo(ArrayList<CommentInfo> oldone){
+    public ArrayList<CommentInfo> DeepCopy_CommentInfo(ArrayList<CommentInfo> oldone){
 
         ArrayList<CommentInfo> newone = new ArrayList<>();
 
@@ -548,7 +508,7 @@ public class PostControler {
         return newone;
     }
 
-    public ArrayList<CommentInfo> get_commentArray_from_Firestore(DocumentSnapshot document){
+    public ArrayList<CommentInfo> Get_CommentArray_From_Store(DocumentSnapshot document){
 
         ArrayList<CommentInfo> commentInfoArrayList = new ArrayList<>();
 
@@ -568,7 +528,7 @@ public class PostControler {
                         (String) commentsmap.get("id"),
                         ((Long)(commentsmap.get("good"))).intValue(),
                         goodusers,
-                        get_RecommentArray_from_commentsmap(commentsmap),
+                        Get_RecommentArray_From_CommentsMap(commentsmap),
                         (String) commentsmap.get("key")
                 );
 
@@ -580,7 +540,7 @@ public class PostControler {
         return commentInfoArrayList;
     }
 
-    public ArrayList<RecommentInfo> get_RecommentArray_from_commentsmap(HashMap<String, Object> commentsmap ){
+    public ArrayList<RecommentInfo> Get_RecommentArray_From_CommentsMap(HashMap<String, Object> commentsmap ){
         ArrayList<RecommentInfo> recommentInfoArrayList = new ArrayList<>();
         ArrayList<HashMap<String, Object>> recomments = (ArrayList<HashMap<String, Object>>)commentsmap.get("recomments");
 
@@ -598,6 +558,25 @@ public class PostControler {
         }
 
         return recommentInfoArrayList;
+    }
+
+    public PostInfo Get_PostInfo_From_Store(DocumentSnapshot documentSnapshot){
+        ArrayList<CommentInfo> commentInfoArrayList = Get_CommentArray_From_Store(documentSnapshot);
+
+        PostInfo postInfo = new PostInfo(
+                documentSnapshot.get("id").toString(),
+                documentSnapshot.get("publisher").toString(),
+                documentSnapshot.get("title").toString(),
+                documentSnapshot.get("contents").toString(),
+                (ArrayList<String>) documentSnapshot.getData().get("formats"),
+                new Date(documentSnapshot.getDate("createdAt").getTime()),
+                documentSnapshot.getId(),
+                Integer.parseInt(documentSnapshot.get("good").toString()), Integer.parseInt(documentSnapshot.get("comment").toString()), post_location,
+                (ArrayList<String>) documentSnapshot.getData().get("storagepath"), commentInfoArrayList,
+                (HashMap<String, Integer>) documentSnapshot.getData().get("good_user")
+        );
+
+        return postInfo;
     }
 
 

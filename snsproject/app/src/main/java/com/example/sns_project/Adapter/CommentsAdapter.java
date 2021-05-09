@@ -145,29 +145,22 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         commentsHolder.good_btn.setOnClickListener(new View.OnClickListener() { //좋아요
             @Override
             public void onClick(View v) {
-                CommentInfo comment = comments.get(commentsHolder.getAbsoluteAdapterPosition());
+              postControler.Press_Good_Comment(postInfo, commentsHolder.getAbsoluteAdapterPosition(), new PostControler.Listener_Complete_GoodPress() {
 
-                if (comment.getId().equals(user.getUid()))
-                    Toast("자신의 댓글에는 '좋아요'를 누를 수 없습니다.");
-                else {
-                    PostInfo NewPostInfo = Clicked_GoodPost(commentsHolder.getAbsoluteAdapterPosition());
 
-                    if (NewPostInfo != null) { // DB에서 가져온 댓글의 좋아요를 맵서치해서 눌렀던 댓글이 아니라면 값을 주고, 중복이라면 null
-                        postControler.Set_UniPost(NewPostInfo, new PostControler.Listener_Complete_Set_PostInfo() {
-                            @Override
-                            public void onComplete_Set_PostInfo() {
-                                postControler.Get_UniPost(NewPostInfo.getDocid(), new PostControler.Listener_Complete_Get_PostInfo() {
-                                    @Override
-                                    public void onComplete_Get_PostInfo(PostInfo postInfo) {
-                                        listener_pressed_goodbtn.onClicked_goodbtn(postInfo);
-                                    }
-                                });
-                            }
-                        });
-                    } else {
-                        Toast("이미 좋아요를 눌렀어요!");
-                    }
-                }
+                  @Override
+                  public void onComplete_Good_Press(PostInfo NewPostInfo) {
+                      listener_pressed_goodbtn.onClicked_goodbtn(NewPostInfo);
+                      Toast("좋아요!");
+                  }
+                  @Override
+                  public void onFailed() {Toast("존재하지 않는 게시물/댓글입니다.");}
+                  @Override
+                  public void AlreadyDone() {Toast("이미 눌렀어요!"); }
+                  @Override
+                  public void CannotSelf() {Toast("자신의 댓글에는 '좋아요'를 누를 수 없습니다.");}
+
+              });
             }
         });
 
