@@ -115,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
                         if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
                         if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
                         return true;
-                    case R.id.menu_notification:
 
+                    case R.id.menu_notification:
                         if(notificationFragment == null) {
                             notificationFragment = new NotificationFragment();
                             notificationFragment.setArguments(bundle);
@@ -128,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
                         if(boardFragment != null) fragmentManager.beginTransaction().hide(boardFragment).commit();
                         if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
                         return true;
-                    case R.id.menu_letter:
 
+                    case R.id.menu_letter:
                         if(letterFragment == null) {
                             letterFragment = new LetterFragment();
                             letterFragment.setArguments(bundle);
@@ -141,8 +141,8 @@ public class MainActivity extends AppCompatActivity {
                         if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
                         if(boardFragment!= null) fragmentManager.beginTransaction().hide(boardFragment).commit();
                         return true;
-                    case R.id.menu_profile:
 
+                    case R.id.menu_profile:
                         if(profileFragment == null) {
                             profileFragment = new ProfileFragment();
                             profileFragment.setArguments(bundle);
@@ -154,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
                         if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
                         if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
                         return true;
+
                     default:
                         return false;
                 }

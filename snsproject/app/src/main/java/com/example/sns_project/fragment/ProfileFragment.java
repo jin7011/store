@@ -1,5 +1,6 @@
 package com.example.sns_project.fragment;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -32,14 +33,12 @@ public class ProfileFragment extends Fragment {
 
     private MyAccount myAccount;
     private FragmentProfileBinding binding;
-    private MainActivity activity;
     private Context context;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private FirebaseUser user;
 
     public ProfileFragment() {
-        this.activity = (MainActivity) getActivity();
     }
 
     @Override
@@ -77,7 +76,10 @@ public class ProfileFragment extends Fragment {
     }
 
     public void withdraw(View view){
-        AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,android.R.style.Theme_DeviceDefault_Dialog);
+
+        AlertDialog.Builder oDialog =
+                new AlertDialog.Builder(
+                getActivity(),android.R.style.Theme_DeviceDefault_Dialog);
 
         oDialog.setMessage("회원탈퇴를 하시겠습니까?\n사용자의 정보가 모두 삭제되지만,\n'작성글'과 '댓글'의 내용은 남아있게 됩니다.")
                 .setPositiveButton("예", new DialogInterface.OnClickListener()
@@ -138,7 +140,7 @@ public class ProfileFragment extends Fragment {
 
     public void logout_dialog(View view){
 
-        AlertDialog.Builder oDialog = new AlertDialog.Builder(activity,
+        AlertDialog.Builder oDialog = new AlertDialog.Builder(getActivity(),
                 android.R.style.Theme_DeviceDefault_Dialog);
 
         oDialog.setMessage("로그아웃 하시겠습니까?").setPositiveButton("예", new DialogInterface.OnClickListener()
@@ -158,7 +160,8 @@ public class ProfileFragment extends Fragment {
     }
 
     public void logout(){
-        this.activity.logout();
+        ((MainActivity)getActivity()).logout();
+//        this.activity.logout();
         Toast("로그아웃 되었습니다.");
     }
 
