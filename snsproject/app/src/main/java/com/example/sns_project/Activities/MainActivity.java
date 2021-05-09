@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -37,7 +38,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import static com.example.sns_project.util.Named.DELETE_RESULT;
+import static com.example.sns_project.util.Named.BOARD_FRAGMENT;
+import static com.example.sns_project.util.Named.LETTER_FRAGMENT;
 import static com.example.sns_project.util.Named.NONE;
+import static com.example.sns_project.util.Named.NOTIFICATION_FRAGMENT;
+import static com.example.sns_project.util.Named.PROFILE_FRAGMENT;
 import static com.example.sns_project.util.Named.SOMETHING_IN_POST;
 import static com.example.sns_project.util.Named.WRITE_RESULT;
 
@@ -62,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(binding.getRoot());
-        setToolbar();
+        setToolbar(BOARD_FRAGMENT);
 
         liveDataMyDataMainModel = new ViewModelProvider(MainActivity.this).get(LiveData_MyData_Main.class);
         liveDataMyDataMainModel.get().observe(this, new Observer<MyAccount>() {
@@ -104,6 +109,8 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch(item.getItemId()) {
                     case R.id.menu_home:
+                        setToolbar(BOARD_FRAGMENT);
+
                         if(boardFragment == null) {
                             boardFragment = new BoardFragment();
                             boardFragment.setArguments(bundle);
@@ -117,6 +124,8 @@ public class MainActivity extends AppCompatActivity {
                         return true;
 
                     case R.id.menu_notification:
+                        setToolbar(NOTIFICATION_FRAGMENT);
+
                         if(notificationFragment == null) {
                             notificationFragment = new NotificationFragment();
                             notificationFragment.setArguments(bundle);
@@ -130,6 +139,8 @@ public class MainActivity extends AppCompatActivity {
                         return true;
 
                     case R.id.menu_letter:
+                        setToolbar(LETTER_FRAGMENT);
+
                         if(letterFragment == null) {
                             letterFragment = new LetterFragment();
                             letterFragment.setArguments(bundle);
@@ -143,6 +154,8 @@ public class MainActivity extends AppCompatActivity {
                         return true;
 
                     case R.id.menu_profile:
+                        setToolbar(PROFILE_FRAGMENT);
+
                         if(profileFragment == null) {
                             profileFragment = new ProfileFragment();
                             profileFragment.setArguments(bundle);
@@ -162,9 +175,45 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void setToolbar(int FragmentStatus){ //기본툴바를 커스텀으로
+
+        if(FragmentStatus == BOARD_FRAGMENT) {
+            toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+            setSupportActionBar(toolbar);
+            binding.toolbarTitle.setVisibility(View.VISIBLE);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            getSupportActionBar().setDisplayShowCustomEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        }
+
+        if(FragmentStatus == NOTIFICATION_FRAGMENT) {
+            toolbar.getMenu().clear(); //오른쪽 inflated 메뉴 없애줌.
+            binding.toolbarTitle.setVisibility(View.GONE); //바인드되어있는 지역표시 가려줌
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setTitle("알림내용");
+        }
+
+        if(FragmentStatus == LETTER_FRAGMENT) {
+            toolbar.getMenu().clear();
+            binding.toolbarTitle.setVisibility(View.GONE);
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setTitle("대화내용");
+        }
+
+        if(FragmentStatus == PROFILE_FRAGMENT) {
+            toolbar.getMenu().clear();
+            binding.toolbarTitle.setVisibility(View.GONE);
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setTitle("내 정보");
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+
+        setToolbar(BOARD_FRAGMENT);
+
         if(AccountInit()){ //계정이 있다면,
             Log.d("resume_accountinit(): ",user.getEmail());
         }
@@ -220,16 +269,7 @@ public class MainActivity extends AppCompatActivity {
             });
 
             return true;
-
         }
-    }
-
-    public void setToolbar(){ //기본툴바를 커스텀으로
-        toolbar = (Toolbar)findViewById(R.id.toolbar_main);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-        getSupportActionBar().setDisplayShowCustomEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
     @Override

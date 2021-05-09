@@ -1,10 +1,13 @@
 package com.example.sns_project.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.sns_project.Activities.MainActivity;
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
@@ -161,6 +165,7 @@ public class BoardFragment extends Fragment {
                 ISUPSCROLL = true;
                 postAdapter.NoMore_Load(false); //새로고침하면 false처리해서 포스트를 받을수 있게 하자(downscrol)
                 PostListModel.get().setValue(NewPostInfos);
+                Toast.makeText(getActivity(),"새로고침 되었습니다.",Toast.LENGTH_SHORT).show();
             }
         });
     }

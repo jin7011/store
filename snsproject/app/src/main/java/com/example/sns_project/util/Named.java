@@ -7,6 +7,11 @@ public class Named {
     public static final int LOADING_VIEWTYPE = 1919;
     public static final int POSTING_VIEWTYPE = 1920;
 
+    public static final int BOARD_FRAGMENT = 1201;
+    public static final int NOTIFICATION_FRAGMENT = 1202;
+    public static final int LETTER_FRAGMENT = 1203;
+    public static final int PROFILE_FRAGMENT = 1204;
+
     public static final int POSTHODER_TO_POSTACTIVITY = 1001;
 
     public static final int DOWN_SROLLED = 500;
