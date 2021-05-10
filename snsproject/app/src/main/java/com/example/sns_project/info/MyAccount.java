@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,9 +18,9 @@ public class MyAccount implements Parcelable {
     private String store;
     private String phone;
     private String businessNum;
-    private ArrayList<ChatRoomInfo> Rooms;
+    private HashMap<String, Date> RoomsKey_Date;
 
-    public MyAccount(String id, String nickname, String image, String location, String store, String phone, String businessNum,ArrayList<ChatRoomInfo> Rooms) {
+    public MyAccount(String id, String nickname, String image, String location, String store, String phone, String businessNum,HashMap<String, Date> RoomsKey_Date) {
         this.id = id;
         this.nickname = nickname;
         this.image = image;
@@ -27,7 +28,7 @@ public class MyAccount implements Parcelable {
         this.store = store;
         this.phone = phone;
         this.businessNum = businessNum;
-        this.Rooms = Rooms;
+        this.RoomsKey_Date = RoomsKey_Date;
     }
 
     protected MyAccount(Parcel in) {
@@ -38,7 +39,16 @@ public class MyAccount implements Parcelable {
         store = in.readString();
         phone = in.readString();
         businessNum = in.readString();
-        Rooms = in.createTypedArrayList(ChatRoomInfo.CREATOR);
+
+        int size = in.readInt();
+        if(size != 0) {
+            RoomsKey_Date = new HashMap<>();
+            for (int i = 0; i < size; i++) {
+                RoomsKey_Date.put(in.readString(), new Date(in.readLong()));
+            }
+        }else{
+            RoomsKey_Date = new HashMap<>();
+        }
     }
 
     @Override
@@ -50,7 +60,15 @@ public class MyAccount implements Parcelable {
         dest.writeString(store);
         dest.writeString(phone);
         dest.writeString(businessNum);
-        dest.writeTypedList(Rooms);
+
+        dest.writeInt(RoomsKey_Date.size());
+        for(Map.Entry<String, Date> entry : RoomsKey_Date.entrySet()) {
+            String key = entry.getKey();
+            Long val = entry.getValue().getTime(); //해쉬값에 있는 int가 number형이라 에러났던건데 그거때문에 오래 삽질했음.
+            dest.writeString(key);
+            dest.writeLong(val);
+        }
+
     }
 
     public static final Creator<MyAccount> CREATOR = new Creator<MyAccount>() {
@@ -73,7 +91,7 @@ public class MyAccount implements Parcelable {
         docData.put("store",store);
         docData.put("phone",phone);
         docData.put("businessNum",businessNum);
-        docData.put("Rooms",Rooms);
+        docData.put("RoomsKey_Date",RoomsKey_Date);
         return  docData;
     }
 
@@ -118,6 +136,12 @@ public class MyAccount implements Parcelable {
     }
     public void setLocation(String location) {
         this.location = location;
+    }
+    public HashMap<String, Date> getRoomsKey_Date() {
+        return RoomsKey_Date;
+    }
+    public void setRoomsKey_Date(HashMap<String, Date> roomsKey_Date) {
+        RoomsKey_Date = roomsKey_Date;
     }
 
     @Override

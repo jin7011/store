@@ -122,7 +122,6 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(activity, PostActivity.class);
 //                Log.d("포스트어댑터","getCreatedAt: "+postList.get(postHolder.getBindingAdapterPosition()).getCreatedAt());
 //                Log.d("포스트어댑터","getDocid: "+postList.get(postHolder.getBindingAdapterPosition()).getDocid());
 //                Log.d("포스트어댑터","getGood_user: "+postList.get(postHolder.getBindingAdapterPosition()).getGood_user());
@@ -136,6 +135,7 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 //                Log.d("포스트어댑터","getTitle: "+postList.get(postHolder.getBindingAdapterPosition()).getTitle());
 //                Log.d("포스트어댑터","getStoragePath: "+postList.get(postHolder.getBindingAdapterPosition()).getStoragePath());
 //                Log.d("포스트어댑터","comment_good_user: "+postList.get(postHolder.getBindingAdapterPosition()).getComments().get(postHolder.getAbsoluteAdapterPosition()).getGood_user());
+                    Intent intent = new Intent(activity, PostActivity.class);
                     intent.putExtra("postInfo", (PostInfo) postList.get(postHolder.getBindingAdapterPosition()));
                     activity.startActivityForResult(intent, POSTHODER_TO_POSTACTIVITY);
                 }

@@ -15,7 +15,8 @@ public class ChatRoomInfo implements Parcelable {
     private ArrayList<LetterInfo> letters;
     private String key;
 
-    public ChatRoomInfo(String sender_nick, String sender_id, String receiver_nick, String receiver_id, Date createdAt, ArrayList<LetterInfo> letters, String key){
+    public ChatRoomInfo(String sender_nick, String sender_id, String receiver_nick,
+                        String receiver_id, Date createdAt, ArrayList<LetterInfo> letters, String key){
         this.sender_nick = sender_nick;
         this.sender_id = sender_id;
         this.receiver_nick = receiver_nick;

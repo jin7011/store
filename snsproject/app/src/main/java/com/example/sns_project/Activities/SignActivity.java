@@ -38,6 +38,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 
 public class SignActivity extends AppCompatActivity {
     private String BUSINESSNUMBER = "";
@@ -160,7 +162,7 @@ public class SignActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
                             myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.getText().toString(),
-                                    binding.phoneNum.getText().toString(),BUSINESSNUMBER,new ArrayList<ChatRoomInfo>());
+                                    binding.phoneNum.getText().toString(),BUSINESSNUMBER,new HashMap<String, Date>());
                             db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {

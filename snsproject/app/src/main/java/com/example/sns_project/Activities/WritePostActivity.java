@@ -2,6 +2,7 @@ package com.example.sns_project.Activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -69,6 +70,7 @@ public class WritePostActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         binding = ActivityWritePostBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         loaderView = findViewById(R.id.loaderLyaout);

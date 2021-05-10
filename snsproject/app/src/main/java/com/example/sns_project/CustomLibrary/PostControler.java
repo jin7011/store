@@ -52,6 +52,8 @@ public class PostControler {
     private RecyclerView recyclerView;
     private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
 
+    public PostControler(){}
+
     public PostControler(String post_location,My_Utility my_utility){
         this.post_location = post_location;
         this.my_utility = my_utility;
@@ -86,6 +88,15 @@ public class PostControler {
         void onFailed();
         void AlreadyDone();
         void CannotSelf();
+    }
+
+    public interface Listener_Complete_Get_RoomsKey {
+        void onComplete_Get_RoomsKey(HashMap<String,Date> RoomsKey_Date);
+    }
+
+    public interface Listener_Complete_Get_Room {
+        void onComplete_Get_Room(ChatRoomInfo room);
+        void onFail();
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts,String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
@@ -552,13 +563,71 @@ public class PostControler {
         }
     }
 
-    public int Find_Comment(ArrayList<CommentInfo> comments, String Key){
+    public void Find_Rooms(String UID,Listener_Complete_Get_RoomsKey listener_complete_get_roomsKey){
+        db.collection("USER").document(UID).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if(documentSnapshot.exists()){
+                    Object bring = (Object)documentSnapshot.get("RoomsKey_Date");
+                    HashMap<String,Date> RoomsKey_Date = new HashMap<>( (Map<? extends String, ? extends Date>) bring);
+                    listener_complete_get_roomsKey.onComplete_Get_RoomsKey(RoomsKey_Date);
+                }
+            }
+        });
+    }
 
+    public void Get_Room(String RoomKey,Listener_Complete_Get_Room complete_get_room){
+
+        db.collection("ChatRoom").document(RoomKey).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot doc) {
+                if(doc.exists()){
+
+                    ArrayList<HashMap<String,Object>> bring = (ArrayList<HashMap<String,Object>>)doc.get("letters");
+                    ArrayList<LetterInfo> Letters = Get_Letter_From_LetterMap(bring);
+
+                    ChatRoomInfo Room = new ChatRoomInfo(
+                            (String)doc.get("sender_nick"),
+                            (String)doc.get("sender_id"),
+                            (String)doc.get("receiver_nick"),
+                            (String)doc.get("receiver_id"),
+                            new Date(doc.getDate("createdAt").getTime()),
+                            Letters,
+                            (String)doc.get("RoomKey")
+                            );
+                    complete_get_room.onComplete_Get_Room(Room);
+                }else{
+                    complete_get_room.onFail();
+                }
+            }
+        });
+
+    }
+
+    public ArrayList<LetterInfo> Get_Letter_From_LetterMap( ArrayList<HashMap<String,Object>> letters){
+        ArrayList<LetterInfo> Letters = new ArrayList<>();
+
+        for(int x=0; x<letters.size(); x++) {
+            HashMap<String, Object> LettersMap = letters.get(x);
+
+            LetterInfo letter = new LetterInfo(
+                    (String)LettersMap.get("sender_nick"),
+                    (String)LettersMap.get("sender_id"),
+                    (String)LettersMap.get("reciever_nick"),
+                    (String)LettersMap.get("reciever_id"),
+                    (String)LettersMap.get("contents"),
+                    ((Timestamp)LettersMap.get("createdAt")).toDate()
+            );
+            Letters.add(letter);
+        }
+        return Letters;
+    }
+
+    public int Find_Comment(ArrayList<CommentInfo> comments, String Key){
         for(int x=0; x<comments.size(); x++){
             if(comments.get(x).getKey().equals(Key))
                 return x;
         }
-
         return -1;
     }
 
@@ -591,43 +660,6 @@ public class PostControler {
                 break;
             }
         }
-    }
-
-    public ArrayList<PostInfo> DeepCopy_ArrayPostInfo(ArrayList<PostInfo> oldone){
-
-        ArrayList<PostInfo> newone = new ArrayList<>();
-
-        for(int x=0; x<oldone.size(); x++) {
-            if(oldone.get(x)==null)
-                continue;
-            newone.add(new PostInfo(oldone.get(x)));
-        }
-
-        return newone;
-    }
-
-    public ArrayList<CommentInfo> DeepCopy_CommentInfo(ArrayList<CommentInfo> oldone){
-
-        ArrayList<CommentInfo> newone = new ArrayList<>();
-
-        for(int x=0; x<oldone.size(); x++) {
-            if(oldone.get(x)==null)
-                continue;
-            newone.add(new CommentInfo(oldone.get(x)));
-        }
-        return newone;
-    }
-
-    public ArrayList<RecommentInfo> deepCopy_RecommentInfo(ArrayList<RecommentInfo> oldone){
-
-        ArrayList<RecommentInfo> newone = new ArrayList<>();
-
-        for(int x=0; x<oldone.size(); x++) {
-            if(oldone.get(x)==null)
-                continue;
-            newone.add(new RecommentInfo(oldone.get(x)));
-        }
-        return newone;
     }
 
     public ArrayList<CommentInfo> Get_CommentArray_From_Store(DocumentSnapshot document){
@@ -755,6 +787,43 @@ public class PostControler {
         );
 
         return postInfo;
+    }
+
+    public ArrayList<PostInfo> DeepCopy_ArrayPostInfo(ArrayList<PostInfo> oldone){
+
+        ArrayList<PostInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++) {
+            if(oldone.get(x)==null)
+                continue;
+            newone.add(new PostInfo(oldone.get(x)));
+        }
+
+        return newone;
+    }
+
+    public ArrayList<CommentInfo> DeepCopy_CommentInfo(ArrayList<CommentInfo> oldone){
+
+        ArrayList<CommentInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++) {
+            if(oldone.get(x)==null)
+                continue;
+            newone.add(new CommentInfo(oldone.get(x)));
+        }
+        return newone;
+    }
+
+    public ArrayList<RecommentInfo> deepCopy_RecommentInfo(ArrayList<RecommentInfo> oldone){
+
+        ArrayList<RecommentInfo> newone = new ArrayList<>();
+
+        for(int x=0; x<oldone.size(); x++) {
+            if(oldone.get(x)==null)
+                continue;
+            newone.add(new RecommentInfo(oldone.get(x)));
+        }
+        return newone;
     }
 
 
