@@ -21,6 +21,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_MyData_Main;
 import com.example.sns_project.databinding.ActivityMainBinding;
@@ -36,6 +37,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
 
 import static com.example.sns_project.util.Named.DELETE_RESULT;
 import static com.example.sns_project.util.Named.BOARD_FRAGMENT;
@@ -60,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private LetterFragment letterFragment;
     private NotificationFragment notificationFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
+    private PostControler postControler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -241,16 +245,18 @@ public class MainActivity extends AppCompatActivity {
                         String phone = document.getString("phone");
                         String businessNum = document.getString("businessNum");
 
+                        postControler = new PostControler(location);
+
                         Log.d("dasdazz",location);
                         if(myAccount == null) {
                             //처음 어플 켰을 때
                             Log.d("dasdazz","null"+location);
-                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
+                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum,postControler.Get_Rooms_From_Store(document));
                             liveDataMyDataMainModel.get().setValue(myAccount);
                         }else if(location != null && !myAccount.getLocation().equals(location)){
                             //지역변경을 하고 왔을 때의 처리
                             Log.d("dasdazz","not_null: "+myAccount.getLocation()+", new: "+location);
-                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum);
+                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum,postControler.Get_Rooms_From_Store(document));
                             liveDataMyDataMainModel.get().setValue(myAccount);
                         }
 
@@ -259,6 +265,8 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("dasdazz","스토리지 널");
                             logout();
                         }
+                    }else{
+                        logout();
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {

@@ -6,7 +6,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
     <uses-feature android:name="android.hardware.camera" />
@@ -20,9 +21,12 @@
         android:roundIcon="@drawable/ic_launcher_background"
         android:supportsRtl="true">
         <activity
+            android:name=".Activities.ChatRoomActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.Snsproject"/>
+        <activity
             android:name=".Activities.SearchActivity"
-            android:theme="@style/Theme.Snsproject"
-            />
+            android:theme="@style/Theme.Snsproject" />
         <activity
             android:name=".Activities.PopupActivity"
             android:theme="@android:style/Theme.Holo.Light.Dialog" />
@@ -59,6 +63,5 @@
             android:name=".Activities.LoginActivity"
             android:theme="@style/Theme.Snsproject" />
     </application>
-
 
 </manifest>

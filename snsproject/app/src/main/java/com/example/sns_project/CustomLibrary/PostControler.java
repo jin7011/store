@@ -5,7 +5,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.CommentInfo;
+import com.example.sns_project.info.LetterInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.My_Utility;
@@ -683,6 +685,57 @@ public class PostControler {
         }
 
         return recommentInfoArrayList;
+    }
+
+    public ArrayList<ChatRoomInfo> Get_Rooms_From_Store(DocumentSnapshot document){
+
+        ArrayList<ChatRoomInfo> RoosArrayList = new ArrayList<>();
+
+        if(((ArrayList<HashMap<String,Object>>) document.getData().get("Rooms")).size() != 0){
+            for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("Rooms")).size(); x++) {
+
+                HashMap<String, Object> Rooms_Map = ((ArrayList<HashMap<String, Object>>) document.getData().get("Rooms")).get(x);
+                /////////////////////////////////////////////////////////////////////////////
+//                Object bring = (Object)Rooms_Map.get("letters");
+//                HashMap<String,Integer> letters = new HashMap<>( (Map<? extends String, ? extends Integer>) bring);
+
+                ChatRoomInfo chatRoomInfo = new ChatRoomInfo(
+                        (String) Rooms_Map.get("sender_nick"),
+                        (String) Rooms_Map.get("sender_id"),
+                        (String) Rooms_Map.get("receiver_nick"),
+                        (String) Rooms_Map.get("receiver_id"),
+                        ((Timestamp)Rooms_Map.get("createdAt")).toDate(),
+                        Get_Letters_From_RoomsMap(Rooms_Map),
+                        (String) Rooms_Map.get("key")
+                );
+
+                RoosArrayList.add(chatRoomInfo);
+
+            }
+        }
+
+        return RoosArrayList;
+    }
+
+    public ArrayList<LetterInfo> Get_Letters_From_RoomsMap(HashMap<String, Object> Rooms_Map ){
+
+        ArrayList<LetterInfo> Letters = new ArrayList<>();
+        ArrayList<HashMap<String, Object>> LettersMapList = (ArrayList<HashMap<String, Object>>)Rooms_Map.get("letters");
+
+        for(int x=0; x<LettersMapList.size(); x++) {
+            HashMap<String, Object> LettersMap = LettersMapList.get(x);
+
+            LetterInfo letter = new LetterInfo(
+                    (String)LettersMap.get("sender_nick"),
+                    (String)LettersMap.get("sender_id"),
+                    (String)LettersMap.get("reciever_nick"),
+                    (String)LettersMap.get("reciever_id"),
+                    (String)LettersMap.get("contents"),
+                    ((Timestamp)LettersMap.get("createdAt")).toDate()
+            );
+            Letters.add(letter);
+        }
+        return Letters;
     }
 
     public PostInfo Get_PostInfo_From_Store(DocumentSnapshot documentSnapshot){

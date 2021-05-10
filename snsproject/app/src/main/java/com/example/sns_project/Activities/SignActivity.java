@@ -22,6 +22,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.ActivitySignUpBinding;
+import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.MyAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -35,6 +36,8 @@ import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class SignActivity extends AppCompatActivity {
     private String BUSINESSNUMBER = "";
@@ -157,7 +160,7 @@ public class SignActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
                             myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.getText().toString(),
-                                    binding.phoneNum.getText().toString(),BUSINESSNUMBER);
+                                    binding.phoneNum.getText().toString(),BUSINESSNUMBER,new ArrayList<ChatRoomInfo>());
                             db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {

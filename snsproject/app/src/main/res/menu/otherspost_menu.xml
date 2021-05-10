@@ -4,11 +4,13 @@
 
     <item
         android:id="@+id/autonew"
-        android:title="글쓰기버튼"
+        android:title="새로고침"
         android:icon="@drawable/ic_autorenew"
         app:showAsAction="always">
     </item>
 
+    <item android:id="@+id/Letter"
+        android:title="쪽지"/>
     <item android:id="@+id/scrap"
         android:title="스크랩"/>
     <item android:id="@+id/submission"

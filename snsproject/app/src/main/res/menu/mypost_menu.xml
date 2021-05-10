@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/autonew"
-        android:title="글쓰기버튼"
+        android:title="새로고침"
         android:icon="@drawable/ic_autorenew"
         app:showAsAction="always">
     </item>

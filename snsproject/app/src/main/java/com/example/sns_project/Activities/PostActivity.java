@@ -361,62 +361,6 @@ public class PostActivity extends AppCompatActivity {
         finish();
     }
 
-    public ArrayList<CommentInfo> get_commentArray_from_Firestore(DocumentSnapshot document){
-
-        ArrayList<CommentInfo> commentInfoArrayList = new ArrayList<>();
-
-        if(((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size() != 0){
-            for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("comments")).size(); x++) {
-
-                HashMap<String, Object> commentsmap = ((ArrayList<HashMap<String, Object>>) document.getData().get("comments")).get(x);
-                Object bring = (Object)commentsmap.get("good_user");
-                HashMap<String,Integer> goodusers = new HashMap<>( (Map<? extends String, ? extends Integer>) bring);
-
-                Log.d("plaas",x+""+goodusers);
-
-                CommentInfo commentInfo = new CommentInfo((String) commentsmap.get("contents"), (String) commentsmap.get("publisher"),
-                        ((Timestamp)commentsmap.get("createdAt")).toDate(),
-                        (String) commentsmap.get("id"),
-                        ((Long)(commentsmap.get("good"))).intValue(),
-                        goodusers,
-                        get_RecommentArray_from_commentsmap(commentsmap),
-                        (String) commentsmap.get("key")
-                );
-                commentInfoArrayList.add(commentInfo);
-
-                for(int xy=0; xy<commentInfoArrayList.size(); xy++){
-                    Log.d("Postcontrol2",xy+""+commentInfoArrayList.get(xy).getGood_user()+"");
-                }
-            }
-        }
-
-        return commentInfoArrayList;
-    }
-
-    public ArrayList<RecommentInfo> get_RecommentArray_from_commentsmap( HashMap<String, Object> commentsmap ){
-        ArrayList<RecommentInfo> recommentInfoArrayList = new ArrayList<>();
-        ArrayList<HashMap<String, Object>> recomments = (ArrayList<HashMap<String, Object>>)commentsmap.get("recomments");
-
-        for(int x=0; x<recomments.size(); x++) {
-            HashMap<String, Object> recommentsmap = recomments.get(x);
-
-            Object bring = (Object)recommentsmap.get("good_user");
-            HashMap<String,Integer> goodusers = new HashMap<>( (Map<? extends String, ? extends Integer>) bring);
-
-            RecommentInfo recommentInfo = new RecommentInfo(
-                    (String)recommentsmap.get("contents"),
-                    (String)recommentsmap.get("publisher"),
-                    ((Timestamp)recommentsmap.get("createdAt")).toDate(),
-                    (String)recommentsmap.get("id"),
-                    ((Long)(recommentsmap.get("good"))).intValue(),
-                    goodusers
-                    );
-
-            recommentInfoArrayList.add(recommentInfo);
-        }
-
-        return recommentInfoArrayList;
-    }
 
     @SuppressLint("NonConstantResourceId")
     @Override
@@ -431,8 +375,11 @@ public class PostActivity extends AppCompatActivity {
             case R.id.submission:
                 Toast("신고되었습니다.");
                 break;
+            case R.id.Letter:
+                Toast("쪽지를 보냅니다. (to_"+postInfo.getPublisher()+")");
+                StartActivity(this,postInfo.getPublisher(),postInfo.getId());
+                break;
             case R.id.autonew:
-
                 item.setEnabled(false);
                 Reset();
                 Handler handler = new Handler();
@@ -479,6 +426,13 @@ public class PostActivity extends AppCompatActivity {
 
     public void Toast(String str){
         Toast.makeText(this,str,Toast.LENGTH_SHORT).show();
+    }
+
+    public void StartActivity(Activity activity,String receiver_publisher,String receiver_id){
+        Intent intent = new Intent(activity,ChatRoomActivity.class);
+        intent.putExtra("receiver_publisher",receiver_publisher);
+        intent.putExtra("receiver_id",receiver_id);
+        startActivity(intent);
     }
 
     private void Loading(boolean ready){
