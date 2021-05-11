@@ -1,4 +1,4 @@
-package com.example.sns_project.Activities;
+package com.example.sns_project.activity;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -35,10 +35,8 @@ import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.My_Utility;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -46,7 +44,6 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 
 import static com.example.sns_project.util.Named.DELETE_RESULT;
 import static com.example.sns_project.util.Named.HORIZEN;
@@ -430,7 +427,7 @@ public class PostActivity extends AppCompatActivity {
 
     public void StartActivity(Activity activity,String receiver_publisher,String receiver_id){
         Intent intent = new Intent(activity,ChatRoomActivity.class);
-        intent.putExtra("receiver_publisher",receiver_publisher);
+        intent.putExtra("receiver_nick",receiver_publisher);
         intent.putExtra("receiver_id",receiver_id);
         startActivity(intent);
     }

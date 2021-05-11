@@ -3,6 +3,7 @@ package com.example.sns_project.CustomLibrary;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.info.ChatRoomInfo;
@@ -20,14 +21,15 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Transaction;
 
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -91,12 +93,21 @@ public class PostControler {
     }
 
     public interface Listener_Complete_Get_RoomsKey {
-        void onComplete_Get_RoomsKey(HashMap<String,Date> RoomsKey_Date);
+        void onComplete_Get_RoomsKey(boolean IsExist);
     }
 
     public interface Listener_Complete_Get_Room {
         void onComplete_Get_Room(ChatRoomInfo room);
         void onFail();
+    }
+
+    public interface Listener_Room_Changed {
+        void onChanged_Room(ChatRoomInfo room);
+        void onFail();
+    }
+
+    public interface Listener_Complete_Set_Room {
+        void onComplete_Set_Room();
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts,String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
@@ -126,7 +137,7 @@ public class PostControler {
                                     if (nickname.contains(KeyWord) || content.contains(KeyWord) || title.contains(KeyWord)) {
 
                                         Log.d("가져옴", document.getId() + " => " + document.getData());
-                                        newPosts.add(new PostInfo(Get_PostInfo_From_Store(document)));
+                                        newPosts.add(new PostInfo(Get_PostInfo_From_Doc(document)));
                                         Log.d("zozozozozo", "찾은거: " + title);
                                     }
                                 }
@@ -161,7 +172,7 @@ public class PostControler {
 
                                 if(document.exists()) {
                                     Log.d("가져옴", document.getId() + " => " + document.getData());
-                                    newPosts.add(new PostInfo(Get_PostInfo_From_Store(document)));
+                                    newPosts.add(new PostInfo(Get_PostInfo_From_Doc(document)));
                                 }
 
                             }///////////////////////////////////////////////////////////////////////완료
@@ -196,7 +207,7 @@ public class PostControler {
                             for (QueryDocumentSnapshot document : task.getResult()) {
 
                                 Log.d("가져옴", document.getId() + " => " + document.getData());
-                                newPosts.add(new PostInfo( Get_PostInfo_From_Store(document) ) );
+                                newPosts.add(new PostInfo( Get_PostInfo_From_Doc(document) ) );
 
                             }///////////////////////////////////////////////////////////////////////완료
                             Log.d("zozozozozo","끝: "+newPosts.size());
@@ -236,7 +247,7 @@ public class PostControler {
 
                         DocumentSnapshot document = task.getResult();
                         if(document.exists()) {
-                            newpostInfo[0] = Get_PostInfo_From_Store(document);
+                            newpostInfo[0] = Get_PostInfo_From_Doc(document);
                             temp.remove(finalIdx);
                             temp.add(finalIdx, newpostInfo[0]);
                             listener_completePostInfos.onComplete_Get_PostsArrays(temp);
@@ -254,7 +265,7 @@ public class PostControler {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                     if (documentSnapshot.exists()){
-                        PostInfo postInfo = Get_PostInfo_From_Store(documentSnapshot);
+                        PostInfo postInfo = Get_PostInfo_From_Doc(documentSnapshot);
                         listener_complete_get_postInfo.onComplete_Get_PostInfo(postInfo);
                     }else{
                         my_utility.Toast("존재하지 않는 게시물입니다.");
@@ -299,7 +310,7 @@ public class PostControler {
 
                 if(isexists) {
                     //읽기작업
-                    PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
+                    PostInfo postInfo = Get_PostInfo_From_Doc(snapshot);
 
                     //쓰기작업
                     commentInfoArrayList.get(position).getRecomments().add(NewRecomment); //해당 대댓글 배열에 추가.
@@ -341,7 +352,7 @@ public class PostControler {
                 //error 트랜잭션으로 넘겨주지만 1초 이내의 동시작업은 에러를 야기하는 치명적인 단점이 존재한다. (거의 동시에 두개 이상의 댓글이 올라가면 하나만 적용되는 에러 -> 하지만 둘다 success로 표기됨)
 
                 //읽기 작업
-                PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
+                PostInfo postInfo = Get_PostInfo_From_Doc(snapshot);
                 ArrayList<CommentInfo> commentInfoArrayList = postInfo.getComments();
                 int commentNum = postInfo.getComment();
 
@@ -391,7 +402,7 @@ public class PostControler {
 
                     if(snapshot.exists()) {
                         //읽기
-                        PostInfo postInfo = Get_PostInfo_From_Store(snapshot);
+                        PostInfo postInfo = Get_PostInfo_From_Doc(snapshot);
                         HashMap<String, Integer> good_users = postInfo.getGood_user();
 
                         //이후에 백그라운드로 DB처리
@@ -449,7 +460,7 @@ public class PostControler {
 
                     if(snapshot.exists()) {
                         //읽기
-                        PostInfo NewPostInfo = Get_PostInfo_From_Store(snapshot);
+                        PostInfo NewPostInfo = Get_PostInfo_From_Doc(snapshot);
                         ArrayList<CommentInfo> comments = NewPostInfo.getComments();
                         CommentInfo comment = comments.get(position);
                         int CommentIDX = 0;
@@ -507,7 +518,7 @@ public class PostControler {
                         int CommentIDX = 0;
                         int RecommentIDX = 0;
                         //읽기
-                        PostInfo NewPostInfo = Get_PostInfo_From_Store(snapshot);
+                        PostInfo NewPostInfo = Get_PostInfo_From_Doc(snapshot);
                         ArrayList<CommentInfo> comments = NewPostInfo.getComments();
                         My_Utility.IDX_Pair IDX_pair = Find_Recomments_From_Parent_Comment(NewPostInfo.getComments(), recomment, Parent_Comment.getKey());
 
@@ -563,45 +574,122 @@ public class PostControler {
         }
     }
 
-    public void Find_Rooms(String UID,Listener_Complete_Get_RoomsKey listener_complete_get_roomsKey){
+    public void Find_Rooms_From_USER(String UID,String Key,Listener_Complete_Get_RoomsKey listener_complete_get_roomsKey){
+
         db.collection("USER").document(UID).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if(documentSnapshot.exists()){
-                    Object bring = (Object)documentSnapshot.get("RoomsKey_Date");
-                    HashMap<String,Date> RoomsKey_Date = new HashMap<>( (Map<? extends String, ? extends Date>) bring);
-                    listener_complete_get_roomsKey.onComplete_Get_RoomsKey(RoomsKey_Date);
+                    ArrayList<String> RoomsKey = (ArrayList<String>)documentSnapshot.get("RoomsKey");
+                    for(String Room : RoomsKey){
+                        if(Room.equals(Key)){
+                            listener_complete_get_roomsKey.onComplete_Get_RoomsKey(true);
+                            break;
+                        }
+                    }
+                    listener_complete_get_roomsKey.onComplete_Get_RoomsKey(false);
+                }else
+                    listener_complete_get_roomsKey.onComplete_Get_RoomsKey(false);
+            }
+        });
+
+    }
+
+    public void Get_Room_From_Store(String Key,Listener_Complete_Get_Room complete_get_room){
+
+        DocumentReference drf = db.collection("ChatRoom").document(Key);
+
+        db.runTransaction(new Transaction.Function<ChatRoomInfo>() {
+            @Nullable
+            @Override
+            public ChatRoomInfo apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot doc = transaction.get(drf);
+                if (doc.exists()) {
+                    Log.d("getRoofromstore","존재해");
+                    ChatRoomInfo Room = Get_Rooms_From_Doc(doc);
+                    return Room;
+                }else {
+                    Log.d("getRoofromstore","존재안해");
+                    return null;
                 }
+            }
+        }).addOnSuccessListener(new OnSuccessListener<ChatRoomInfo>() {
+            @Override
+            public void onSuccess(ChatRoomInfo chatRoomInfo) {
+                if(chatRoomInfo != null)
+                    complete_get_room.onComplete_Get_Room(chatRoomInfo);
+                else
+                    complete_get_room.onFail();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                complete_get_room.onFail();
             }
         });
     }
 
-    public void Get_Room(String RoomKey,Listener_Complete_Get_Room complete_get_room){
+    public void Set_Room(ChatRoomInfo room,String Key,Listener_Complete_Set_Room complete_set_room){
+//todo 룸이 없으면 만들어줄 생각부터 해야댐
+        DocumentReference drf = db.collection("ChatRoom").document(Key);
 
-        db.collection("ChatRoom").document(RoomKey).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Nullable
             @Override
-            public void onSuccess(DocumentSnapshot doc) {
-                if(doc.exists()){
+            public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(drf);
+                if(snapshot.exists())
+                    transaction.update(drf,room.Get_ChatRoomInfo());
+                else{
+                    Log.d("Roomset","만들엊ㅁ");
+                    transaction.set(drf,room.Get_ChatRoomInfo());
+                }
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                complete_set_room.onComplete_Set_Room();
+                Set_RoomKey_User(room.getUser1_id(),Key);
+                Set_RoomKey_User(room.getUser2_id(),Key);
+            }
+        });
+    }
 
-                    ArrayList<HashMap<String,Object>> bring = (ArrayList<HashMap<String,Object>>)doc.get("letters");
-                    ArrayList<LetterInfo> Letters = Get_Letter_From_LetterMap(bring);
+    public void Set_RoomKey_User(String id,String Key){
 
-                    ChatRoomInfo Room = new ChatRoomInfo(
-                            (String)doc.get("sender_nick"),
-                            (String)doc.get("sender_id"),
-                            (String)doc.get("receiver_nick"),
-                            (String)doc.get("receiver_id"),
-                            new Date(doc.getDate("createdAt").getTime()),
-                            Letters,
-                            (String)doc.get("RoomKey")
-                            );
-                    complete_get_room.onComplete_Get_Room(Room);
-                }else{
+        DocumentReference drf = db.collection("USER").document(id);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Nullable
+            @Override
+            public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(drf);
+                ArrayList<String> RoomsKey = (ArrayList<String>)snapshot.get("RoomsKey");
+                RoomsKey.add(Key);
+                transaction.update(drf,"RoomsKey",RoomsKey);
+                return null;
+            }
+        });
+    }
+
+    public void Set_Room_Listener(String Key,Listener_Room_Changed complete_get_room){
+        //채팅방 실시간 리스너
+        DocumentReference docRef = db.collection("ChatRoom").document(Key);
+        docRef.addSnapshotListener(MetadataChanges.INCLUDE, new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot doc,
+                                @Nullable FirebaseFirestoreException e) {
+                if (doc != null && doc.exists()) { //채팅방이 업데이트되었을 때,
+                    Log.d("리스너","룸존재");
+                    ChatRoomInfo Room = Get_Rooms_From_Doc(doc);
+                    complete_get_room.onChanged_Room(Room);
+                } else {
+                    Log.d("리스너","아직없음");
                     complete_get_room.onFail();
                 }
             }
         });
-
     }
 
     public ArrayList<LetterInfo> Get_Letter_From_LetterMap( ArrayList<HashMap<String,Object>> letters){
@@ -719,33 +807,50 @@ public class PostControler {
         return recommentInfoArrayList;
     }
 
-    public ArrayList<ChatRoomInfo> Get_Rooms_From_Store(DocumentSnapshot document){
+    public ChatRoomInfo Get_Rooms_From_Doc(DocumentSnapshot doc){
+
+        ArrayList<HashMap<String,Object>> bring = (ArrayList<HashMap<String,Object>>)doc.get("letters");
+        ArrayList<LetterInfo> Letters = Get_Letter_From_LetterMap(bring);
+
+        ChatRoomInfo Room = new ChatRoomInfo(
+                (String)doc.get("User1"),
+                (String)doc.get("User1_id"),
+                new Date(doc.getDate("User1_OutDate").getTime()),
+                (String)doc.get("User2"),
+                (String)doc.get("User2_id"),
+                new Date(doc.getDate("User2_OutDate").getTime()),
+                new Date(doc.getDate("createdAt").getTime()),
+                Letters,
+                (String)doc.get("key")
+        );
+        return Room;
+    }
+
+    public ArrayList<ChatRoomInfo> Get_Room_From_Doc(DocumentSnapshot doc){
 
         ArrayList<ChatRoomInfo> RoosArrayList = new ArrayList<>();
 
-        if(((ArrayList<HashMap<String,Object>>) document.getData().get("Rooms")).size() != 0){
-            for(int x=0; x<((ArrayList<HashMap<String,Object>>) document.getData().get("Rooms")).size(); x++) {
+        if(((ArrayList<HashMap<String,Object>>) doc.getData().get("Rooms")).size() != 0){
+            for(int x=0; x<((ArrayList<HashMap<String,Object>>) doc.getData().get("Rooms")).size(); x++) {
 
-                HashMap<String, Object> Rooms_Map = ((ArrayList<HashMap<String, Object>>) document.getData().get("Rooms")).get(x);
-                /////////////////////////////////////////////////////////////////////////////
-//                Object bring = (Object)Rooms_Map.get("letters");
-//                HashMap<String,Integer> letters = new HashMap<>( (Map<? extends String, ? extends Integer>) bring);
+                ArrayList<HashMap<String,Object>> bring = (ArrayList<HashMap<String,Object>>)doc.get("letters");
+                ArrayList<LetterInfo> Letters = Get_Letter_From_LetterMap(bring);
 
-                ChatRoomInfo chatRoomInfo = new ChatRoomInfo(
-                        (String) Rooms_Map.get("sender_nick"),
-                        (String) Rooms_Map.get("sender_id"),
-                        (String) Rooms_Map.get("receiver_nick"),
-                        (String) Rooms_Map.get("receiver_id"),
-                        ((Timestamp)Rooms_Map.get("createdAt")).toDate(),
-                        Get_Letters_From_RoomsMap(Rooms_Map),
-                        (String) Rooms_Map.get("key")
+                ChatRoomInfo Room = new ChatRoomInfo(
+                        (String)doc.get("User1"),
+                        (String)doc.get("User1_id"),
+                        new Date(doc.getDate("User1_OutDate").getTime()),
+                        (String)doc.get("User2"),
+                        (String)doc.get("User2_id"),
+                        new Date(doc.getDate("User2_OutDate").getTime()),
+                        new Date(doc.getDate("createdAt").getTime()),
+                        Letters,
+                        (String)doc.get("key")
                 );
 
-                RoosArrayList.add(chatRoomInfo);
-
+                RoosArrayList.add(Room);
             }
         }
-
         return RoosArrayList;
     }
 
@@ -770,7 +875,7 @@ public class PostControler {
         return Letters;
     }
 
-    public PostInfo Get_PostInfo_From_Store(DocumentSnapshot documentSnapshot){
+    public PostInfo Get_PostInfo_From_Doc(DocumentSnapshot documentSnapshot){
         ArrayList<CommentInfo> commentInfoArrayList = Get_CommentArray_From_Store(documentSnapshot);
 
         PostInfo postInfo = new PostInfo(
@@ -815,9 +920,7 @@ public class PostControler {
     }
 
     public ArrayList<RecommentInfo> deepCopy_RecommentInfo(ArrayList<RecommentInfo> oldone){
-
         ArrayList<RecommentInfo> newone = new ArrayList<>();
-
         for(int x=0; x<oldone.size(); x++) {
             if(oldone.get(x)==null)
                 continue;
@@ -826,5 +929,14 @@ public class PostControler {
         return newone;
     }
 
+    public ArrayList<LetterInfo> deepCopy_Letters(ArrayList<LetterInfo> oldone){
+        ArrayList<LetterInfo> newone = new ArrayList<>();
+        for(int x=0; x<oldone.size(); x++) {
+            if(oldone.get(x)==null)
+                continue;
+            newone.add(new LetterInfo(oldone.get(x)));
+        }
+        return newone;
+    }
 
 }

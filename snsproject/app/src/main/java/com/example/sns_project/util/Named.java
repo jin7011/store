@@ -1,5 +1,7 @@
 package com.example.sns_project.util;
 
+import java.util.Date;
+
 public class Named {
     public static final int HORIZEN = 400;
     public static final int VERTICAL= 401;
@@ -11,6 +13,9 @@ public class Named {
     public static final int NOTIFICATION_FRAGMENT = 1202;
     public static final int LETTER_FRAGMENT = 1203;
     public static final int PROFILE_FRAGMENT = 1204;
+
+    public static final int OTHER = 1111;
+    public static final int MINE = 1112;
 
     public static final int POSTHODER_TO_POSTACTIVITY = 1001;
 

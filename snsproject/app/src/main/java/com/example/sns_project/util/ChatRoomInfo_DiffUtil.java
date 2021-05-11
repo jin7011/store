@@ -33,8 +33,9 @@ public class ChatRoomInfo_DiffUtil extends DiffUtil.Callback{
         ChatRoomInfo oldroom = oldrooms.get(oldItemPosition);
         ChatRoomInfo newroom = newrooms.get(oldItemPosition);
 
-        return oldroom.getKey().equals(newroom.getKey()) && IsSameLetter(oldroom.getLetters(),newroom.getLetters()) && oldroom.getReceiver_id().equals(newroom.getReceiver_id())
-                && oldroom.getSender_id().equals(newroom.getSender_id());
+        return oldroom.getKey().equals(newroom.getKey()) && IsSameLetter(oldroom.getLetters(),newroom.getLetters()) && oldroom.getUser2_id().equals(newroom.getUser2_id())
+                && oldroom.getUser1_id().equals(newroom.getUser1_id()) && oldroom.getUser1_OutDate().getTime() == newroom.getUser1_OutDate().getTime() &&
+                oldroom.getUser2_OutDate().getTime() == newroom.getUser2_OutDate().getTime();
     }
 
     private boolean IsSameLetter(ArrayList<LetterInfo> oldletters,ArrayList<LetterInfo> newletters){

@@ -1,4 +1,4 @@
-package com.example.sns_project.Activities;
+package com.example.sns_project.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;

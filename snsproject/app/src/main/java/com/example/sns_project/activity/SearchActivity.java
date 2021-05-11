@@ -1,4 +1,4 @@
-package com.example.sns_project.Activities;
+package com.example.sns_project.activity;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;

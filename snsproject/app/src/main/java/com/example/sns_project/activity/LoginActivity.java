@@ -1,4 +1,4 @@
-package com.example.sns_project.Activities;
+package com.example.sns_project.activity;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;

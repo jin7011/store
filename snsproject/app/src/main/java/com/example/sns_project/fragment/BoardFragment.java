@@ -1,9 +1,7 @@
 package com.example.sns_project.fragment;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +15,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.example.sns_project.Activities.MainActivity;
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;

@@ -1,6 +1,5 @@
-package com.example.sns_project.Activities;
+package com.example.sns_project.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;

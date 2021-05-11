@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.sns_project.Activities.PopupActivity;
+import com.example.sns_project.activity.PopupActivity;
 import com.example.sns_project.R;
 
 public class Change_LocationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {

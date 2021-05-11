@@ -1,4 +1,4 @@
-package com.example.sns_project.Activities;
+package com.example.sns_project.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -39,8 +39,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 
 import static com.example.sns_project.util.Named.DELETE_RESULT;
 import static com.example.sns_project.util.Named.BOARD_FRAGMENT;
@@ -253,12 +251,12 @@ public class MainActivity extends AppCompatActivity {
                         if(myAccount == null) {
                             //처음 어플 켰을 때
                             Log.d("dasdazz","null"+location);
-                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum,new HashMap<String, Date>());
+                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum,new ArrayList<>());
                             liveDataMyDataMainModel.get().setValue(myAccount);
                         }else if(location != null && !myAccount.getLocation().equals(location)){
                             //지역변경을 하고 왔을 때의 처리
                             Log.d("dasdazz","not_null: "+myAccount.getLocation()+", new: "+location);
-                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum,new HashMap<String, Date>());
+                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum,new ArrayList<>());
                             liveDataMyDataMainModel.get().setValue(myAccount);
                         }
 
