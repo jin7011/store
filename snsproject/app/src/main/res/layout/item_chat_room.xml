@@ -72,11 +72,16 @@
                         android:textSize="13sp" />
 
                     <TextView
-                        android:id="@+id/textView2"
+                        android:id="@+id/Letter_countT"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="10"
-                        android:textSize="13.5sp" />
+                        android:background="@drawable/letter_count_bubble"
+                        android:text="300+"
+                        android:textAlignment="center"
+                        android:textColor="@color/white"
+                        android:textSize="10sp"
+                        android:visibility="visible" />
 
                 </LinearLayout>
             </LinearLayout>

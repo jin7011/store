@@ -3,7 +3,6 @@ package com.example.sns_project.info;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,9 +16,9 @@ public class MyAccount implements Parcelable {
     private String store;
     private String phone;
     private String businessNum;
-    private ArrayList<String> RoomsKey;
+    private ArrayList<String> RoomKeys;
 
-    public MyAccount(String id, String nickname, String image, String location, String store, String phone, String businessNum,ArrayList<String> RoomsKey) {
+    public MyAccount(String id, String nickname, String image, String location, String store, String phone, String businessNum,ArrayList<String> RoomKeys) {
         this.id = id;
         this.nickname = nickname;
         this.image = image;
@@ -27,7 +26,7 @@ public class MyAccount implements Parcelable {
         this.store = store;
         this.phone = phone;
         this.businessNum = businessNum;
-        this.RoomsKey = RoomsKey;
+        this.RoomKeys = RoomKeys;
     }
 
     protected MyAccount(Parcel in) {
@@ -38,7 +37,7 @@ public class MyAccount implements Parcelable {
         store = in.readString();
         phone = in.readString();
         businessNum = in.readString();
-        RoomsKey = in.createStringArrayList();
+        RoomKeys = in.createStringArrayList();
     }
 
     @Override
@@ -50,7 +49,7 @@ public class MyAccount implements Parcelable {
         dest.writeString(store);
         dest.writeString(phone);
         dest.writeString(businessNum);
-        dest.writeStringList(RoomsKey);
+        dest.writeStringList(RoomKeys);
     }
 
     public static final Creator<MyAccount> CREATOR = new Creator<MyAccount>() {
@@ -73,7 +72,7 @@ public class MyAccount implements Parcelable {
         docData.put("store",store);
         docData.put("phone",phone);
         docData.put("businessNum",businessNum);
-        docData.put("RoomsKey",RoomsKey);
+        docData.put("RoomsKey", RoomKeys);
         return  docData;
     }
 

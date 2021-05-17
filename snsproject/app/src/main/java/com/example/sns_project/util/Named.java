@@ -18,6 +18,8 @@ public class Named {
     public static final int MINE = 1112;
     public static boolean FIRST_BRING = false;
     public static boolean NEW_MESSAGE = false;
+    public static final int DELETE = 1113;
+    public static final int CREATE = 1114;
 
     public static final int POSTHODER_TO_POSTACTIVITY = 1001;
 

@@ -8,6 +8,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.sns_project.activity.MainActivity;
 import com.example.sns_project.activity.PostActivity;
 import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
@@ -44,7 +46,7 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public ChatRoomAdapter(PostActivity activity) {
+    public ChatRoomAdapter(Activity activity) {
         this.activity = activity;
         this.ChatRooms = new ArrayList<>();
         this.postControler = new PostControler();
@@ -56,12 +58,14 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         TextView sender_nick ;
         TextView Current_time ;
         TextView Current_msg;
+        TextView Letter_Count;
 
         public Room_Holder (@NonNull View itemView) {
             super(itemView);
             sender_nick = itemView.findViewById(R.id.Room_nicknameT);
             Current_time = itemView.findViewById(R.id.Room_dateT);
             Current_msg = itemView.findViewById(R.id.Room_contentT);
+            Letter_Count = itemView.findViewById(R.id.Letter_countT);
         }
     }
 
@@ -79,14 +83,7 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
         Room_Holder roomHolder = (Room_Holder)holder;
-//        LetterInfo letterInfo = ChatRooms.get(position).getLetters().get(ChatRooms.get(position).getLetters().size()-1);
-//        String Current_msg = letterInfo.getContents();
-//        String Current_time = MessageTime_to_String(letterInfo.getCreatedAt(),new Date());
-//        String sender_nick = letterInfo.getSender_nick();
-//
-//        roomHolder.Current_msg.setText(Current_msg);
-//        roomHolder.sender_nick.setText(sender_nick);
-//        roomHolder.Current_time.setText(Current_time);
+
 
     }
 

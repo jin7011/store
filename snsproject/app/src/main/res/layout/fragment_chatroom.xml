@@ -3,10 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.LetterFragment">
+    tools:context=".fragment.ChatRoomFragment">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/Letter_RecyclerView"
+        android:id="@+id/ChatRoom_RecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </FrameLayout>

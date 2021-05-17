@@ -172,7 +172,7 @@
                 android:textSize="13.5sp" />
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/Letter_countT"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="10"

@@ -48,6 +48,8 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 import static com.example.sns_project.util.Named.ALREADY_DONE;
+import static com.example.sns_project.util.Named.CREATE;
+import static com.example.sns_project.util.Named.DELETE;
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.NOT_EXIST;
@@ -120,6 +122,10 @@ public class PostControler {
     public interface Listener_Letters_Changed {
         void onChanged_Room(LetterInfo Letters);
         void onFail();
+    }
+
+    public interface Listener_Room_Outdate {
+        void GetOutdate_Room(Long OutDate);
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts,String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
@@ -592,7 +598,7 @@ public class PostControler {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if(documentSnapshot.exists()){
-                    ArrayList<String> RoomsKey = (ArrayList<String>)documentSnapshot.get("RoomsKey");
+                    ArrayList<String> RoomsKey = (ArrayList<String>)documentSnapshot.get("RoomKeys");
                     for(String Room : RoomsKey){
                         if(Room.equals(Key)){
                             listener_complete_get_roomsKey.onComplete_Get_RoomsKey(true);
@@ -607,21 +613,37 @@ public class PostControler {
 
     }
 
-    public void Set_RoomKey_User(String id,String Key){
+    public void Set_RoomKey_User(String id,String Key,int order){
 
         DocumentReference drf = Store.collection("USER").document(id);
 
-        Store.runTransaction(new Transaction.Function<Void>() {
-            @Nullable
-            @Override
-            public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
-                DocumentSnapshot snapshot = transaction.get(drf);
-                ArrayList<String> RoomsKey = (ArrayList<String>)snapshot.get("RoomsKey");
-                RoomsKey.add(Key);
-                transaction.update(drf,"RoomsKey",RoomsKey);
-                return null;
-            }
-        });
+        if(order == CREATE) {
+            Store.runTransaction(new Transaction.Function<Void>() {
+                @Nullable
+                @Override
+                public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                    DocumentSnapshot snapshot = transaction.get(drf);
+                    ArrayList<String> Keys = (ArrayList<String>)snapshot.get("RoomKeys");
+                    Keys.add(Key);
+                    transaction.update(drf, "RoomKeys", Keys);
+                    return null;
+                }
+            });
+        }
+
+        if(order == DELETE){
+            Store.runTransaction(new Transaction.Function<Void>() {
+                @Nullable
+                @Override
+                public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                    DocumentSnapshot snapshot = transaction.get(drf);
+                    ArrayList<String> Keys = (ArrayList<String>)snapshot.get("RoomKeys");
+                    Keys.remove(Key);
+                    transaction.update(drf, "RoomKeys", Key);
+                    return null;
+                }
+            });
+        }
     }
 
     public void Update_letter(String Key,LetterInfo letterInfo){
@@ -651,12 +673,20 @@ public class PostControler {
         database.child("Letters").child(Key).push().setValue(letterInfo);
     }
 
-    public void Create_NewRoom(String Key,String my_nick, String my_id, String user2,String user2_id){
+    public void Create_NewRoom(String Key,String my_nick, String my_id, String user2,String user2_id,Listener_Room_Outdate listener_room_outdate){
 
         database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
             @Override
             public void onSuccess(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){ //이미 있는 방이라면, 방에서 나간적이 있는지 체크해서 시간을 넘겨라
+                    ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
+
+                    if(room.getUser1_id().equals(my_id)) {
+                        listener_room_outdate.GetOutdate_Room(room.getUser1_OutDate());
+                    }else{
+                        listener_room_outdate.GetOutdate_Room(room.getUser2_OutDate());
+                    }
+
                 }else{ //새로만들어야 한다면,
                     ChatRoomInfo Room = new ChatRoomInfo(my_nick,my_id,new Date().getTime(),0,user2,user2_id,new Date().getTime(),0,null,Key);
                     database.child("Rooms").child(Key).setValue(Room);

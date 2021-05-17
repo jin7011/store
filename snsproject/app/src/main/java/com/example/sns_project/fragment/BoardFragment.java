@@ -110,11 +110,9 @@ public class BoardFragment extends Fragment {
         PostListModel.get().observeForever(PostList_Observer);
 
         RecyclerInit(view);
-        Log.d("zz","리사이클러뷰 이닛");
-
         RecyclerView_ScrollListener();
-
     }
+
     //추가
     //삭제
     //댓글/좋아요

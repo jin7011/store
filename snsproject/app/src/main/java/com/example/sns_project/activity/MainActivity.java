@@ -26,7 +26,7 @@ import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_MyData_Main;
 import com.example.sns_project.databinding.ActivityMainBinding;
 import com.example.sns_project.fragment.BoardFragment;
-import com.example.sns_project.fragment.LetterFragment;
+import com.example.sns_project.fragment.ChatRoomFragment;
 import com.example.sns_project.fragment.ProfileFragment;
 import com.example.sns_project.fragment.NotificationFragment;
 import com.example.sns_project.info.MyAccount;
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private MyAccount myAccount;
     private BoardFragment boardFragment;
     private ProfileFragment profileFragment;
-    private LetterFragment letterFragment;
+    private ChatRoomFragment chatRoomFragment;
     private NotificationFragment notificationFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
     private PostControler postControler;
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     public void setFragment(){
 
         boardFragment = null;
-        letterFragment = null;
+        chatRoomFragment = null;
         profileFragment = null;
         notificationFragment = null;
 
@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                         if(boardFragment != null) fragmentManager.beginTransaction().show(boardFragment).commit();
                         if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
                         if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
-                        if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
+                        if(chatRoomFragment != null) fragmentManager.beginTransaction().hide(chatRoomFragment).commit();
                         return true;
 
                     case R.id.menu_notification:
@@ -139,19 +139,19 @@ public class MainActivity extends AppCompatActivity {
                         if(notificationFragment != null) fragmentManager.beginTransaction().show(notificationFragment).commit();
                         if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
                         if(boardFragment != null) fragmentManager.beginTransaction().hide(boardFragment).commit();
-                        if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
+                        if(chatRoomFragment != null) fragmentManager.beginTransaction().hide(chatRoomFragment).commit();
                         return true;
 
                     case R.id.menu_letter:
                         setToolbar(LETTER_FRAGMENT);
 
-                        if(letterFragment == null) {
-                            letterFragment = new LetterFragment();
-                            letterFragment.setArguments(bundle);
-                            fragmentManager.beginTransaction().add(R.id.fragment_frame, letterFragment).commit();
+                        if(chatRoomFragment == null) {
+                            chatRoomFragment = new ChatRoomFragment();
+                            chatRoomFragment.setArguments(bundle);
+                            fragmentManager.beginTransaction().add(R.id.fragment_frame, chatRoomFragment).commit();
                         }
 
-                        if(letterFragment!= null) fragmentManager.beginTransaction().show(letterFragment).commit();
+                        if(chatRoomFragment != null) fragmentManager.beginTransaction().show(chatRoomFragment).commit();
                         if(profileFragment != null) fragmentManager.beginTransaction().hide(profileFragment).commit();
                         if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
                         if(boardFragment!= null) fragmentManager.beginTransaction().hide(boardFragment).commit();
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                         if(profileFragment != null) fragmentManager.beginTransaction().show(profileFragment).commit();
                         if(boardFragment != null) fragmentManager.beginTransaction().hide(boardFragment).commit();
                         if(notificationFragment != null) fragmentManager.beginTransaction().hide(notificationFragment).commit();
-                        if(letterFragment != null) fragmentManager.beginTransaction().hide(letterFragment).commit();
+                        if(chatRoomFragment != null) fragmentManager.beginTransaction().hide(chatRoomFragment).commit();
                         return true;
 
                     default:

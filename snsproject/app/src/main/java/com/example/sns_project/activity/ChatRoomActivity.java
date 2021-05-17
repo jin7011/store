@@ -25,6 +25,8 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.util.Named.CREATE;
+import static com.example.sns_project.util.Named.DELETE;
 import static com.example.sns_project.util.Named.FIRST_BRING;
 import static com.example.sns_project.util.Named.NEW_MESSAGE;
 import static com.example.sns_project.util.Named.VERTICAL;
@@ -41,12 +43,10 @@ public class ChatRoomActivity extends AppCompatActivity {
     String my_nick;
     String my_id;
     Long My_OutTime; //메시지 보내는 시점이 될 것이고, 이것이 이후에 대화방을 나가던 아니던간에 이 시점까지만 메시지를 볼 수 있음. (대화방 나가면 나간 시점이 이 시점으로)
-    Long User_OutTime;
     String RoomKey;
     PostControler postControler = new PostControler();
     LiveData_Letters liveData_letters;
     My_Utility my_utility;
-    Boolean FIRST_ROOM = false;
     LetterAdapter adapter;
     RecyclerView recyclerView;
     SwipeRefreshLayout swipe;
@@ -83,7 +83,14 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
 
     private void CreateRoom() {
-        postControler.Create_NewRoom(RoomKey, my_nick, my_id, user_nick, user_id);
+        postControler.Create_NewRoom(RoomKey, my_nick, my_id, user_nick, user_id, new PostControler.Listener_Room_Outdate() {
+            @Override
+            public void GetOutdate_Room(Long OutDate) {
+                My_OutTime = OutDate;
+                Log.d("myoutdate",My_OutTime + "");
+            }
+        });
+
         postControler.Set_count_Zero(RoomKey,my_id);
     }
 
@@ -98,7 +105,6 @@ public class ChatRoomActivity extends AppCompatActivity {
     public void Send_Letter_btn(View view){
         Write_Letter();
         binding.AddLetterT.setText(null);
-        Log.d("qhsor","보내기 눌림 : " +FIRST_ROOM);
     }
 
     private void Write_Letter(){ //글을 보내는 입장
@@ -107,6 +113,10 @@ public class ChatRoomActivity extends AppCompatActivity {
 
         postControler.Update_letter(RoomKey,letter);
 
+        if(liveData_letters.get().getValue() == null){
+            postControler.Set_RoomKey_User(my_id,RoomKey,CREATE); //처음 메시지를 보낸다면 보낸 시점부터는 실제 유저데이터(store)에 채팅방의 키가 기록으로 남겨짐
+            postControler.Set_RoomKey_User(user_id,RoomKey,CREATE);
+        }
     }
     //////////////////////////////////////////////////////////////////////////////////////////////대화내용을 읽기
     private void Bring_letters(){
@@ -181,8 +191,9 @@ public class ChatRoomActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d("emtmxm","");
-        if(liveData_letters.get().getValue() == null)
+        if(liveData_letters.get().getValue() == null) {
             postControler.Delete_Room(RoomKey);
+        }
         else
             postControler.Set_count_Zero(RoomKey,my_id);
     }
