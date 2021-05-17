@@ -16,13 +16,15 @@ public class Named {
 
     public static final int OTHER = 1111;
     public static final int MINE = 1112;
+    public static boolean FIRST_BRING = false;
+    public static boolean NEW_MESSAGE = false;
 
     public static final int POSTHODER_TO_POSTACTIVITY = 1001;
 
     public static final int DOWN_SROLLED = 500;
     public static final int UP_SROLLED = 501;
-    public static final int UPLOAD_LIMIT = 20;
     public static final int SEARCH_LIMIT = 500;
+    public static final int UPLOAD_LIMIT = 20;
 
     public static final int WRITE_RESULT = 1000;
     public static final int DELETE_RESULT = 1001;

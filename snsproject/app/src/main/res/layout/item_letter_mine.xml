@@ -1,34 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/MP"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="11dp">
-
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/iv"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:src="@drawable/ic_person_24" />
-
-    <TextView
-        android:id="@+id/my_nick"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="2dp"
-        android:layout_toLeftOf="@+id/iv"
-        android:text="name"
-        android:textColor="#333333" />
 
     <TextView
         android:id="@+id/my_msg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/my_nick"
+        android:layout_alignParentEnd="true"
         android:layout_marginRight="2dp"
-        android:layout_toLeftOf="@id/iv"
         android:background="@drawable/corner_red"
         android:maxWidth="250dp"
         android:padding="7dp"
@@ -40,8 +24,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@id/my_msg"
-        android:layout_marginRight="8dp"
+        android:layout_marginRight="3dp"
         android:layout_toLeftOf="@+id/my_msg"
         android:text="13:35"
-        android:textSize="12sp" />
+        android:textColor="@color/ultra_gray"
+        android:textSize="9sp" />
 </RelativeLayout>

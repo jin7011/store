@@ -1,6 +1,7 @@
 package com.example.sns_project.Adapter;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
 import com.example.sns_project.info.LetterInfo;
 import com.example.sns_project.util.LetterInfo_DiffUtil;
@@ -18,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.CustomLibrary.PostControler.MessageTime_to_String;
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.MINE;
@@ -29,6 +33,7 @@ public class LetterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private ArrayList<LetterInfo> letters;
     private Activity activity;
     private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    private PostControler postControler = new PostControler();
 
     public LetterAdapter(Activity activity){
         this.activity = activity;
@@ -65,13 +70,11 @@ public class LetterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         //R.layout.item_comments에 존재하지 않는 뷰는 일반적으로는 설정하나마나임
         TextView my_msg ;
         TextView my_time ;
-        TextView my_nick;
 
         public My_Holder (@NonNull View itemView) {
             super(itemView);
             my_time = itemView.findViewById(R.id.my_time);
             my_msg = itemView.findViewById(R.id.my_msg);
-            my_nick = itemView.findViewById(R.id.my_nick);
         }
     }
 
@@ -94,19 +97,20 @@ public class LetterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
         LetterInfo letter = letters.get(position);
+        Date date = new Date();
 
         if(holder instanceof Other_Holder){
             Other_Holder otherHolder = (Other_Holder)holder;
             otherHolder.other_nick.setText(letter.getSender_nick());
             otherHolder.other_msg.setText(letter.getContents());
-            otherHolder.other_time.setText(formatTimeString(letter.getCreatedAt(),new Date()));
+            otherHolder.other_time.setText(MessageTime_to_String(letter.getCreatedAt(),date));
+//            Log.d("acdksld",letter.getCreatedAt()+" cr");
         }
 
         if(holder instanceof My_Holder){
             My_Holder myHolder = (My_Holder)holder;
-            myHolder.my_nick.setText(letter.getSender_nick());
             myHolder.my_msg.setText(letter.getContents());
-            myHolder.my_time.setText(formatTimeString(letter.getCreatedAt(),new Date()));
+            myHolder.my_time.setText(MessageTime_to_String(letter.getCreatedAt(),date));
         }
 
     }
@@ -124,27 +128,4 @@ public class LetterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             return OTHER;
     }
 
-    public static String formatTimeString(Date postdate, Date nowDate){
-
-        long ctime = nowDate.getTime();
-        long regTime = postdate.getTime();
-
-        long diffTime = (ctime - regTime) / 1000;
-        String msg;
-
-        if (diffTime < SEC) {
-            msg = "방금 전";
-        } else if ((diffTime /= SEC) < MIN) {
-            msg = diffTime + "분 전";
-        } else if ((diffTime /= MIN) < HOUR) {
-            msg = new SimpleDateFormat("HH:mm").format(postdate);
-//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
-//            msg = (diffTime) + "일 전";
-//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
-//            msg = (diffTime) + "달 전";
-        } else {
-            msg = new SimpleDateFormat("MM월dd일").format(postdate);
-        }
-        return msg;
-    }
 }

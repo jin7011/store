@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.CustomLibrary.PostControler.MessageTime_to_String;
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.SEC;
@@ -78,14 +79,14 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
         Room_Holder roomHolder = (Room_Holder)holder;
-        LetterInfo letterInfo = ChatRooms.get(position).getLetters().get(ChatRooms.get(position).getLetters().size()-1);
-        String Current_msg = letterInfo.getContents();
-        String Current_time = formatTimeString(letterInfo.getCreatedAt(),new Date());
-        String sender_nick = letterInfo.getSender_nick();
-
-        roomHolder.Current_msg.setText(Current_msg);
-        roomHolder.sender_nick.setText(sender_nick);
-        roomHolder.Current_time.setText(Current_time);
+//        LetterInfo letterInfo = ChatRooms.get(position).getLetters().get(ChatRooms.get(position).getLetters().size()-1);
+//        String Current_msg = letterInfo.getContents();
+//        String Current_time = MessageTime_to_String(letterInfo.getCreatedAt(),new Date());
+//        String sender_nick = letterInfo.getSender_nick();
+//
+//        roomHolder.Current_msg.setText(Current_msg);
+//        roomHolder.sender_nick.setText(sender_nick);
+//        roomHolder.Current_time.setText(Current_time);
 
     }
 

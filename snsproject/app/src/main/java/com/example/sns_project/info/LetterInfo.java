@@ -3,6 +3,7 @@ package com.example.sns_project.info;
 import android.os.Parcel;
 import android.os.Parcelable;
 import java.util.Date;
+import java.util.Map;
 
 public class LetterInfo implements Parcelable {
 
@@ -11,9 +12,11 @@ public class LetterInfo implements Parcelable {
     private String reciever_nick;
     private String reciever_id;
     private String contents;
-    private Date createdAt;
+    private Long createdAt;
 
-    public LetterInfo(String sender_nick, String sender_id, String reciever_nick, String reciever_id, String contents, Date createdAt) {
+    public LetterInfo(){}
+
+    public LetterInfo(String sender_nick, String sender_id, String reciever_nick, String reciever_id, String contents, Long createdAt) {
         this.sender_nick = sender_nick;
         this.sender_id = sender_id;
         this.reciever_nick = reciever_nick;
@@ -31,16 +34,26 @@ public class LetterInfo implements Parcelable {
         this.createdAt = p.getCreatedAt();
     }
 
+    public LetterInfo(Map<String,Object> map){
+        this.sender_nick = (String)map.get("sender_nick");
+        this.sender_id = (String)map.get("sender_id");
+        this.reciever_nick = (String)map.get("reciever_nick");
+        this.reciever_id =(String)map.get("reciever_id");
+        this.contents =(String)map.get("contents");
+        this.createdAt = (Long) map.get("createdAt");
+    }
+
+
     public String getContents() {
         return contents;
     }
     public void setContents(String contents) {
         this.contents = contents;
     }
-    public Date getCreatedAt() {
+    public Long getCreatedAt() {
         return createdAt;
     }
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(Long createdAt) {
         this.createdAt = createdAt;
     }
     public String getSender_nick() {
@@ -74,7 +87,7 @@ public class LetterInfo implements Parcelable {
         reciever_nick = in.readString();
         reciever_id = in.readString();
         contents = in.readString();
-        createdAt = new Date(in.readLong());
+        createdAt = in.readLong();
     }
 
     @Override
@@ -84,7 +97,7 @@ public class LetterInfo implements Parcelable {
         dest.writeString(reciever_nick);
         dest.writeString(reciever_id);
         dest.writeString(contents);
-        dest.writeLong(createdAt.getTime());
+        dest.writeLong(createdAt);
     }
 
     public static final Creator<LetterInfo> CREATOR = new Creator<LetterInfo>() {

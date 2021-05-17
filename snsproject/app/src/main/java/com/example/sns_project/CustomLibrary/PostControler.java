@@ -1,5 +1,7 @@
 package com.example.sns_project.CustomLibrary;
 
+import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -19,25 +21,38 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Transaction;
 
+import java.security.Key;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 import static com.example.sns_project.util.Named.ALREADY_DONE;
+import static com.example.sns_project.util.Named.HOUR;
+import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.NOT_EXIST;
 import static com.example.sns_project.util.Named.SEARCH_LIMIT;
+import static com.example.sns_project.util.Named.SEC;
 import static com.example.sns_project.util.Named.SUCCESS;
 import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
 
@@ -49,7 +64,8 @@ import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
 public class PostControler {
 
     private String post_location;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseFirestore Store = FirebaseFirestore.getInstance();
+    DatabaseReference database = FirebaseDatabase.getInstance().getReference();
     private My_Utility my_utility;
     private RecyclerView recyclerView;
     private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
@@ -96,18 +112,14 @@ public class PostControler {
         void onComplete_Get_RoomsKey(boolean IsExist);
     }
 
-    public interface Listener_Complete_Get_Room {
-        void onComplete_Get_Room(ChatRoomInfo room);
+    public interface Listener_Complete_Get_Letters {
+        void onComplete_Get_Letters(ArrayList<LetterInfo> Letters);
         void onFail();
     }
 
-    public interface Listener_Room_Changed {
-        void onChanged_Room(ChatRoomInfo room);
+    public interface Listener_Letters_Changed {
+        void onChanged_Room(LetterInfo Letters);
         void onFail();
-    }
-
-    public interface Listener_Complete_Set_Room {
-        void onComplete_Set_Room();
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts,String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
@@ -119,7 +131,7 @@ public class PostControler {
 
         Log.d("zozozozozo","시작: "+newPosts.size());
 
-        db.collection(post_location)
+        Store.collection(post_location)
                 .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", OldestDate)//업스크롤 효과 (위에서부터 최신상태로)
                 .limit(SEARCH_LIMIT)
                 .get()
@@ -160,7 +172,7 @@ public class PostControler {
         ArrayList<PostInfo> newPosts = new ArrayList<>();
         Log.d("zozozozozo","시작: "+newPosts.size());
 
-        db.collection(post_location)
+        Store.collection(post_location)
                 .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", NewDate)//업스크롤 효과 (위에서부터 최신상태로)
                 .limit(UPLOAD_LIMIT)
                 .get()
@@ -196,7 +208,7 @@ public class PostControler {
 
         Log.d("zozozozozo","시작: "+newPosts.size());
 
-        db.collection(post_location)
+        Store.collection(post_location)
                 .orderBy("createdAt", Query.Direction.DESCENDING).whereLessThan("createdAt", OldestDate)//업스크롤 효과 (위에서부터 최신상태로)
                 .limit(UPLOAD_LIMIT)
                 .get()
@@ -240,7 +252,7 @@ public class PostControler {
             final PostInfo[] newpostInfo = new PostInfo[1];
             int finalIdx = idx; //위 2줄은 비동기랑 맞추려고 어쩔수없이
 
-            db.collection(post_location).document(docid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            Store.collection(post_location).document(docid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
@@ -261,7 +273,7 @@ public class PostControler {
 
     public void Get_UniPost(String docid, Listener_Complete_Get_PostInfo listener_complete_get_postInfo){
 
-        db.collection(post_location).document(docid).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        Store.collection(post_location).document(docid).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                     if (documentSnapshot.exists()){
@@ -276,7 +288,7 @@ public class PostControler {
 
     public void Set_UniPost(PostInfo postInfo,Listener_Complete_Set_PostInfo listener_complete_set_postInfo){
 
-        db.collection(post_location).document(postInfo.getDocid()).update(postInfo.getPostInfo()).addOnSuccessListener(new OnSuccessListener<Void>() {
+        Store.collection(post_location).document(postInfo.getDocid()).update(postInfo.getPostInfo()).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 listener_complete_set_postInfo.onComplete_Set_PostInfo();
@@ -286,9 +298,9 @@ public class PostControler {
 
     public void Update_ReComments_With_Transaction(String docid,String Key, RecommentInfo NewRecomment,Listener_Complete_Set_PostInfo_Transaction completeListener){
 
-        DocumentReference drf =  db.collection(post_location).document(docid);
+        DocumentReference drf =  Store.collection(post_location).document(docid);
 
-        db.runTransaction(new Transaction.Function<PostInfo>() {
+        Store.runTransaction(new Transaction.Function<PostInfo>() {
             @Override
             public PostInfo apply(Transaction transaction) throws FirebaseFirestoreException {
                 boolean isexists = false;
@@ -343,9 +355,9 @@ public class PostControler {
 
     public void Update_Comments_With_Transaction(String docid,CommentInfo NewComment,Listener_Complete_Set_PostInfo_Transaction completeListener){
 
-        DocumentReference drf =  db.collection(post_location).document(docid);
+        DocumentReference drf =  Store.collection(post_location).document(docid);
 
-        db.runTransaction(new Transaction.Function<PostInfo>() {
+        Store.runTransaction(new Transaction.Function<PostInfo>() {
             @Override
             public PostInfo apply(Transaction transaction) throws FirebaseFirestoreException {
                 DocumentSnapshot snapshot = transaction.get(drf);
@@ -392,10 +404,10 @@ public class PostControler {
         if(postInfo.getId().equals(user.getUid())){
             complete_goodPress.CannotSelf();
         }else {
-            DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+            DocumentReference docref = Store.collection(postInfo.getLocation()).document(postInfo.getDocid());
             //처음 누른다면
             //이후에 DB처리
-            db.runTransaction(new Transaction.Function<My_Utility.Pair>() {
+            Store.runTransaction(new Transaction.Function<My_Utility.Pair>() {
                 @Override
                 public My_Utility.Pair apply(Transaction transaction) throws FirebaseFirestoreException {
                     DocumentSnapshot snapshot = transaction.get(docref);
@@ -447,13 +459,13 @@ public class PostControler {
     public void Press_Good_Comment(PostInfo postInfo,int position,Listener_Complete_GoodPress complete_goodPress){
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+        DocumentReference docref = Store.collection(postInfo.getLocation()).document(postInfo.getDocid());
         String Key = postInfo.getComments().get(position).getKey();
 
         if(postInfo.getComments().get(position).getId().equals(user.getUid())){ //셀프추천
             complete_goodPress.CannotSelf();
         }else {
-            db.runTransaction(new Transaction.Function<My_Utility.Pair>() {
+            Store.runTransaction(new Transaction.Function<My_Utility.Pair>() {
                 @Override
                 public My_Utility.Pair apply(Transaction transaction) throws FirebaseFirestoreException {
                     DocumentSnapshot snapshot = transaction.get(docref);
@@ -505,12 +517,12 @@ public class PostControler {
     public void Press_Good_ReComment(PostInfo postInfo,CommentInfo Parent_Comment,RecommentInfo recomment,Listener_Complete_GoodPress complete_goodPress){
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        DocumentReference docref = db.collection(postInfo.getLocation()).document(postInfo.getDocid());
+        DocumentReference docref = Store.collection(postInfo.getLocation()).document(postInfo.getDocid());
 
         if(recomment.getId().equals(user.getUid())){ //셀프추천
             complete_goodPress.CannotSelf();
         }else {
-            db.runTransaction(new Transaction.Function<My_Utility.Pair>() {
+            Store.runTransaction(new Transaction.Function<My_Utility.Pair>() {
                 @Override
                 public My_Utility.Pair apply(Transaction transaction) throws FirebaseFirestoreException {
                     DocumentSnapshot snapshot = transaction.get(docref);
@@ -576,7 +588,7 @@ public class PostControler {
 
     public void Find_Rooms_From_USER(String UID,String Key,Listener_Complete_Get_RoomsKey listener_complete_get_roomsKey){
 
-        db.collection("USER").document(UID).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        Store.collection("USER").document(UID).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if(documentSnapshot.exists()){
@@ -595,72 +607,11 @@ public class PostControler {
 
     }
 
-    public void Get_Room_From_Store(String Key,Listener_Complete_Get_Room complete_get_room){
-
-        DocumentReference drf = db.collection("ChatRoom").document(Key);
-
-        db.runTransaction(new Transaction.Function<ChatRoomInfo>() {
-            @Nullable
-            @Override
-            public ChatRoomInfo apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
-                DocumentSnapshot doc = transaction.get(drf);
-                if (doc.exists()) {
-                    Log.d("getRoofromstore","존재해");
-                    ChatRoomInfo Room = Get_Rooms_From_Doc(doc);
-                    return Room;
-                }else {
-                    Log.d("getRoofromstore","존재안해");
-                    return null;
-                }
-            }
-        }).addOnSuccessListener(new OnSuccessListener<ChatRoomInfo>() {
-            @Override
-            public void onSuccess(ChatRoomInfo chatRoomInfo) {
-                if(chatRoomInfo != null)
-                    complete_get_room.onComplete_Get_Room(chatRoomInfo);
-                else
-                    complete_get_room.onFail();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                complete_get_room.onFail();
-            }
-        });
-    }
-
-    public void Set_Room(ChatRoomInfo room,String Key,Listener_Complete_Set_Room complete_set_room){
-//todo 룸이 없으면 만들어줄 생각부터 해야댐
-        DocumentReference drf = db.collection("ChatRoom").document(Key);
-
-        db.runTransaction(new Transaction.Function<Void>() {
-            @Nullable
-            @Override
-            public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
-                DocumentSnapshot snapshot = transaction.get(drf);
-                if(snapshot.exists())
-                    transaction.update(drf,room.Get_ChatRoomInfo());
-                else{
-                    Log.d("Roomset","만들엊ㅁ");
-                    transaction.set(drf,room.Get_ChatRoomInfo());
-                }
-                return null;
-            }
-        }).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                complete_set_room.onComplete_Set_Room();
-                Set_RoomKey_User(room.getUser1_id(),Key);
-                Set_RoomKey_User(room.getUser2_id(),Key);
-            }
-        });
-    }
-
     public void Set_RoomKey_User(String id,String Key){
 
-        DocumentReference drf = db.collection("USER").document(id);
+        DocumentReference drf = Store.collection("USER").document(id);
 
-        db.runTransaction(new Transaction.Function<Void>() {
+        Store.runTransaction(new Transaction.Function<Void>() {
             @Nullable
             @Override
             public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
@@ -673,42 +624,149 @@ public class PostControler {
         });
     }
 
-    public void Set_Room_Listener(String Key,Listener_Room_Changed complete_get_room){
-        //채팅방 실시간 리스너
-        DocumentReference docRef = db.collection("ChatRoom").document(Key);
-        docRef.addSnapshotListener(MetadataChanges.INCLUDE, new EventListener<DocumentSnapshot>() {
+    public void Update_letter(String Key,LetterInfo letterInfo){
+
+        Map<String,Object> map = new HashMap<>();
+
+        database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
             @Override
-            public void onEvent(@Nullable DocumentSnapshot doc,
-                                @Nullable FirebaseFirestoreException e) {
-                if (doc != null && doc.exists()) { //채팅방이 업데이트되었을 때,
-                    Log.d("리스너","룸존재");
-                    ChatRoomInfo Room = Get_Rooms_From_Doc(doc);
-                    complete_get_room.onChanged_Room(Room);
-                } else {
-                    Log.d("리스너","아직없음");
-                    complete_get_room.onFail();
+            public void onSuccess(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
+                    if(room.getUser1_id().equals(letterInfo.getSender_id())){
+                        Log.d("dksldho","user2: "+room.getUser2_count()+"");
+                        Log.d("dksldho","user2 +1 : "+ (room.getUser2_count()+1) +"");
+                        map.put("user2_count",room.getUser2_count()+1);
+                        database.child("Rooms").child(Key).updateChildren(map);
+                    }else{
+                        Log.d("dksldho","user1: "+room.getUser1_count()+"");
+                        Log.d("dksldho","user1 +1 : "+ (room.getUser1_count()+1) +"");
+                        map.put("user1_count",room.getUser1_count()+1);
+                        database.child("Rooms").child(Key).updateChildren(map);
+                    }
+                }
+            }
+        });
+
+        database.child("Letters").child(Key).push().setValue(letterInfo);
+    }
+
+    public void Create_NewRoom(String Key,String my_nick, String my_id, String user2,String user2_id){
+
+        database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+            @Override
+            public void onSuccess(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){ //이미 있는 방이라면, 방에서 나간적이 있는지 체크해서 시간을 넘겨라
+                }else{ //새로만들어야 한다면,
+                    ChatRoomInfo Room = new ChatRoomInfo(my_nick,my_id,new Date().getTime(),0,user2,user2_id,new Date().getTime(),0,null,Key);
+                    database.child("Rooms").child(Key).setValue(Room);
                 }
             }
         });
     }
 
-    public ArrayList<LetterInfo> Get_Letter_From_LetterMap( ArrayList<HashMap<String,Object>> letters){
-        ArrayList<LetterInfo> Letters = new ArrayList<>();
+    public void Set_count_Zero(String Key,String my_id){
 
-        for(int x=0; x<letters.size(); x++) {
-            HashMap<String, Object> LettersMap = letters.get(x);
+        database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+            @Override
+            public void onSuccess(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){ //이미 있는 방이라면,
 
-            LetterInfo letter = new LetterInfo(
-                    (String)LettersMap.get("sender_nick"),
-                    (String)LettersMap.get("sender_id"),
-                    (String)LettersMap.get("reciever_nick"),
-                    (String)LettersMap.get("reciever_id"),
-                    (String)LettersMap.get("contents"),
-                    ((Timestamp)LettersMap.get("createdAt")).toDate()
-            );
-            Letters.add(letter);
-        }
-        return Letters;
+                    ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
+
+                    if(room.getUser1_id().equals(my_id)){
+                        Map<String,Object> map = new HashMap<>();
+                        map.put("user1_count",0);
+                        database.child("Rooms").child(Key).updateChildren(map);
+                    }else{
+                        Map<String,Object> map = new HashMap<>();
+                        map.put("user2_count",0);
+                        database.child("Rooms").child(Key).updateChildren(map);
+                    }
+
+                }
+            }
+        });
+    }
+
+    public void Set_Outdate_Room(String Key,String User_id){
+        Map<String,Object> map = new HashMap<>();
+
+       database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+           @Override
+           public void onSuccess(DataSnapshot dataSnapshot) {
+               if(dataSnapshot.exists()){
+                   ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
+
+                   if(room.getUser1_id().equals(User_id)){
+                       map.put("user1_OutDate",new Date().getTime());
+                       database.child("Rooms").child(Key).updateChildren(map);
+                   }else{
+                       map.put("user2_OutDate",new Date().getTime());
+                       database.child("Rooms").child(Key).updateChildren(map);
+                   }
+
+               }
+           }
+       });
+    }
+
+    public void Delete_Room(String Key){
+        database.child("Rooms").child(Key).setValue(null);
+    }
+
+    public void Set_RealtimeListener_onLetters(String Key, Listener_Letters_Changed changed){
+
+        com.google.firebase.database.Query query = database.child("Letters").child(Key)
+                .orderByChild("createdAt")
+                .startAt(new Date().getTime());
+
+        query.addChildEventListener(new ChildEventListener() {
+           @Override
+           public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+               changed.onChanged_Room(snapshot.getValue(LetterInfo.class));
+           }
+           @Override
+           public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) { }
+           @Override
+           public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+           @Override
+           public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+           @Override
+           public void onCancelled(@NonNull DatabaseError error) {}
+       });
+    }
+
+    public void Bring_Letters(String Key,ArrayList<LetterInfo> Letters,Listener_Complete_Get_Letters complete_get_room){
+
+        ArrayList<LetterInfo> NewLetters = Letters == null ? new ArrayList<>() : new ArrayList<>(Letters);
+        ArrayList<LetterInfo> temp =  new ArrayList<>();
+//        Date oldestDate = NewLetters.size() == 0 ? new Date(0) :new Date(NewLetters.get(0).getCreatedAt());
+        Date lastestDate = NewLetters.size() == 0 ? new Date() :new Date(NewLetters.get(0).getCreatedAt());
+
+        com.google.firebase.database.Query query = database.child("Letters").child(Key)
+                .orderByChild("createdAt")
+                .startAt(0)
+                .endAt(lastestDate.getTime())
+                .limitToLast(UPLOAD_LIMIT);
+
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
+                    temp.add(postSnapshot.getValue(LetterInfo.class)); //임시 저장소에 하나씩 받아서 저장
+                    if(temp.size() == snapshot.getChildrenCount()) { // 나올만큼 나왔으면 한번에 데이터를 리스너에 넘긴다.
+                        if(NewLetters.size() != 0)
+                            temp.remove(temp.size()-1); //처음 불러오는 메시지 외에는 마지막항이 이전의 첫번째랑 중복되게 쿼리가 나오기때문에 제거하고 넘긴다.
+                        NewLetters.addAll(0,temp); //통째로 앞쪽에 위치시키기위해서 0번째로 넣고 나머지는 뒤로 밀려나가게 했음.
+                        complete_get_room.onComplete_Get_Letters(NewLetters);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        query.addValueEventListener(valueEventListener);
     }
 
     public int Find_Comment(ArrayList<CommentInfo> comments, String Key){
@@ -807,74 +865,6 @@ public class PostControler {
         return recommentInfoArrayList;
     }
 
-    public ChatRoomInfo Get_Rooms_From_Doc(DocumentSnapshot doc){
-
-        ArrayList<HashMap<String,Object>> bring = (ArrayList<HashMap<String,Object>>)doc.get("letters");
-        ArrayList<LetterInfo> Letters = Get_Letter_From_LetterMap(bring);
-
-        ChatRoomInfo Room = new ChatRoomInfo(
-                (String)doc.get("User1"),
-                (String)doc.get("User1_id"),
-                new Date(doc.getDate("User1_OutDate").getTime()),
-                (String)doc.get("User2"),
-                (String)doc.get("User2_id"),
-                new Date(doc.getDate("User2_OutDate").getTime()),
-                new Date(doc.getDate("createdAt").getTime()),
-                Letters,
-                (String)doc.get("key")
-        );
-        return Room;
-    }
-
-    public ArrayList<ChatRoomInfo> Get_Room_From_Doc(DocumentSnapshot doc){
-
-        ArrayList<ChatRoomInfo> RoosArrayList = new ArrayList<>();
-
-        if(((ArrayList<HashMap<String,Object>>) doc.getData().get("Rooms")).size() != 0){
-            for(int x=0; x<((ArrayList<HashMap<String,Object>>) doc.getData().get("Rooms")).size(); x++) {
-
-                ArrayList<HashMap<String,Object>> bring = (ArrayList<HashMap<String,Object>>)doc.get("letters");
-                ArrayList<LetterInfo> Letters = Get_Letter_From_LetterMap(bring);
-
-                ChatRoomInfo Room = new ChatRoomInfo(
-                        (String)doc.get("User1"),
-                        (String)doc.get("User1_id"),
-                        new Date(doc.getDate("User1_OutDate").getTime()),
-                        (String)doc.get("User2"),
-                        (String)doc.get("User2_id"),
-                        new Date(doc.getDate("User2_OutDate").getTime()),
-                        new Date(doc.getDate("createdAt").getTime()),
-                        Letters,
-                        (String)doc.get("key")
-                );
-
-                RoosArrayList.add(Room);
-            }
-        }
-        return RoosArrayList;
-    }
-
-    public ArrayList<LetterInfo> Get_Letters_From_RoomsMap(HashMap<String, Object> Rooms_Map ){
-
-        ArrayList<LetterInfo> Letters = new ArrayList<>();
-        ArrayList<HashMap<String, Object>> LettersMapList = (ArrayList<HashMap<String, Object>>)Rooms_Map.get("letters");
-
-        for(int x=0; x<LettersMapList.size(); x++) {
-            HashMap<String, Object> LettersMap = LettersMapList.get(x);
-
-            LetterInfo letter = new LetterInfo(
-                    (String)LettersMap.get("sender_nick"),
-                    (String)LettersMap.get("sender_id"),
-                    (String)LettersMap.get("reciever_nick"),
-                    (String)LettersMap.get("reciever_id"),
-                    (String)LettersMap.get("contents"),
-                    ((Timestamp)LettersMap.get("createdAt")).toDate()
-            );
-            Letters.add(letter);
-        }
-        return Letters;
-    }
-
     public PostInfo Get_PostInfo_From_Doc(DocumentSnapshot documentSnapshot){
         ArrayList<CommentInfo> commentInfoArrayList = Get_CommentArray_From_Store(documentSnapshot);
 
@@ -907,18 +897,6 @@ public class PostControler {
         return newone;
     }
 
-    public ArrayList<CommentInfo> DeepCopy_CommentInfo(ArrayList<CommentInfo> oldone){
-
-        ArrayList<CommentInfo> newone = new ArrayList<>();
-
-        for(int x=0; x<oldone.size(); x++) {
-            if(oldone.get(x)==null)
-                continue;
-            newone.add(new CommentInfo(oldone.get(x)));
-        }
-        return newone;
-    }
-
     public ArrayList<RecommentInfo> deepCopy_RecommentInfo(ArrayList<RecommentInfo> oldone){
         ArrayList<RecommentInfo> newone = new ArrayList<>();
         for(int x=0; x<oldone.size(); x++) {
@@ -929,14 +907,66 @@ public class PostControler {
         return newone;
     }
 
-    public ArrayList<LetterInfo> deepCopy_Letters(ArrayList<LetterInfo> oldone){
-        ArrayList<LetterInfo> newone = new ArrayList<>();
-        for(int x=0; x<oldone.size(); x++) {
-            if(oldone.get(x)==null)
-                continue;
-            newone.add(new LetterInfo(oldone.get(x)));
+    @SuppressLint({"DefaultLocale", "SimpleDateFormat"})
+    public static String MessageTime_to_String(long createdAt , Date nowDate){
+
+        long ctime = nowDate.getTime();
+//        long regTime = postdate.getTime();
+
+        long diffTime = Math.abs(ctime - createdAt) / 1000;
+        String msg;
+//        Log.d("acdksld",diffTime+" d");
+//        Log.d("acdksld",ctime+" now");
+//        Log.d("acdksld",createdAt+" createat");
+//        Log.d("acdksld",(ctime - createdAt)+" 차이");
+
+        if (diffTime < SEC) {
+            msg = "방금 전";
+        } else if ((diffTime /= SEC) < MIN) {
+            msg = diffTime + "분 전";
+//        } else if ((diffTime /= MIN) < HOUR) {
+//            msg = new SimpleDateFormat("HH:mm").format(postdate);
+//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
+//            msg = (diffTime) + "일 전";
+//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
+//            msg = (diffTime) + "달 전";
+        } else {
+            msg = new SimpleDateFormat("HH:mm").format(new Date(createdAt));
+            int hour = (Character.getNumericValue(msg.charAt(0))*10 + Character.getNumericValue(msg.charAt(1)));
+            int min = (Character.getNumericValue(msg.charAt(3))*10 + Character.getNumericValue(msg.charAt(4)));
+            if(hour > 12) {
+                msg = "오후 "+ (hour-12) + ":" + String.format("%02d", min);
+            }else
+                msg = "오전 " + msg;
         }
-        return newone;
+
+//        Log.d("acdksld",msg);
+        return msg;
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    public static String Time_to_String(Date postdate, Date nowDate){
+
+        long ctime = nowDate.getTime();
+        long regTime = postdate.getTime();
+
+        long diffTime =  Math.abs(ctime - regTime)/ 1000;
+        String msg = null;
+
+        if (diffTime < SEC) {
+            msg = "방금 전";
+        } else if ((diffTime /= SEC) < MIN) {
+            msg = diffTime + "분 전";
+        } else if ((diffTime /= MIN) < HOUR) {
+            msg = new SimpleDateFormat("HH:mm").format(postdate);
+//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
+//            msg = (diffTime) + "일 전";
+//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
+//            msg = (diffTime) + "달 전";
+        } else {
+            msg = new SimpleDateFormat("MM월dd일").format(postdate);
+        }
+        return msg;
     }
 
 }

@@ -6,6 +6,8 @@ import com.example.sns_project.info.LetterInfo;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static com.example.sns_project.CustomLibrary.PostControler.MessageTime_to_String;
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.SEC;
@@ -25,7 +27,7 @@ public class ChatRoomInfo_DiffUtil extends DiffUtil.Callback{
         ChatRoomInfo oldroom = oldrooms.get(oldItemPosition);
         ChatRoomInfo newroom = newrooms.get(oldItemPosition);
 
-        return oldroom.getCreatedAt().getTime() == newroom.getCreatedAt().getTime();
+        return oldroom.getKey().equals(newroom.getKey());
     }
 
     @Override
@@ -33,48 +35,10 @@ public class ChatRoomInfo_DiffUtil extends DiffUtil.Callback{
         ChatRoomInfo oldroom = oldrooms.get(oldItemPosition);
         ChatRoomInfo newroom = newrooms.get(oldItemPosition);
 
-        return oldroom.getKey().equals(newroom.getKey()) && IsSameLetter(oldroom.getLetters(),newroom.getLetters()) && oldroom.getUser2_id().equals(newroom.getUser2_id())
-                && oldroom.getUser1_id().equals(newroom.getUser1_id()) && oldroom.getUser1_OutDate().getTime() == newroom.getUser1_OutDate().getTime() &&
-                oldroom.getUser2_OutDate().getTime() == newroom.getUser2_OutDate().getTime();
-    }
-
-    private boolean IsSameLetter(ArrayList<LetterInfo> oldletters,ArrayList<LetterInfo> newletters){
-        if(oldletters.size() == newletters.size()){
-            for(int x=0; x<oldletters.size(); x++){
-                LetterInfo oldletter = oldletters.get(x);
-                LetterInfo newletter = newletters.get(x);
-
-                return oldletter.getCreatedAt().getTime() != newletter.getCreatedAt().getTime() || !oldletter.getContents().equals(newletter.getContents())
-                || !oldletter.getReciever_id().equals(newletter.getReciever_id()) || !oldletter.getSender_id().equals(newletter.getSender_id());
-            }
-        }else
-            return false;
-
-        return true;
-    }
-
-    public static String formatTimeString(Date postdate, Date nowDate){
-
-        long ctime = nowDate.getTime();
-        long regTime = postdate.getTime();
-
-        long diffTime = (ctime - regTime) / 1000;
-        String msg = null;
-
-        if (diffTime < SEC) {
-            msg = "방금 전";
-        } else if ((diffTime /= SEC) < MIN) {
-            msg = diffTime + "분 전";
-        } else if ((diffTime /= MIN) < HOUR) {
-            msg = new SimpleDateFormat("HH:mm").format(postdate);
-//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
-//            msg = (diffTime) + "일 전";
-//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
-//            msg = (diffTime) + "달 전";
-        } else {
-            msg = new SimpleDateFormat("MM월dd일").format(postdate);
-        }
-        return msg;
+        return oldroom.getKey().equals(newroom.getKey()) && oldroom.getUser2_id().equals(newroom.getUser2_id())
+                && oldroom.getUser1_id().equals(newroom.getUser1_id()) && oldroom.getUser1_OutDate().equals(newroom.getUser1_OutDate()) &&
+                oldroom.getUser2_OutDate().equals(newroom.getUser2_OutDate())
+                && MessageTime_to_String(oldroom.getLatestDate(),new Date()).equals(MessageTime_to_String(newroom.getLatestDate(),new Date()));
     }
 
     @Override

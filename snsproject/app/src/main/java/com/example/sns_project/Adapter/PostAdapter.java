@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.CustomLibrary.PostControler.Time_to_String;
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.LOADING_VIEWTYPE;
 import static com.example.sns_project.util.Named.MIN;
@@ -152,7 +153,7 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         if(holder instanceof PostHolder) {
             PostInfo postInfo = postList.get(position);
-            postInfo.setHow_Long(formatTimeString(postInfo.getCreatedAt(), new Date()));
+            postInfo.setHow_Long(Time_to_String(postInfo.getCreatedAt(), new Date()));
 
             ((PostHolder) holder).titleT.setText(postInfo.getTitle());
             ((PostHolder) holder).contentT.setText(postInfo.getContents());

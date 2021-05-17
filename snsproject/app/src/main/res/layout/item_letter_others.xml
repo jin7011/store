@@ -7,11 +7,14 @@
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/iv"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:src="@drawable/ic_person_24" />
+        android:layout_marginEnd="5dp"
+        android:src="@drawable/ic_person_24"
+        app:civ_border_color="@color/ultra_gray"
+        app:civ_border_width="0.8dp" />
 
     <TextView
         android:id="@+id/other_nick"
@@ -20,7 +23,8 @@
         android:layout_marginLeft="2dp"
         android:layout_toRightOf="@+id/iv"
         android:text="name"
-        android:textColor="#333333" />
+        android:textColor="#333333"
+        android:textSize="11sp" />
 
     <TextView
         android:id="@+id/other_msg"
@@ -29,7 +33,7 @@
         android:layout_below="@+id/other_nick"
         android:layout_marginLeft="2dp"
         android:layout_toRightOf="@id/iv"
-        android:background="@drawable/corner"
+        android:background="@drawable/others_bubble"
         android:maxWidth="250dp"
         android:padding="7dp"
         android:text="Hello android"
@@ -40,9 +44,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@id/other_msg"
-        android:layout_marginLeft="8dp"
+        android:layout_marginLeft="3dp"
         android:layout_toRightOf="@+id/other_msg"
         android:text="13:35"
-        android:textSize="12sp" />
+        android:textColor="@color/ultra_gray"
+        android:textSize="9sp" />
 </RelativeLayout>
  

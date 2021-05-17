@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.CustomLibrary.PostControler.Time_to_String;
 import static com.example.sns_project.util.Named.HOUR;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.SEC;
@@ -167,7 +168,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Log.d("zpzp",commentInfo.getGood_user()+""+holder.getAbsoluteAdapterPosition());
 
         holder.contentT.setText(commentInfo.getContents());
-        holder.dateT.setText(formatTimeString(commentInfo.getCreatedAt(),new Date()));
+        holder.dateT.setText(Time_to_String(commentInfo.getCreatedAt(),new Date()));
         holder.goodNum.setText(commentInfo.getGood()+"");
 
         if(isposter(position)) { //게시물 작성자가 댓글을 달았을 때,

@@ -10,9 +10,9 @@ import java.util.ArrayList;
 
 public class LiveData_Letters extends ViewModel {
 
-    MutableLiveData<ChatRoomInfo> Letters;
+    MutableLiveData<ArrayList<LetterInfo>> Letters;
 
-    public MutableLiveData<ChatRoomInfo> get(){
+    public MutableLiveData<ArrayList<LetterInfo>> get(){
         if(Letters == null){
             Letters = new MutableLiveData<>();
         }
