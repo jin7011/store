@@ -1,6 +1,7 @@
 package com.example.sns_project.Adapter;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +36,11 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final Activity activity;
     private final PostControler postControler;
     private final ArrayList<ChatRoomInfo> ChatRooms;
+    private Listener_NewMessage listener_newMessage;
+
+    public interface Listener_NewMessage{
+        void onNewMessage(ChatRoomInfo room,int position);
+    }
 
     public void ChatRoomInfo_DiffUtile(ArrayList<ChatRoomInfo> NewChatRooms) {
         final ChatRoomInfo_DiffUtil diffCallback = new ChatRoomInfo_DiffUtil(this.ChatRooms, NewChatRooms);
@@ -46,10 +52,11 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public ChatRoomAdapter(Activity activity) {
+    public ChatRoomAdapter(Activity activity,Listener_NewMessage listener_newMessage) {
         this.activity = activity;
         this.ChatRooms = new ArrayList<>();
         this.postControler = new PostControler();
+        this.listener_newMessage = listener_newMessage;
     }
 
     //holder
@@ -83,37 +90,32 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
         Room_Holder roomHolder = (Room_Holder)holder;
+        ChatRoomInfo room = ChatRooms.get(position);
+        String sender = room.getUser1_id().equals(user.getUid()) ? room.getUser2() : room.getUser1();
+        int count = room.getUser1_id().equals(user.getUid()) ? room.getUser1_count() : room.getUser2_count();
 
+        postControler.Listener_Room(room.getKey(), new PostControler.Listener_Get_Room() {
+            @Override
+            public void onGetRoom(ChatRoomInfo room) {
+                Log.d("dhkTEk",room.getLatestMessage()+"");
+                listener_newMessage.onNewMessage(room,position);
+            }
+        });
+
+        roomHolder.sender_nick.setText(sender);
+        roomHolder.Current_msg.setText(room.getLatestMessage());
+        roomHolder.Current_time.setText(postControler.MessageTime_to_String(room.getLatestDate(),new Date()));
+        if(count > 0){
+            roomHolder.Letter_Count.setVisibility(View.VISIBLE);
+            roomHolder.Letter_Count.setText(String.valueOf(count));
+        }else
+            roomHolder.Letter_Count.setVisibility(View.INVISIBLE);
 
     }
 
     @Override
     public int getItemCount() {
         return ChatRooms.size();
-    }
-
-    public static String formatTimeString(Date postdate, Date nowDate){
-
-        long ctime = nowDate.getTime();
-        long regTime = postdate.getTime();
-
-        long diffTime = (ctime - regTime) / 1000;
-        String msg;
-
-        if (diffTime < SEC) {
-            msg = "방금 전";
-        } else if ((diffTime /= SEC) < MIN) {
-            msg = diffTime + "분 전";
-        } else if ((diffTime /= MIN) < HOUR) {
-            msg = new SimpleDateFormat("HH:mm").format(postdate);
-//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
-//            msg = (diffTime) + "일 전";
-//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
-//            msg = (diffTime) + "달 전";
-        } else {
-            msg = new SimpleDateFormat("MM월dd일").format(postdate);
-        }
-        return msg;
     }
 
 }

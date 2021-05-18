@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import static com.example.sns_project.util.Named.CREATE;
-import static com.example.sns_project.util.Named.DELETE;
 import static com.example.sns_project.util.Named.FIRST_BRING;
 import static com.example.sns_project.util.Named.NEW_MESSAGE;
 import static com.example.sns_project.util.Named.VERTICAL;
@@ -91,7 +90,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             }
         });
 
-        postControler.Set_count_Zero(RoomKey,my_id);
+        postControler.Set_Count_Zero(RoomKey,my_id);
     }
 
     private void RecyclerViewInit(){
@@ -112,6 +111,8 @@ public class ChatRoomActivity extends AppCompatActivity {
         LetterInfo letter = new LetterInfo(user.getDisplayName(),user.getUid(),user_nick,user_id,content,new Date().getTime());
 
         postControler.Update_letter(RoomKey,letter);
+        postControler.Set_LatestMessage(RoomKey,content,new Date().getTime());
+        postControler.Set_Count_UP(RoomKey);
 
         if(liveData_letters.get().getValue() == null){
             postControler.Set_RoomKey_User(my_id,RoomKey,CREATE); //처음 메시지를 보낸다면 보낸 시점부터는 실제 유저데이터(store)에 채팅방의 키가 기록으로 남겨짐
@@ -127,6 +128,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                 ArrayList<LetterInfo> Bring_Letters = Get_Letters_Before_Date(Letters);
 //                Log.d("NEWpdfpf",Bring_Letters.size()+"");
                 Log.d("NEWpdfpf",Bring_Letters.get(0).getContents()+"");
+                Log.d("NEWpdfpf",Bring_Letters.get(Bring_Letters.size()-1).getContents()+"");
                 if(liveData_letters.get().getValue() == null) FIRST_BRING = true;
                 liveData_letters.get().setValue(Bring_Letters);
             }
@@ -136,9 +138,9 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
 
     private void Set_Listener(){
-        postControler.Set_RealtimeListener_onLetters(RoomKey, new PostControler.Listener_Letters_Changed() {
+        postControler.Set_RealtimeListener_onLetters(RoomKey, new PostControler.Listener_NewLetter() {
             @Override
-            public void onChanged_Room(LetterInfo Letter) {
+            public void Listener_NewLetter(LetterInfo Letter) {
                 ArrayList<LetterInfo> NewLetters = new ArrayList<>();
 
                 if(liveData_letters.get().getValue() != null)
@@ -148,8 +150,6 @@ public class ChatRoomActivity extends AppCompatActivity {
                 NEW_MESSAGE = true;
                 liveData_letters.get().setValue(NewLetters);
             }
-            @Override
-            public void onFail() {}
         });
     }
 
@@ -194,16 +194,20 @@ public class ChatRoomActivity extends AppCompatActivity {
         if(liveData_letters.get().getValue() == null) {
             postControler.Delete_Room(RoomKey);
         }
-        else
-            postControler.Set_count_Zero(RoomKey,my_id);
+        else {
+            LetterInfo latest_letter = liveData_letters.get().getValue().get(liveData_letters.get().getValue().size()-1);
+            postControler.Set_Before_Exit(RoomKey, my_id, latest_letter.getContents(), latest_letter.getCreatedAt());
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         Log.d("tmxkq","");
-        if(liveData_letters.get().getValue() != null)
-            postControler.Set_count_Zero(RoomKey,my_id);
+        if(liveData_letters.get().getValue() != null) {
+            LetterInfo latest_letter = liveData_letters.get().getValue().get(liveData_letters.get().getValue().size()-1);
+            postControler.Set_Before_Exit(RoomKey, my_id, latest_letter.getContents(), latest_letter.getCreatedAt());
+        }
     }
 
     public void Set_Swipe() {

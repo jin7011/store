@@ -3,7 +3,6 @@ package com.example.sns_project.info;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,8 +16,10 @@ public class ChatRoomInfo implements Parcelable {
     private Long user2_OutDate;
     private int user1_count;
     private int user2_count;
-    private Long latestDate;
     private String key;
+
+    private Long latestDate;
+    private String latestMessage;
 
     public ChatRoomInfo(){}
 
@@ -30,7 +31,7 @@ public class ChatRoomInfo implements Parcelable {
                         String User2_id,
                         Long User2_OutDate,
                         int user2_count,
-                        Long latestDate, String key){
+                        String key){
         this.user1 = User1;
         this.user2 = User2;
         this.user1_id = User1_id;
@@ -39,7 +40,7 @@ public class ChatRoomInfo implements Parcelable {
         this.user2_OutDate = User2_OutDate;
         this.user1_count = user1_count;
         this.user2_count = user2_count;
-        this.latestDate = latestDate;
+//        this.latestDate = latestDate;
         this.key = key;
     }
 
@@ -141,6 +142,12 @@ public class ChatRoomInfo implements Parcelable {
     public void setUser2_OutDate(Long user2_OutDate) {
         this.user2_OutDate = user2_OutDate;
     }
+    public String getLatestMessage() {
+        return latestMessage;
+    }
+    public void setLatestMessage(String latestMessage) {
+        this.latestMessage = latestMessage;
+    }
 
     protected ChatRoomInfo(Parcel in) {
         user1 = in.readString();
@@ -152,6 +159,7 @@ public class ChatRoomInfo implements Parcelable {
         user1_count = in.readInt();
         user2_count = in.readInt();
         latestDate = in.readLong();
+        latestMessage = in.readString();
         key = in.readString();
     }
 
@@ -166,6 +174,7 @@ public class ChatRoomInfo implements Parcelable {
         dest.writeInt(user1_count);
         dest.writeInt(user2_count);
         dest.writeLong(latestDate);
+        dest.writeString(latestMessage);
         dest.writeString(key);
     }
 

@@ -1,7 +1,6 @@
 package com.example.sns_project.CustomLibrary;
 
 import android.annotation.SuppressLint;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -26,26 +25,27 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Transaction;
+import com.google.firebase.firestore.model.ServerTimestamps;
+import com.google.firebase.storage.FirebaseStorage;
 
-import java.security.Key;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
+import java.util.TimeZone;
 
 import static com.example.sns_project.util.Named.ALREADY_DONE;
 import static com.example.sns_project.util.Named.CREATE;
@@ -119,13 +119,24 @@ public class PostControler {
         void onFail();
     }
 
-    public interface Listener_Letters_Changed {
-        void onChanged_Room(LetterInfo Letters);
-        void onFail();
+    public interface Listener_NewLetter {
+        void Listener_NewLetter(LetterInfo Letters);
     }
 
     public interface Listener_Room_Outdate {
         void GetOutdate_Room(Long OutDate);
+    }
+
+    public interface Listener_RoomKeys {
+        void Listener_RoomKeys_User(String RoomKey);
+    }
+
+    public interface Listener_Get_RoomKeys {
+        void GetRoomKeys(ArrayList<String> rooms);
+    }
+
+    public interface Listener_Get_Room {
+        void onGetRoom(ChatRoomInfo room);
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts,String KeyWord, Listener_CompletePostInfos listener_completePostInfos){
@@ -610,7 +621,37 @@ public class PostControler {
                     listener_complete_get_roomsKey.onComplete_Get_RoomsKey(false);
             }
         });
+    }
 
+    public void Set_RoomKeys_Listener_From_User(String id, Listener_Get_RoomKeys get_roomKeys){
+        Store.collection("USER").document(id).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                ArrayList<String> rooms = (ArrayList<String>)value.get("RoomKeys");
+                get_roomKeys.GetRoomKeys(rooms);
+            }
+        });
+    }
+
+    public void Get_Rooms_From_User(String id,Listener_Get_RoomKeys get_roomKeys){
+        Store.collection("USER").document(id).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                ArrayList<String> NewRooms = new ArrayList<>();
+                NewRooms = (ArrayList<String>)documentSnapshot.get("RoomKeys");
+                get_roomKeys.GetRoomKeys(NewRooms);
+            }
+        });
+    }
+
+    public void Get_RoomInfo_From_DB(String Key, Listener_Get_Room listener_get_room){
+        database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+            @Override
+            public void onSuccess(DataSnapshot dataSnapshot) {
+                ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
+                listener_get_room.onGetRoom(room);
+            }
+        });
     }
 
     public void Set_RoomKey_User(String id,String Key,int order){
@@ -688,14 +729,73 @@ public class PostControler {
                     }
 
                 }else{ //새로만들어야 한다면,
-                    ChatRoomInfo Room = new ChatRoomInfo(my_nick,my_id,new Date().getTime(),0,user2,user2_id,new Date().getTime(),0,null,Key);
+                    ChatRoomInfo Room = new ChatRoomInfo(my_nick,my_id,new Date().getTime(),0,user2,user2_id,new Date().getTime(),0,Key);
                     database.child("Rooms").child(Key).setValue(Room);
                 }
             }
         });
     }
 
-    public void Set_count_Zero(String Key,String my_id){
+    public void Set_Before_Exit(String Key, String my_id,String latestMessage,Long latestDate){
+
+        database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+            @Override
+            public void onSuccess(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){ //이미 있는 방이라면,
+
+                    ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
+
+                    if(room.getUser1_id().equals(my_id)){
+                        Map<String,Object> map = new HashMap<>();
+                        map.put("user1_count",0);
+                        map.put("latestMessage",latestMessage);
+                        map.put("latestDate",latestDate);
+                        database.child("Rooms").child(Key).updateChildren(map);
+                    }else{
+                        Map<String,Object> map = new HashMap<>();
+                        map.put("user2_count",0);
+                        map.put("latestMessage",latestMessage);
+                        map.put("latestDate",latestDate);
+                        database.child("Rooms").child(Key).updateChildren(map);
+                    }
+
+                }
+            }
+        });
+    }
+
+    public void Set_LatestMessage(String Key,String latestMessage,Long latestDate) {
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("latestMessage", latestMessage);
+        map.put("latestDate", latestDate);
+
+        database.child("Rooms").child(Key).updateChildren(map);
+    }
+
+    public void Set_Count_UP(String Key) {
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("user1_count",0);
+        database.child("Rooms").child(Key).updateChildren(map);
+
+    }
+
+    public void Listener_Room(String Key, Listener_Get_Room get_room){
+
+        com.google.firebase.database.Query query = database.child("Rooms").child(Key).orderByChild("latestMessage").endAt(new Date().getTime());
+
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                get_room.onGetRoom(snapshot.getValue(ChatRoomInfo.class));
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    public void Set_Count_Zero(String Key, String my_id){
 
         database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
             @Override
@@ -718,6 +818,7 @@ public class PostControler {
             }
         });
     }
+
 
     public void Set_Outdate_Room(String Key,String User_id){
         Map<String,Object> map = new HashMap<>();
@@ -745,7 +846,7 @@ public class PostControler {
         database.child("Rooms").child(Key).setValue(null);
     }
 
-    public void Set_RealtimeListener_onLetters(String Key, Listener_Letters_Changed changed){
+    public void Set_RealtimeListener_onLetters(String Key, Listener_NewLetter changed){
 
         com.google.firebase.database.Query query = database.child("Letters").child(Key)
                 .orderByChild("createdAt")
@@ -754,7 +855,7 @@ public class PostControler {
         query.addChildEventListener(new ChildEventListener() {
            @Override
            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-               changed.onChanged_Room(snapshot.getValue(LetterInfo.class));
+               changed.Listener_NewLetter(snapshot.getValue(LetterInfo.class));
            }
            @Override
            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) { }
@@ -772,12 +873,16 @@ public class PostControler {
         ArrayList<LetterInfo> NewLetters = Letters == null ? new ArrayList<>() : new ArrayList<>(Letters);
         ArrayList<LetterInfo> temp =  new ArrayList<>();
 //        Date oldestDate = NewLetters.size() == 0 ? new Date(0) :new Date(NewLetters.get(0).getCreatedAt());
-        Date lastestDate = NewLetters.size() == 0 ? new Date() :new Date(NewLetters.get(0).getCreatedAt());
+        Date latestDate = NewLetters.size() == 0 ? new Date() :new Date(NewLetters.get(0).getCreatedAt());
+
+        Log.d("tlrksd","size : "+NewLetters.size()+" date: "+ latestDate);
+        Log.d("tlrksd","size : "+NewLetters.size()+" date: "+ latestDate + "time: "+ ServerValue.TIMESTAMP);
+
 
         com.google.firebase.database.Query query = database.child("Letters").child(Key)
                 .orderByChild("createdAt")
-                .startAt(0)
-                .endAt(lastestDate.getTime())
+                .startAt(Long.MIN_VALUE)
+                .endAt(latestDate.getTime())
                 .limitToLast(UPLOAD_LIMIT);
 
         ValueEventListener valueEventListener = new ValueEventListener() {
@@ -791,6 +896,7 @@ public class PostControler {
                         NewLetters.addAll(0,temp); //통째로 앞쪽에 위치시키기위해서 0번째로 넣고 나머지는 뒤로 밀려나가게 했음.
                         complete_get_room.onComplete_Get_Letters(NewLetters);
                     }
+//                    Log.d("tlrksd","temp_size : "+temp.size()+" snapshot_size: "+ snapshot.getChildrenCount());
                 }
             }
             @Override
