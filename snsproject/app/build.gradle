@@ -47,10 +47,10 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
     implementation platform('com.google.firebase:firebase-bom:26.6.0')
     implementation 'com.google.firebase:firebase-analytics' // 파이어베이스 앱 분석
-    implementation 'com.google.firebase:firebase-core:18.0.3' // 파이어베이스 코어
+    implementation 'com.google.firebase:firebase-core:19.0.0' // 파이어베이스 코어
     implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-firestore:22.1.2'
-    implementation 'com.google.firebase:firebase-storage:19.2.2'
+    implementation 'com.google.firebase:firebase-firestore:23.0.0'
+    implementation 'com.google.firebase:firebase-storage:20.0.0'
     implementation 'com.firebaseui:firebase-ui-storage:6.4.0'
     implementation 'com.google.firebase:firebase-database'
     //gson

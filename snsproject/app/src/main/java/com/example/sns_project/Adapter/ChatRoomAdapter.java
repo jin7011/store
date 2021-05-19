@@ -1,6 +1,7 @@
 package com.example.sns_project.Adapter;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sns_project.activity.ChatRoomActivity;
 import com.example.sns_project.activity.MainActivity;
 import com.example.sns_project.activity.PostActivity;
 import com.example.sns_project.CustomLibrary.PostControler;
@@ -82,6 +84,20 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_room, parent, false);
         ChatRoomAdapter.Room_Holder roomHolder = new ChatRoomAdapter.Room_Holder(view);
+
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ChatRoomInfo room = ChatRooms.get(roomHolder.getAbsoluteAdapterPosition());
+                String user_nick = room.getUser1_id().equals(user.getUid()) ? room.getUser2() : room.getUser1();
+                String user_id =  room.getUser1_id().equals(user.getUid()) ? room.getUser2_id() : room.getUser1_id();
+                Intent intent = new Intent(activity, ChatRoomActivity.class);
+                Log.d("dnwjdkel","user_nick: " + user_nick+" user_id: "+user_id);
+                intent.putExtra("user_nick",user_nick);
+                intent.putExtra("user_id",user_id);
+                activity.startActivity(intent);
+            }
+        });
 
         return roomHolder;
     }

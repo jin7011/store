@@ -11,6 +11,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import com.example.sns_project.Adapter.LetterAdapter;
 import com.example.sns_project.CustomLibrary.PostControler;
@@ -28,6 +29,7 @@ import java.util.Date;
 import static com.example.sns_project.util.Named.CREATE;
 import static com.example.sns_project.util.Named.FIRST_BRING;
 import static com.example.sns_project.util.Named.NEW_MESSAGE;
+import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
 import static com.example.sns_project.util.Named.VERTICAL;
 
 public class ChatRoomActivity extends AppCompatActivity {
@@ -49,6 +51,9 @@ public class ChatRoomActivity extends AppCompatActivity {
     LetterAdapter adapter;
     RecyclerView recyclerView;
     SwipeRefreshLayout swipe;
+    private RelativeLayout loaderView;
+    private ArrayList<LetterInfo> Loaded_Letters = new ArrayList<>();
+    private int Loaded_IDX = UPLOAD_LIMIT+1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +62,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         binding = ActivityChatRoomBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         swipe = binding.SwipeLetters;
+        loaderView = findViewById(R.id.loaderLyaout);
 
         liveData_letters = new ViewModelProvider(this).get(LiveData_Letters.class);
         liveData_letters.get().observe(this, new Observer<ArrayList<LetterInfo>>() {
@@ -66,6 +72,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                 if(NEW_MESSAGE || FIRST_BRING) {
                     recyclerView.scrollToPosition(Letters.size() - 1);
                     FIRST_BRING = false; NEW_MESSAGE = false;
+                    Log.d("뭔가바뀜","올라가시라구요");
                 }
                 Log.d("뭔가바뀜",Letters.size()+"");
             }
@@ -74,12 +81,12 @@ public class ChatRoomActivity extends AppCompatActivity {
 //        asd();
         Get_Intent();
         CreateRoom();
-        Bring_letters(); // 대화내용 있으면 -> 가져와서 셋하고 리스너달고 없으면 -> 리스너 바로 달고
-        Set_Listener();
         RecyclerViewInit(); //리사이클러뷰 셋팅해줘야함
         Set_Swipe();
         binding.setChatRoomActivity(this);
     }
+
+    //todo 기기마다 시간차이 심해서 서버타임써야하는데 그것도 쓰기 복잡하고 파베에서 지원하는 쿼리 도저히 못써먹겠어서 그냥 통째로 메시지 들고 올거임.
 
     private void CreateRoom() {
         postControler.Create_NewRoom(RoomKey, my_nick, my_id, user_nick, user_id, new PostControler.Listener_Room_Outdate() {
@@ -88,9 +95,15 @@ public class ChatRoomActivity extends AppCompatActivity {
                 My_OutTime = OutDate;
                 Log.d("myoutdate",My_OutTime + "");
             }
+
+            @Override
+            public void Done() {
+                Bring_letters(); // 대화내용 있으면 -> 가져와서 셋하고 리스너달고 없으면 -> 리스너 바로 달고
+                Set_Listener();
+                postControler.Set_Count_Zero(RoomKey,my_id);
+            }
         });
 
-        postControler.Set_Count_Zero(RoomKey,my_id);
     }
 
     private void RecyclerViewInit(){
@@ -121,16 +134,28 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
     //////////////////////////////////////////////////////////////////////////////////////////////대화내용을 읽기
     private void Bring_letters(){
+
+        loaderView.setVisibility(View.VISIBLE);
+        my_utility.Toast("대화내용을 불러오는 중입니다.");
+
         postControler.Bring_Letters(RoomKey,liveData_letters.get().getValue(),new PostControler.Listener_Complete_Get_Letters() {
             @Override
             public void onComplete_Get_Letters(ArrayList<LetterInfo> Letters) { //이미 존재하면 대화내역 불러오기
-//                Log.d("pdfpf",Letters.size()+"");
-                ArrayList<LetterInfo> Bring_Letters = Get_Letters_Before_Date(Letters);
-//                Log.d("NEWpdfpf",Bring_Letters.size()+"");
-                Log.d("NEWpdfpf",Bring_Letters.get(0).getContents()+"");
-                Log.d("NEWpdfpf",Bring_Letters.get(Bring_Letters.size()-1).getContents()+"");
+                Loaded_Letters = Get_Letters_Before_Date(Letters);
+                ArrayList<LetterInfo> BringLetters = new ArrayList<>();
+
+                Log.d("NEWpdfpf",Loaded_Letters.get(0).getContents()+"");
+                Log.d("NEWpdfpf",Loaded_Letters.get(Loaded_Letters.size()-1).getContents()+"");
+
                 if(liveData_letters.get().getValue() == null) FIRST_BRING = true;
-                liveData_letters.get().setValue(Bring_Letters);
+
+                for(int x=0; x<=UPLOAD_LIMIT; x++){
+                    BringLetters.add(Loaded_Letters.get(x));
+                }
+
+                liveData_letters.get().setValue(BringLetters);
+                loaderView.setVisibility(View.GONE);
+                //todo 가져오기는 싹 가져오고 전역변수로 놓고 스크롤링하면서 20개씩 바인드시키자.
             }
             @Override
             public void onFail() {} //없으면 말구
@@ -147,6 +172,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                     NewLetters = new ArrayList<>(liveData_letters.get().getValue());
 
                 NewLetters.add(Letter);
+                Loaded_Letters.add(Letter); //처음 가져온 전체메시지도 최신화 시켜줌
                 NEW_MESSAGE = true;
                 liveData_letters.get().setValue(NewLetters);
             }
@@ -180,10 +206,11 @@ public class ChatRoomActivity extends AppCompatActivity {
 
     private void Get_Intent(){
         Intent intent = getIntent();
-        user_nick = intent.getStringExtra("receiver_nick");
-        user_id = intent.getStringExtra("receiver_id");
+        user_nick = intent.getStringExtra("user_nick");
+        user_id = intent.getStringExtra("user_id");
         my_id = user.getUid();
         my_nick = user.getDisplayName();
+
         MakeKey(user_id, my_id);
     }
 
@@ -218,10 +245,28 @@ public class ChatRoomActivity extends AppCompatActivity {
                 recyclerView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        //swipe 업데이트는 다르게 해줄 필요가 있는게 당기면 위로 정보가 업데이트 되어야 하는데 지금같은 경운 date를 기반으로 아래로 새로고침되니까 새로운 글이 나오지않음
-                        //swipe를 할경우 기존의 List의 뒷부분은 다 지우고 앞부분부터 새로 받아와야함
-                        //반면에 삭제는 가지고 있는 리스트를 그대로 유지하고 내가 쓴 글의 position만 지우고 갱신함.
-                        Bring_letters();
+//                        //swipe 업데이트는 다르게 해줄 필요가 있는게 당기면 위로 정보가 업데이트 되어야 하는데 지금같은 경운 date를 기반으로 아래로 새로고침되니까 새로운 글이 나오지않음
+//                        //swipe를 할경우 기존의 List의 뒷부분은 다 지우고 앞부분부터 새로 받아와야함
+//                        //반면에 삭제는 가지고 있는 리스트를 그대로 유지하고 내가 쓴 글의 position만 지우고 갱신함.
+//                        Bring_letters();
+                        ArrayList<LetterInfo> BringLetters = new ArrayList<>();
+
+                        for(int x = Loaded_IDX; x < Loaded_IDX+UPLOAD_LIMIT; x++){// 21~40
+                            if(Loaded_Letters.get(x) != null){
+                                BringLetters.add(Loaded_Letters.get(x));
+                            }else
+                                break;
+
+                            if(x == Loaded_IDX+UPLOAD_LIMIT-1){ //마지막까지 로드가 되었다면, (이후에 추가로 더 로드할게 있거나, 여기꺼지거나)
+                                Loaded_IDX += 20;
+                                break;
+                            }
+                        }
+
+                        ArrayList<LetterInfo> NewLetter = new ArrayList<>(BringLetters);
+                        NewLetter.addAll(liveData_letters.get().getValue());
+                        Log.d("djWLehkTSk","idx: "+Loaded_IDX+" bring_size: "+BringLetters.size() + " New size: "+NewLetter.size());
+                        liveData_letters.get().setValue(NewLetter);
                         swipe.setRefreshing(false);
                     }
                 }, 500);

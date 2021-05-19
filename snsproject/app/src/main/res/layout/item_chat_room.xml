@@ -17,15 +17,20 @@
             android:layout_marginBottom="3dp"
             android:orientation="horizontal">
 
-            <ImageView
+            <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/imageView_post"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:background="@drawable/ic_person_24" />
+                android:background="@drawable/image_bubble"
+                android:src="@drawable/ic_person_24" />
+<!--                app:civ_border_color="@color/ultra_gray"-->
+<!--                app:civ_border_width="0.8dp" -->
+<!--                />-->
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -39,8 +44,10 @@
                         android:id="@+id/Room_nicknameT"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
                         android:gravity="start|center_vertical"
                         android:text="닉네임"
+                        android:textColor="@color/classicBlue"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -67,8 +74,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:layout_weight="1"
+                        android:maxLines="2"
                         android:text="쪽지내용"
-                        android:textColor="#393636"
+                        android:textColor="@color/textcolor"
                         android:textSize="13sp" />
 
                     <TextView

@@ -427,8 +427,8 @@ public class PostActivity extends AppCompatActivity {
 
     public void StartActivity(Activity activity,String receiver_publisher,String receiver_id){
         Intent intent = new Intent(activity,ChatRoomActivity.class);
-        intent.putExtra("receiver_nick",receiver_publisher);
-        intent.putExtra("receiver_id",receiver_id);
+        intent.putExtra("user_nick",receiver_publisher);
+        intent.putExtra("user_id",receiver_id);
         startActivity(intent);
     }
 

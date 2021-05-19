@@ -43,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -125,6 +126,7 @@ public class PostControler {
 
     public interface Listener_Room_Outdate {
         void GetOutdate_Room(Long OutDate);
+        void Done();
     }
 
     public interface Listener_RoomKeys {
@@ -628,6 +630,7 @@ public class PostControler {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
                 ArrayList<String> rooms = (ArrayList<String>)value.get("RoomKeys");
+                Log.d("tmxhdj",rooms.size()+": 룸갯수user");
                 get_roomKeys.GetRoomKeys(rooms);
             }
         });
@@ -650,6 +653,11 @@ public class PostControler {
             public void onSuccess(DataSnapshot dataSnapshot) {
                 ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
                 listener_get_room.onGetRoom(room);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("GetRoomInfoFRomDB","왜 난리야 대체 : " +e.getCause());
             }
         });
     }
@@ -724,13 +732,16 @@ public class PostControler {
 
                     if(room.getUser1_id().equals(my_id)) {
                         listener_room_outdate.GetOutdate_Room(room.getUser1_OutDate());
+                        listener_room_outdate.Done();
                     }else{
                         listener_room_outdate.GetOutdate_Room(room.getUser2_OutDate());
+                        listener_room_outdate.Done();
                     }
 
                 }else{ //새로만들어야 한다면,
                     ChatRoomInfo Room = new ChatRoomInfo(my_nick,my_id,new Date().getTime(),0,user2,user2_id,new Date().getTime(),0,Key);
                     database.child("Rooms").child(Key).setValue(Room);
+                    listener_room_outdate.Done();
                 }
             }
         });
@@ -813,7 +824,6 @@ public class PostControler {
                         map.put("user2_count",0);
                         database.child("Rooms").child(Key).updateChildren(map);
                     }
-
                 }
             }
         });
@@ -871,38 +881,52 @@ public class PostControler {
     public void Bring_Letters(String Key,ArrayList<LetterInfo> Letters,Listener_Complete_Get_Letters complete_get_room){
 
         ArrayList<LetterInfo> NewLetters = Letters == null ? new ArrayList<>() : new ArrayList<>(Letters);
-        ArrayList<LetterInfo> temp =  new ArrayList<>();
-//        Date oldestDate = NewLetters.size() == 0 ? new Date(0) :new Date(NewLetters.get(0).getCreatedAt());
-        Date latestDate = NewLetters.size() == 0 ? new Date() :new Date(NewLetters.get(0).getCreatedAt());
+//        ArrayList<LetterInfo> temp =  new ArrayList<>();
 
-        Log.d("tlrksd","size : "+NewLetters.size()+" date: "+ latestDate);
-        Log.d("tlrksd","size : "+NewLetters.size()+" date: "+ latestDate + "time: "+ ServerValue.TIMESTAMP);
-
-
-        com.google.firebase.database.Query query = database.child("Letters").child(Key)
-                .orderByChild("createdAt")
-                .startAt(Long.MIN_VALUE)
-                .endAt(latestDate.getTime())
-                .limitToLast(UPLOAD_LIMIT);
-
-        ValueEventListener valueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
-                    temp.add(postSnapshot.getValue(LetterInfo.class)); //임시 저장소에 하나씩 받아서 저장
-                    if(temp.size() == snapshot.getChildrenCount()) { // 나올만큼 나왔으면 한번에 데이터를 리스너에 넘긴다.
-                        if(NewLetters.size() != 0)
-                            temp.remove(temp.size()-1); //처음 불러오는 메시지 외에는 마지막항이 이전의 첫번째랑 중복되게 쿼리가 나오기때문에 제거하고 넘긴다.
-                        NewLetters.addAll(0,temp); //통째로 앞쪽에 위치시키기위해서 0번째로 넣고 나머지는 뒤로 밀려나가게 했음.
-                        complete_get_room.onComplete_Get_Letters(NewLetters);
-                    }
+//        Date latestDate = NewLetters.size() == 0 ? new Date() :new Date(NewLetters.get(0).getCreatedAt());
+//
+//        Log.d("tlrksd","size : "+NewLetters.size()+" date: "+ latestDate);
+//        Log.d("tlrksd","size : "+NewLetters.size()+" date: "+ latestDate + "time: "+ ServerValue.TIMESTAMP);
+//
+//
+//        com.google.firebase.database.Query query = database.child("Letters").child(Key)
+//                .orderByChild("createdAt")
+//                .startAt(Long.MIN_VALUE)
+//                .endAt(latestDate.getTime())
+//                .limitToLast(UPLOAD_LIMIT);
+//
+//        ValueEventListener valueEventListener = new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
+//                    temp.add(postSnapshot.getValue(LetterInfo.class)); //임시 저장소에 하나씩 받아서 저장
+//                    if(temp.size() == snapshot.getChildrenCount()) { // 나올만큼 나왔으면 한번에 데이터를 리스너에 넘긴다.
+//                        if(NewLetters.size() != 0)
+//                            temp.remove(temp.size()-1); //처음 불러오는 메시지 외에는 마지막항이 이전의 첫번째랑 중복되게 쿼리가 나오기때문에 제거하고 넘긴다.
+//                        NewLetters.addAll(0,temp); //통째로 앞쪽에 위치시키기위해서 0번째로 넣고 나머지는 뒤로 밀려나가게 했음.
+//                        complete_get_room.onComplete_Get_Letters(NewLetters);
+//                    }
 //                    Log.d("tlrksd","temp_size : "+temp.size()+" snapshot_size: "+ snapshot.getChildrenCount());
+//                }
+//            }
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {}
+//        };
+//        query.addValueEventListener(valueEventListener);
+
+        database.child("Letters").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+            @Override
+            public void onSuccess(DataSnapshot dataSnapshot) {
+
+                for(Iterator<DataSnapshot> iter = dataSnapshot.getChildren().iterator(); iter.hasNext(); ){
+                    NewLetters.add(iter.next().getValue(LetterInfo.class));
+                    Log.d("anjfrkwudhsk",NewLetters.size()+"");
+
+                    if(!iter.hasNext())
+                        complete_get_room.onComplete_Get_Letters(NewLetters);
                 }
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        };
-        query.addValueEventListener(valueEventListener);
+        });
     }
 
     public int Find_Comment(ArrayList<CommentInfo> comments, String Key){

@@ -17,6 +17,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.sns_project.R;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
