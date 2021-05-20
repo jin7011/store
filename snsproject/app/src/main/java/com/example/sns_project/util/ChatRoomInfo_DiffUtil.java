@@ -38,8 +38,6 @@ public class ChatRoomInfo_DiffUtil extends DiffUtil.Callback{
         ChatRoomInfo oldroom = oldrooms.get(oldItemPosition);
         ChatRoomInfo newroom = newrooms.get(oldItemPosition);
 
-
-
         return oldroom.getKey().equals(newroom.getKey()) && oldroom.getUser2_id().equals(newroom.getUser2_id())
                 && oldroom.getUser1_id().equals(newroom.getUser1_id()) && oldroom.getUser1_OutDate().equals(newroom.getUser1_OutDate()) &&
                 oldroom.getUser2_OutDate().equals(newroom.getUser2_OutDate())

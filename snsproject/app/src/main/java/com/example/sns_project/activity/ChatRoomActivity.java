@@ -1,18 +1,19 @@
 package com.example.sns_project.activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
-
 import com.example.sns_project.Adapter.LetterAdapter;
 import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
@@ -22,7 +23,6 @@ import com.example.sns_project.info.LetterInfo;
 import com.example.sns_project.util.My_Utility;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -51,9 +51,12 @@ public class ChatRoomActivity extends AppCompatActivity {
     LetterAdapter adapter;
     RecyclerView recyclerView;
     SwipeRefreshLayout swipe;
+    private Toolbar toolbar;
     private RelativeLayout loaderView;
     private ArrayList<LetterInfo> Loaded_Letters = new ArrayList<>();
-    private int Loaded_IDX = UPLOAD_LIMIT+1;
+    private boolean Done = false;
+    private int Bring_IDX = 0;
+    private boolean FIRST_CHAT = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +83,7 @@ public class ChatRoomActivity extends AppCompatActivity {
 
 //        asd();
         Get_Intent();
+        Set_Toolbar();
         CreateRoom();
         RecyclerViewInit(); //리사이클러뷰 셋팅해줘야함
         Set_Swipe();
@@ -99,7 +103,6 @@ public class ChatRoomActivity extends AppCompatActivity {
             @Override
             public void Done() {
                 Bring_letters(); // 대화내용 있으면 -> 가져와서 셋하고 리스너달고 없으면 -> 리스너 바로 달고
-                Set_Listener();
                 postControler.Set_Count_Zero(RoomKey,my_id);
             }
         });
@@ -123,11 +126,13 @@ public class ChatRoomActivity extends AppCompatActivity {
         String content = binding.AddLetterT.getText().toString();
         LetterInfo letter = new LetterInfo(user.getDisplayName(),user.getUid(),user_nick,user_id,content,new Date().getTime());
 
-        postControler.Update_letter(RoomKey,letter);
-        postControler.Set_LatestMessage(RoomKey,content,new Date().getTime());
-        postControler.Set_Count_UP(RoomKey);
+        postControler.Update_letter(RoomKey,letter); //todo count
+        postControler.Set_LatestMessage(RoomKey,content,new Date().getTime()); //todo latest
+        postControler.Set_Count_Zero(RoomKey); //todo
 
-        if(liveData_letters.get().getValue() == null){
+        if(FIRST_CHAT){ //todo
+            Log.d("Write_Letter","유저데이터에 룸 건드림");
+            FIRST_CHAT = false;
             postControler.Set_RoomKey_User(my_id,RoomKey,CREATE); //처음 메시지를 보낸다면 보낸 시점부터는 실제 유저데이터(store)에 채팅방의 키가 기록으로 남겨짐
             postControler.Set_RoomKey_User(user_id,RoomKey,CREATE);
         }
@@ -141,20 +146,28 @@ public class ChatRoomActivity extends AppCompatActivity {
         postControler.Bring_Letters(RoomKey,liveData_letters.get().getValue(),new PostControler.Listener_Complete_Get_Letters() {
             @Override
             public void onComplete_Get_Letters(ArrayList<LetterInfo> Letters) { //이미 존재하면 대화내역 불러오기
-                Loaded_Letters = Get_Letters_Before_Date(Letters);
+//                Loaded_Letters = Get_Letters_Before_Date(Letters);
+                Loaded_Letters = Letters;
                 ArrayList<LetterInfo> BringLetters = new ArrayList<>();
 
-                Log.d("NEWpdfpf",Loaded_Letters.get(0).getContents()+"");
-                Log.d("NEWpdfpf",Loaded_Letters.get(Loaded_Letters.size()-1).getContents()+"");
+//                Log.d("NEWpdfpf",Loaded_Letters.get(0).getContents()+"");
+//                Log.d("NEWpdfpf",Loaded_Letters.get(Loaded_Letters.size()-1).getContents()+"");
 
                 if(liveData_letters.get().getValue() == null) FIRST_BRING = true;
 
-                for(int x=0; x<=UPLOAD_LIMIT; x++){
-                    BringLetters.add(Loaded_Letters.get(x));
+                for(int x=Loaded_Letters.size()-1; (x>=Loaded_Letters.size() - UPLOAD_LIMIT) && (x>=0); x--){
+                    BringLetters.add(0,Loaded_Letters.get(x));
                 }
+                Log.d("NEWpdfpf","Loaded_size: " + Loaded_Letters.size()+" Bring_size: "+BringLetters.size());
+                Bring_IDX = BringLetters.size();
+
+                if (Bring_IDX == 0)
+                    FIRST_CHAT = true;
 
                 liveData_letters.get().setValue(BringLetters);
                 loaderView.setVisibility(View.GONE);
+
+                Set_Listener();
                 //todo 가져오기는 싹 가져오고 전역변수로 놓고 스크롤링하면서 20개씩 바인드시키자.
             }
             @Override
@@ -218,12 +231,19 @@ public class ChatRoomActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d("emtmxm","");
-        if(liveData_letters.get().getValue() == null) {
-            postControler.Delete_Room(RoomKey);
-        }
-        else {
+//        if(liveData_letters.get().getValue() == null) {
+//            postControler.Delete_Room(RoomKey);
+//        }
+//        else {
+//            LetterInfo latest_letter = liveData_letters.get().getValue().get(liveData_letters.get().getValue().size()-1);
+//            postControler.Set_Before_Exit(RoomKey, my_id, latest_letter.getContents(), latest_letter.getCreatedAt());
+//        }
+
+        if(liveData_letters.get().getValue() != null && liveData_letters.get().getValue().size() != 0) {
             LetterInfo latest_letter = liveData_letters.get().getValue().get(liveData_letters.get().getValue().size()-1);
-            postControler.Set_Before_Exit(RoomKey, my_id, latest_letter.getContents(), latest_letter.getCreatedAt());
+            postControler.Set_Before_Exit(RoomKey, my_id, latest_letter.getContents(), latest_letter.getCreatedAt()); //todo
+        }else{
+            postControler.Delete_Room(RoomKey);
         }
     }
 
@@ -231,14 +251,15 @@ public class ChatRoomActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         Log.d("tmxkq","");
-        if(liveData_letters.get().getValue() != null) {
+        if(liveData_letters.get().getValue() != null && liveData_letters.get().getValue().size() != 0) {
             LetterInfo latest_letter = liveData_letters.get().getValue().get(liveData_letters.get().getValue().size()-1);
-            postControler.Set_Before_Exit(RoomKey, my_id, latest_letter.getContents(), latest_letter.getCreatedAt());
+            postControler.Set_Before_Exit(RoomKey, my_id, latest_letter.getContents(), latest_letter.getCreatedAt()); //todo
         }
     }
 
     public void Set_Swipe() {
         swipe.setColorSchemeResources(R.color.classicBlue);
+
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -251,27 +272,54 @@ public class ChatRoomActivity extends AppCompatActivity {
 //                        Bring_letters();
                         ArrayList<LetterInfo> BringLetters = new ArrayList<>();
 
-                        for(int x = Loaded_IDX; x < Loaded_IDX+UPLOAD_LIMIT; x++){// 21~40
-                            if(Loaded_Letters.get(x) != null){
-                                BringLetters.add(Loaded_Letters.get(x));
-                            }else
+                        int start = Loaded_Letters.size() - 1 - Bring_IDX;
+                        int end = start - 20;
+
+                        for (start = Loaded_Letters.size() - 1 - Bring_IDX; start > end && start >= 0 && !Done; start--) {// 21~40 반대로해야지
+                            Log.d("ajsidh","start: "+start+"");
+                            if (start < Loaded_Letters.size()) {
+                                BringLetters.add(0, Loaded_Letters.get(start));
+                            } else
                                 break;
 
-                            if(x == Loaded_IDX+UPLOAD_LIMIT-1){ //마지막까지 로드가 되었다면, (이후에 추가로 더 로드할게 있거나, 여기꺼지거나)
-                                Loaded_IDX += 20;
+                            if (start == end + 1) { //마지막까지 로드가 되었다면, (이후에 추가로 더 로드할게 있거나, 여기꺼지거나)
+                                Bring_IDX += 20;
                                 break;
                             }
+
+                            if (start == 0)
+                                Done = true;
                         }
 
                         ArrayList<LetterInfo> NewLetter = new ArrayList<>(BringLetters);
                         NewLetter.addAll(liveData_letters.get().getValue());
-                        Log.d("djWLehkTSk","idx: "+Loaded_IDX+" bring_size: "+BringLetters.size() + " New size: "+NewLetter.size());
                         liveData_letters.get().setValue(NewLetter);
                         swipe.setRefreshing(false);
                     }
                 }, 500);
             }
         });
+
+    }
+
+    public void Set_Toolbar(){
+        toolbar = (Toolbar) findViewById(R.id.toolbar_ChatRoom);
+        setSupportActionBar(toolbar);
+        binding.toolbarTitleChatRoom.setText(user_nick);
+//        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayShowCustomEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case android.R.id.home:
+                onBackPressed();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     //todo adjustPan하면 댓글창이 가려지고, adjustResize하면 리사이클러뷰가 안보이고 해서 생각해봐야하고, USER DB 생각해서 fragment만들어야함

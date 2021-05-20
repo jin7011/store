@@ -17,6 +17,23 @@
         android:layout_height="match_parent"
         tools:context=".activity.ChatRoomActivity">
 
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar_ChatRoom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/toolbar_title_ChatRoom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginLeft="15dp"
+                android:textColor="@color/black"
+                android:textSize="20sp">
+            </TextView>
+        </androidx.appcompat.widget.Toolbar>
+
         <FrameLayout
             android:id="@+id/ChatRe_Frame"
             android:layout_width="0dp"
@@ -24,7 +41,7 @@
             app:layout_constraintBottom_toTopOf="@id/LetterT_LinearLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar_ChatRoom"
             app:layout_constraintVertical_weight="1.1">
             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/Swipe_Letters"

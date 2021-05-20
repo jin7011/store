@@ -25,6 +25,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
@@ -629,9 +630,13 @@ public class PostControler {
         Store.collection("USER").document(id).addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
-                ArrayList<String> rooms = (ArrayList<String>)value.get("RoomKeys");
-                Log.d("tmxhdj",rooms.size()+": 룸갯수user");
-                get_roomKeys.GetRoomKeys(rooms);
+                ArrayList<String> rooms = new ArrayList<>();
+                if(value.exists()) {
+                    rooms = (ArrayList<String>) value.get("RoomKeys") == null ? new ArrayList<>() : (ArrayList<String>) value.get("RoomKeys");
+//                    Log.d("tmxhdj", rooms.size() + ": 룸갯수user");
+                    get_roomKeys.GetRoomKeys(rooms);
+                }else
+                    get_roomKeys.GetRoomKeys(rooms);
             }
         });
     }
@@ -648,16 +653,30 @@ public class PostControler {
     }
 
     public void Get_RoomInfo_From_DB(String Key, Listener_Get_Room listener_get_room){
-        database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+//        database.child("Rooms").child(Key).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+//            @Override
+//            public void onSuccess(DataSnapshot dataSnapshot) {
+//                ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
+//                listener_get_room.onGetRoom(room);
+//            }
+//        }).addOnFailureListener(new OnFailureListener() {
+//            @Override
+//            public void onFailure(@NonNull Exception e) {
+//                Log.d("GetRoomInfoFRomDB","왜 난리야 대체 : " +e.toString());
+//            }
+//        });
+//         get은 특정상황에서 disconnect되는 버그가 있다는 것을 답변받고 쓰지 않기로 했음/
+
+        database.child("Rooms").child(Key).runTransaction(new com.google.firebase.database.Transaction.Handler() {
+            @NonNull
             @Override
-            public void onSuccess(DataSnapshot dataSnapshot) {
-                ChatRoomInfo room = dataSnapshot.getValue(ChatRoomInfo.class);
-                listener_get_room.onGetRoom(room);
+            public com.google.firebase.database.Transaction.Result doTransaction(@NonNull MutableData currentData) {
+                return com.google.firebase.database.Transaction.success(currentData);
             }
-        }).addOnFailureListener(new OnFailureListener() {
             @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d("GetRoomInfoFRomDB","왜 난리야 대체 : " +e.getCause());
+            public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {
+                ChatRoomInfo room = currentData.getValue(ChatRoomInfo.class);
+                listener_get_room.onGetRoom(room);
             }
         });
     }
@@ -784,7 +803,7 @@ public class PostControler {
         database.child("Rooms").child(Key).updateChildren(map);
     }
 
-    public void Set_Count_UP(String Key) {
+    public void Set_Count_Zero(String Key) {
 
         Map<String, Object> map = new HashMap<>();
         map.put("user1_count",0);
@@ -794,7 +813,8 @@ public class PostControler {
 
     public void Listener_Room(String Key, Listener_Get_Room get_room){
 
-        com.google.firebase.database.Query query = database.child("Rooms").child(Key).orderByChild("latestMessage").endAt(new Date().getTime());
+        com.google.firebase.database.Query query = database.child("Rooms").child(Key).orderByChild("latestMessage");
+//                .endAt(new Date().getTime());
 
         query.addValueEventListener(new ValueEventListener() {
             @Override
@@ -804,6 +824,7 @@ public class PostControler {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
+
     }
 
     public void Set_Count_Zero(String Key, String my_id){
@@ -918,12 +939,17 @@ public class PostControler {
             @Override
             public void onSuccess(DataSnapshot dataSnapshot) {
 
-                for(Iterator<DataSnapshot> iter = dataSnapshot.getChildren().iterator(); iter.hasNext(); ){
-                    NewLetters.add(iter.next().getValue(LetterInfo.class));
-                    Log.d("anjfrkwudhsk",NewLetters.size()+"");
+                if(dataSnapshot.exists()) {
+                    for (Iterator<DataSnapshot> iter = dataSnapshot.getChildren().iterator(); iter.hasNext(); ) {
+                        NewLetters.add(iter.next().getValue(LetterInfo.class));
+                        Log.d("anjfrkwudhsk", NewLetters.size() + "");
 
-                    if(!iter.hasNext())
-                        complete_get_room.onComplete_Get_Letters(NewLetters);
+                        if (!iter.hasNext())
+                            complete_get_room.onComplete_Get_Letters(NewLetters);
+                    }
+                }
+                else{
+                    complete_get_room.onComplete_Get_Letters(NewLetters);
                 }
             }
         });

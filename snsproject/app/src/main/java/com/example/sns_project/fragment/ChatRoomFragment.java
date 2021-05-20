@@ -76,8 +76,8 @@ public class ChatRoomFragment extends Fragment {
             @Override
             public void onNewMessage(ChatRoomInfo room, int position) {
                 ArrayList<ChatRoomInfo> rooms = liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : new ArrayList<>(liveData_chatRooms.get().getValue());
-                rooms.remove(position);
-                rooms.add(0,room);
+//                rooms.remove(position);
+//                rooms.add(0,room);
                 liveData_chatRooms.get().setValue(rooms);
             }
         });
@@ -87,12 +87,13 @@ public class ChatRoomFragment extends Fragment {
         postControler = new PostControler();
     }
 
-    private void Set_RoomListener(){
+    private void Set_RoomListener(){ //todo db에서 rooms를 따로 관리하지않고, store에서 한번에 관리해서 리스너를 하나만 달고, 전부 끌어올 수 있으며, 이렇게하면 홀더말고 액티에서 룸리스너를 통해 편하게 디프할수 있음
         Log.d("qpqpq","시작은한거지???");
         postControler.Set_RoomKeys_Listener_From_User(user.getUid(), new PostControler.Listener_Get_RoomKeys() {
             @Override
             public void GetRoomKeys(ArrayList<String> rooms) { //리스너를 붙이는건데 처음에 있는 목록을 다 들고옴
-                ArrayList<ChatRoomInfo> newrooms = liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : new ArrayList<>(liveData_chatRooms.get().getValue());
+//                ArrayList<ChatRoomInfo> newrooms = liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : new ArrayList<>(liveData_chatRooms.get().getValue());
+                ArrayList<ChatRoomInfo> newrooms = new ArrayList<>();
                 Log.d("rkwudha","rooms: "+newrooms.size());
 
                 Set_Value(rooms,newrooms,0);
@@ -102,6 +103,11 @@ public class ChatRoomFragment extends Fragment {
 
     public void Set_Value(ArrayList<String> roomkeys,ArrayList<ChatRoomInfo> newrooms,int idx){
         Log.d("qpqpq","size: "+newrooms.size());
+        if(roomkeys.size() == newrooms.size()) {
+            Log.d("rkwudha", "Keys: " + roomkeys.size() + " rooms: " + newrooms.size());
+            liveData_chatRooms.get().setValue(newrooms);
+            return;
+        }
 
         String key = roomkeys.get(idx);
 
@@ -109,12 +115,7 @@ public class ChatRoomFragment extends Fragment {
             @Override
             public void onGetRoom(ChatRoomInfo room) {
                 newrooms.add(room);
-                if(roomkeys.size() == newrooms.size()){
-                    Log.d("rkwudha","Keys: "+roomkeys.size() + " rooms: "+newrooms.size());
-                    liveData_chatRooms.get().setValue(newrooms);
-                }else{
-                    Set_Value(roomkeys,newrooms,idx+1);
-                }
+                Set_Value(roomkeys,newrooms,idx+1);
             }
         });
     }

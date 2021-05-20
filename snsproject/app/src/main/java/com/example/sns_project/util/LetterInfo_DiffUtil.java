@@ -40,12 +40,12 @@ public class LetterInfo_DiffUtil extends DiffUtil.Callback{
         String olddate = formatTimeString(oldletter.getCreatedAt(),new Date());
         String newdate = formatTimeString(newletter.getCreatedAt(),new Date());
 
-        Log.d(
-                "elvm","old: " + olddate+" new: "+ newdate+" nowdate: "+new Date().getTime()
-               + " zxc: "+formatTimeString(oldletter.getCreatedAt(),new Date())
-                +" oldCreatedat: "+oldletter.getCreatedAt() + " new: "+newletter.getCreatedAt()
-                +" contetnt : "+oldletter.getContents()
-        );
+//        Log.d(
+//                "elvm","old: " + olddate+" new: "+ newdate+" nowdate: "+new Date().getTime()
+//               + " zxc: "+formatTimeString(oldletter.getCreatedAt(),new Date())
+//                +" oldCreatedat: "+oldletter.getCreatedAt() + " new: "+newletter.getCreatedAt()
+//                +" contetnt : "+oldletter.getContents()
+//        );
 
         return oldletter.getSender_id().equals(newletter.getSender_id())
                 && olddate.equals(newdate)
@@ -70,7 +70,7 @@ public class LetterInfo_DiffUtil extends DiffUtil.Callback{
 //        long regTime = postdate.getTime();
 
         long diffTime = Math.abs(ctime - regTime) / 1000;
-        Log.d("vhaptxkdl","createat: "+regTime + " cal: "+diffTime);
+//        Log.d("vhaptxkdl","createat: "+regTime + " cal: "+diffTime);
         String msg;
 
         if (diffTime < SEC) {

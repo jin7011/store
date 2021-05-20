@@ -373,7 +373,7 @@ public class PostActivity extends AppCompatActivity {
                 Toast("신고되었습니다.");
                 break;
             case R.id.Letter:
-                Toast("쪽지를 보냅니다. (to_"+postInfo.getPublisher()+")");
+//                Toast("쪽지를 보냅니다. (to_"+postInfo.getPublisher()+")");
                 StartActivity(this,postInfo.getPublisher(),postInfo.getId());
                 break;
             case R.id.autonew:

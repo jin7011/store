@@ -72,7 +72,7 @@ public class MyAccount implements Parcelable {
         docData.put("store",store);
         docData.put("phone",phone);
         docData.put("businessNum",businessNum);
-        docData.put("RoomsKey", RoomKeys);
+        docData.put("RoomKeys", RoomKeys);
         return  docData;
     }
 
