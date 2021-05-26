@@ -9,9 +9,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.example.sns_project.Adapter.PostAdapter;
+import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.PostInfo;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static com.example.sns_project.util.Named.GRID;
 import static com.example.sns_project.util.Named.HORIZEN;
@@ -132,5 +138,45 @@ public class My_Utility {
         public void setResult_2(int result_2) {
             this.result_2 = result_2;
         }
+    }
+
+    public static HashMap<String, ChatRoomInfo> Sort_Map_ByValue(Map<String, ChatRoomInfo> map) {
+        List<Map.Entry<String, ChatRoomInfo>> entries = new LinkedList<>(map.entrySet());
+        entries.sort((o1, o2) -> o1.getValue().getLatestDate().compareTo(o2.getValue().getLatestDate()));
+
+        HashMap<String, ChatRoomInfo> result = new HashMap<>();
+        for (Map.Entry<String, ChatRoomInfo> entry : entries) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
+    public static HashMap<String, ChatRoomInfo> List_To_Map(ArrayList<ChatRoomInfo> rooms){
+
+        HashMap<String, ChatRoomInfo> map = new HashMap<>();
+
+        for(ChatRoomInfo room : rooms){
+            map.put(room.getKey(),room);
+        }
+
+        return map;
+    }
+
+    public static ArrayList<ChatRoomInfo> Map_to_List(HashMap<String, ChatRoomInfo> map){
+
+        ArrayList<ChatRoomInfo> rooms = new ArrayList<>();
+
+        for(Map.Entry e : map.entrySet()){
+            rooms.add((ChatRoomInfo)e.getValue());
+        }
+
+        rooms.sort(new Comparator<ChatRoomInfo>() {
+            @Override
+            public int compare(ChatRoomInfo o1, ChatRoomInfo o2) {
+                return o2.getLatestDate().compareTo(o1.getLatestDate());
+            }
+        });
+
+        return rooms;
     }
 }

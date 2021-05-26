@@ -20,6 +20,8 @@ public class Named {
     public static boolean NEW_MESSAGE = false;
     public static final int DELETE = 1113;
     public static final int CREATE = 1114;
+    public static final int SET = 1115;
+    public static final int REMOVE = 1116;
 
     public static final int POSTHODER_TO_POSTACTIVITY = 1001;
 

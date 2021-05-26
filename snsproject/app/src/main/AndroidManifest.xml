@@ -22,7 +22,7 @@
         android:supportsRtl="true">
         <activity
             android:name=".activity.ChatRoomActivity"
-            android:windowSoftInputMode="adjustPan|adjustUnspecified"
+            android:windowSoftInputMode="adjustPan"
             android:theme="@style/Theme.Snsproject"/>
         <activity
             android:name=".activity.SearchActivity"

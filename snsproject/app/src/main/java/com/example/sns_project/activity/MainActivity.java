@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        setToolbar(BOARD_FRAGMENT);
+//        setToolbar(BOARD_FRAGMENT);
 
         if(AccountInit()){ //계정이 있다면,
             Log.d("resume_accountinit(): ",user.getEmail());

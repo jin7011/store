@@ -40,6 +40,7 @@ public class MyAccount implements Parcelable {
         RoomKeys = in.createStringArrayList();
     }
 
+
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
@@ -117,6 +118,14 @@ public class MyAccount implements Parcelable {
     }
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public ArrayList<String> getRoomKeys() {
+        return RoomKeys;
+    }
+
+    public void setRoomKeys(ArrayList<String> roomKeys) {
+        RoomKeys = roomKeys;
     }
 
     @Override

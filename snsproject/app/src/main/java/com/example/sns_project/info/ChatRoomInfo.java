@@ -3,10 +3,11 @@ package com.example.sns_project.info;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ChatRoomInfo implements Parcelable {
+public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
 
     private String user1;
     private String user2;
@@ -195,4 +196,8 @@ public class ChatRoomInfo implements Parcelable {
         return 0;
     }
 
+    @Override
+    public int compare(ChatRoomInfo o1, ChatRoomInfo o2) {
+        return o1.getLatestDate().compareTo(o2.getLatestDate());
+    }
 }

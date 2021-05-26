@@ -12,24 +12,20 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.activity.ChatRoomActivity;
-import com.example.sns_project.activity.MainActivity;
-import com.example.sns_project.activity.PostActivity;
 import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
 import com.example.sns_project.info.ChatRoomInfo;
-import com.example.sns_project.info.LetterInfo;
 import com.example.sns_project.util.ChatRoomInfo_DiffUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static com.example.sns_project.CustomLibrary.PostControler.MessageTime_to_String;
-import static com.example.sns_project.util.Named.HOUR;
-import static com.example.sns_project.util.Named.MIN;
-import static com.example.sns_project.util.Named.SEC;
+import static com.example.sns_project.CustomLibrary.PostControler.FIREBASE_USER;
+import static com.example.sns_project.util.Named.REMOVE;
+import static com.example.sns_project.util.Named.SET;
+
 
 public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -38,11 +34,6 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final Activity activity;
     private final PostControler postControler;
     private final ArrayList<ChatRoomInfo> ChatRooms;
-    private Listener_NewMessage listener_newMessage;
-
-    public interface Listener_NewMessage{
-        void onNewMessage(ChatRoomInfo room,int position);
-    }
 
     public void ChatRoomInfo_DiffUtile(ArrayList<ChatRoomInfo> NewChatRooms) {
         final ChatRoomInfo_DiffUtil diffCallback = new ChatRoomInfo_DiffUtil(this.ChatRooms, NewChatRooms);
@@ -54,16 +45,14 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public ChatRoomAdapter(Activity activity,Listener_NewMessage listener_newMessage) {
+    public ChatRoomAdapter(Activity activity, PostControler postControler) {
         this.activity = activity;
         this.ChatRooms = new ArrayList<>();
-        this.postControler = new PostControler();
-        this.listener_newMessage = listener_newMessage;
+        this.postControler = postControler;
     }
 
     //holder
-    public static class Room_Holder extends RecyclerView.ViewHolder { //홀더에 담고싶은 그릇(이미지뷰)를 정함
-        //R.layout.item_comments에 존재하지 않는 뷰는 일반적으로는 설정하나마나임
+    public static class Room_Holder extends RecyclerView.ViewHolder {
         TextView sender_nick ;
         TextView Current_time ;
         TextView Current_msg;
@@ -81,23 +70,8 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_room, parent, false);
-        ChatRoomAdapter.Room_Holder roomHolder = new ChatRoomAdapter.Room_Holder(view);
-
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ChatRoomInfo room = ChatRooms.get(roomHolder.getAbsoluteAdapterPosition());
-                String user_nick = room.getUser1_id().equals(user.getUid()) ? room.getUser2() : room.getUser1();
-                String user_id =  room.getUser1_id().equals(user.getUid()) ? room.getUser2_id() : room.getUser1_id();
-                Intent intent = new Intent(activity, ChatRoomActivity.class);
-                Log.d("dnwjdkel","user_nick: " + user_nick+" user_id: "+user_id);
-                intent.putExtra("user_nick",user_nick);
-                intent.putExtra("user_id",user_id);
-                activity.startActivity(intent);
-            }
-        });
+        Room_Holder roomHolder = new Room_Holder(view);
 
         return roomHolder;
     }
@@ -110,11 +84,17 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         String sender = room.getUser1_id().equals(user.getUid()) ? room.getUser2() : room.getUser1();
         int count = room.getUser1_id().equals(user.getUid()) ? room.getUser1_count() : room.getUser2_count();
 
-        postControler.Listener_Room(room.getKey(), new PostControler.Listener_Get_Room() {
+        ((Room_Holder) holder).itemView.setOnClickListener(new View.OnClickListener() { //todo 방만드는 거는 완료 했다고 보는데 계속 실시간데이터 연결이 끊겨서 더이상 못써먹겠음 채팅내용도 전부 store로 옮기자.
             @Override
-            public void onGetRoom(ChatRoomInfo room) {
-                Log.d("dhkTEk",room.getLatestMessage()+"");
-                listener_newMessage.onNewMessage(room,position);
+            public void onClick(View v) {
+                ChatRoomInfo room = ChatRooms.get(position);
+                String user_nick = room.getUser1_id().equals(user.getUid()) ? room.getUser2() : room.getUser1();
+                String user_id =  room.getUser1_id().equals(user.getUid()) ? room.getUser2_id() : room.getUser1_id();
+                Intent intent = new Intent(activity, ChatRoomActivity.class);
+                Log.d("dnwjdkel","user_nick: " + user_nick+" user_id: "+user_id);
+                intent.putExtra("user_nick",user_nick);
+                intent.putExtra("user_id",user_id);
+                activity.startActivity(intent);
             }
         });
 

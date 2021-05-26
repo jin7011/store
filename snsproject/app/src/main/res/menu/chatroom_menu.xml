@@ -3,11 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/autonew"
-        android:title="새로고침"
-        android:icon="@drawable/ic_autorenew"
-        app:showAsAction="always">
+        android:id="@+id/Out_Room"
+        android:title="나가기">
     </item>
-
 
 </menu>
