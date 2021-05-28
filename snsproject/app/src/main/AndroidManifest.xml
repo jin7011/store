@@ -21,9 +21,13 @@
         android:roundIcon="@drawable/ic_launcher_background"
         android:supportsRtl="true">
         <activity
+            android:name=".activity.MyPostsActivity"
+            android:theme="@style/Theme.Snsproject"
+            />
+        <activity
             android:name=".activity.ChatRoomActivity"
-            android:windowSoftInputMode="adjustPan"
-            android:theme="@style/Theme.Snsproject"/>
+            android:theme="@style/Theme.Snsproject"
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".activity.SearchActivity"
             android:theme="@style/Theme.Snsproject" />

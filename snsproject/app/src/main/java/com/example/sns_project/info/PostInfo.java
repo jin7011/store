@@ -29,6 +29,8 @@ public class PostInfo implements Parcelable{
     private String DateFormate_for_layout;
     private String How_Long;
 
+    public PostInfo(){}
+
     public PostInfo(PostInfo p) {
         //깊은 복사 전용
         this.title = p.getTitle();

@@ -19,6 +19,8 @@ public class RecommentInfo implements Parcelable{
     private int good;
     private HashMap<String, Integer> good_user;
 
+    public RecommentInfo(){}
+
     public RecommentInfo(String contents, String publisher, Date createdAt, String id, int good,HashMap<String, Integer> good_user) {
         this.contents = contents;
         this.publisher = publisher;

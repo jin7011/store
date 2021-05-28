@@ -22,6 +22,8 @@ public class CommentInfo implements Parcelable {
     private String DateFormate_for_layout;
     private String How_Long;
 
+    public CommentInfo(){}
+
     public CommentInfo(String contents, String publisher, Date createdAt, String id, int good,HashMap<String, Integer> good_user,ArrayList<RecommentInfo> recomments,String key) {
         this.contents = contents;
         this.publisher = publisher;

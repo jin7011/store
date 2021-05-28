@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+
+import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.activity.MainActivity;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.FragmentNotificationBinding;
@@ -22,20 +24,16 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class NotificationFragment extends Fragment {
 
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth mAuth;
     private FirebaseUser user;
     private MyAccount myAccount;
     private String location;
-    private MainActivity activity;
-    private FragmentNotificationBinding binding;
-    private Context context;
     private My_Utility my_utility;
+    private PostControler postControler;
 
 
     public NotificationFragment() {
-        this.activity = (MainActivity) getActivity();
-//        this.my_utility = new My_Utility(getActivity());
+        postControler = new PostControler();
     }
 
     @Override
@@ -46,29 +44,18 @@ public class NotificationFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater,R.layout.fragment_notification,container,false);
-        View view = binding.getRoot();
-        context = container.getContext();
-        return view;
+        return inflater.inflate(R.layout.fragment_notification, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        Bundle bundle = getArguments();
-        myAccount = (MyAccount)bundle.getParcelable("Myaccount");
-        location = myAccount.getLocation();
-        Toast(location);
 
         super.onViewCreated(view, savedInstanceState);
     }
 
-    public void Search(String KeyWord){
-//        db.collection(location).
-    }
-
     public void Toast(String str){
-        Toast.makeText(context,str,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(),str,Toast.LENGTH_SHORT).show();
     }
 
 }

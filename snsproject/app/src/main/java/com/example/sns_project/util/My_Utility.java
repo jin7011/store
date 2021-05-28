@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
+import com.example.sns_project.Adapter.ChatRoomAdapter;
+import com.example.sns_project.Adapter.LetterAdapter;
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.PostInfo;
@@ -64,6 +66,11 @@ public class My_Utility {
             ((PostAdapter) adapter).setRecyclerView(recyclerView);
         }
 
+        if (adapter instanceof LetterAdapter) {
+            ((LetterAdapter) adapter).setLinearLayoutManager(layoutManager);
+            ((LetterAdapter) adapter).setRecyclerView(recyclerView);
+        }
+
         recyclerView.setAdapter(adapter);
 
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
@@ -97,11 +104,18 @@ public class My_Utility {
     public static class Pair {
         Object result;
         int isSuccess;
+        String location,Docid;
+
         public Pair() {
         }
         public Pair(Object result, int isSuccess) {
             this.isSuccess = isSuccess;
             this.result = result;
+        }
+
+        public Pair(String loaction,String Docid){
+            this.location = loaction;
+            this.Docid = Docid;
         }
         public Object getResult() {
             return result;
@@ -114,6 +128,18 @@ public class My_Utility {
         }
         public void setIsSuccess(int isSuccess) {
             this.isSuccess = isSuccess;
+        }
+        public String getLocation() {
+            return location;
+        }
+        public void setLocation(String location) {
+            this.location = location;
+        }
+        public String getDocid() {
+            return Docid;
+        }
+        public void setDocid(String docid) {
+            Docid = docid;
         }
     }
 

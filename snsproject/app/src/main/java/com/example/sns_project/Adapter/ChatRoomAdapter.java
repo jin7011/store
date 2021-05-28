@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.activity.ChatRoomActivity;
@@ -21,10 +22,6 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.Date;
-
-import static com.example.sns_project.CustomLibrary.PostControler.FIREBASE_USER;
-import static com.example.sns_project.util.Named.REMOVE;
-import static com.example.sns_project.util.Named.SET;
 
 
 public class ChatRoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {

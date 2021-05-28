@@ -18,6 +18,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 
 import com.example.sns_project.activity.MainActivity;
+import com.example.sns_project.activity.MyPostsActivity;
 import com.example.sns_project.activity.Password_resetActivity;
 import com.example.sns_project.activity.PopupActivity;
 import com.example.sns_project.R;
@@ -157,6 +158,11 @@ public class ProfileFragment extends Fragment {
                     }
                 })
                 .show();
+    }
+
+    public void Search_MyPosts(View view){
+        Intent intent = new Intent(getActivity(), MyPostsActivity.class);
+        startActivity(intent);
     }
 
     public void logout(){

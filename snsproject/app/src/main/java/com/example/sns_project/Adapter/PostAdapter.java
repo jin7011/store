@@ -42,17 +42,14 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Activity activity;
     private ArrayList<PostInfo> postList = new ArrayList<>();
-
-    private OnLoadMoreListener onLoadMoreListener; //todo take care of if after eating dinner
     private LinearLayoutManager mLinearLayoutManager;
-
     private boolean NoMore_Load = false;
     private int visibleThreshold = 1;
     int firstVisibleItem, visibleItemCount, totalItemCount, lastVisibleItem;
+    private OnLoadMoreListener_bottom onLoadMoreListenerBottom; //todo take care of if after eating dinner
 
-    public interface OnLoadMoreListener{
+    public interface OnLoadMoreListener_bottom {
         void onLoadMore();
-//        void Updated();
     }
 
     public void PostInfoDiffUtil(ArrayList<PostInfo> newPosts) {
@@ -69,9 +66,9 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         });
     }
 
-    public PostAdapter(Activity activity,OnLoadMoreListener onLoadMoreListener) {
+    public PostAdapter(Activity activity, OnLoadMoreListener_bottom onLoadMoreListenerBottom) {
         this.activity = activity;
-        this.onLoadMoreListener = onLoadMoreListener;
+        this.onLoadMoreListenerBottom = onLoadMoreListenerBottom;
     }
 
     public void setLinearLayoutManager(LinearLayoutManager linearLayoutManager){
@@ -199,8 +196,8 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 //                Log.d("first", firstVisibleItem + "");
 //                Log.d("last", lastVisibleItem + "");
                 if (!NoMore_Load && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold) && totalItemCount != 0) {
-                    if (onLoadMoreListener != null) {
-                        onLoadMoreListener.onLoadMore();
+                    if (onLoadMoreListenerBottom != null) {
+                        onLoadMoreListenerBottom.onLoadMore();
                     }
                     NoMore_Load = true;
                 }
@@ -219,30 +216,6 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public void NoMore_Load(boolean NoMore_Load) {
         this.NoMore_Load = NoMore_Load;
-    }
-
-    public static String formatTimeString(Date postdate, Date nowDate){
-
-        long ctime = nowDate.getTime();
-        long regTime = postdate.getTime();
-
-        long diffTime = (ctime - regTime) / 1000;
-        String msg;
-
-        if (diffTime < SEC) {
-            msg = "방금 전";
-        } else if ((diffTime /= SEC) < MIN) {
-            msg = diffTime + "분 전";
-        } else if ((diffTime /= MIN) < HOUR) {
-            msg = new SimpleDateFormat("HH:mm").format(postdate);
-//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
-//            msg = (diffTime) + "일 전";
-//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
-//            msg = (diffTime) + "달 전";
-        } else {
-            msg = new SimpleDateFormat("MM월dd일").format(postdate);
-        }
-        return msg;
     }
 
     public ArrayList<PostInfo> deepCopy(ArrayList<PostInfo> oldone){

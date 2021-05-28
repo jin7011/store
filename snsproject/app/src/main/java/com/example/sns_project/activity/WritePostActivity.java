@@ -19,11 +19,10 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sns_project.Adapter.AddImageAdapter;
+import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_WritePost;
 import com.example.sns_project.databinding.ActivityWritePostBinding;
-import com.example.sns_project.info.ChatRoomInfo;
-import com.example.sns_project.info.LetterInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.util.My_Utility;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -32,11 +31,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -72,6 +66,7 @@ public class WritePostActivity extends AppCompatActivity {
     private AddImageAdapter addImageAdapter;
     private Double filesize = 0.0;
     private My_Utility my_utility;
+    private PostControler postControler = new PostControler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,14 +151,7 @@ public class WritePostActivity extends AppCompatActivity {
     }
 
     public void Add_and_SetRecyclerView(){
-
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
-//        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-//        binding.ImageRecycler.setLayoutManager(layoutManager);
-
         addImageAdapter = new AddImageAdapter(this,Postmodel);
-//        binding.ImageRecycler.setAdapter(addImageAdapter);
-
         my_utility = new My_Utility(this,binding.ImageRecycler,addImageAdapter);
         my_utility.RecyclerInit(HORIZEN);
 
@@ -198,10 +186,21 @@ public class WritePostActivity extends AppCompatActivity {
                             Upload_Post(UriFormats,documentReference,formatList,storagePath,postInfo);
 
                         }else{ //파일없이 글만 올리는 경우
-                            Update_Store(documentReference, postInfo);
+                            postControler.Upload_Post_Store(documentReference, postInfo, new PostControler.Listener_UpLoadPost() {
+                                @Override
+                                public void onComplete() {
+                                    Toast("성공적으로 게시되었습니다.");
+                                    loaderView.setVisibility(View.GONE);
+                                    toMain(WRITE_RESULT);
+                                }
+                                @Override
+                                public void onFail() {
+                                    Toast("업로드에 실패하였습니다.");
+                                    loaderView.setVisibility(View.GONE);
+                                }
+                            });
                         }
                     }
-
                 }
             }
         });
@@ -250,7 +249,19 @@ public class WritePostActivity extends AppCompatActivity {
                                 Log.d("한번만 튀어나오면댐", "제발: " + formatList.size());
                                 postInfo.setFormats(formatList);
                                 postInfo.setStoragePath(storagePath);
-                                Update_Store(documentReference, postInfo);
+                                postControler.Upload_Post_Store(documentReference, postInfo, new PostControler.Listener_UpLoadPost() {
+                                    @Override
+                                    public void onComplete() {
+                                        Toast("성공적으로 게시되었습니다.");
+                                        loaderView.setVisibility(View.GONE);
+                                        toMain(WRITE_RESULT);
+                                    }
+                                    @Override
+                                    public void onFail() {
+                                        Toast("업로드에 실패하였습니다.");
+                                        loaderView.setVisibility(View.GONE);
+                                    }
+                                });
                             }
                         }
                     }).addOnFailureListener(new OnFailureListener() {
@@ -263,25 +274,6 @@ public class WritePostActivity extends AppCompatActivity {
                 }
             });
         }
-    }
-    private void Update_Store(DocumentReference documentReference, final PostInfo postInfo) {
-        documentReference.set(postInfo.getPostInfo())
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast("성공적으로 게시되었습니다.");
-                        loaderView.setVisibility(View.GONE);
-                        toMain(WRITE_RESULT);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast("업로드에 실패하였습니다.");
-                        loaderView.setVisibility(View.GONE);
-                    }
-                });
-
     }
 
     public void toMain(int request){

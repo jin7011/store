@@ -2,26 +2,18 @@ package com.example.sns_project.util;
 
 import androidx.recyclerview.widget.DiffUtil;
 
-import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.info.ChatRoomInfo;
-import com.example.sns_project.info.LetterInfo;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
-import static com.example.sns_project.CustomLibrary.PostControler.FIREBASE_USER;
 import static com.example.sns_project.CustomLibrary.PostControler.MessageTime_to_String;
-import static com.example.sns_project.util.Named.HOUR;
-import static com.example.sns_project.util.Named.MIN;
-import static com.example.sns_project.util.Named.SEC;
 
 public class ChatRoomInfo_DiffUtil extends DiffUtil.Callback{
 
     private final ArrayList<ChatRoomInfo> oldrooms;
     private final ArrayList<ChatRoomInfo> newrooms;
+    private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     public ChatRoomInfo_DiffUtil(ArrayList<ChatRoomInfo> oldrooms, ArrayList<ChatRoomInfo> newrooms) {
         this.oldrooms = oldrooms;
@@ -41,7 +33,7 @@ public class ChatRoomInfo_DiffUtil extends DiffUtil.Callback{
         ChatRoomInfo oldroom = oldrooms.get(oldItemPosition);
         ChatRoomInfo newroom = newrooms.get(newItemPosition);
 
-        if(oldroom.getUser1_id().equals(FIREBASE_USER.getUid()) && newroom.getUser1_id().equals(FIREBASE_USER.getUid())){
+        if(oldroom.getUser1_id().equals(user.getUid()) && newroom.getUser1_id().equals(user.getUid())){
             return  oldroom.getUser2_id().equals(newroom.getUser2_id())
                     && oldroom.getUser1_id().equals(newroom.getUser1_id()) && oldroom.getUser1_OutDate().equals(newroom.getUser1_OutDate())
                     && oldroom.getUser2_OutDate().equals(newroom.getUser2_OutDate())

@@ -2,6 +2,7 @@ package com.example.sns_project.CustomLibrary;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,11 +35,24 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Transaction;
 
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.functions.Predicate;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import static com.example.sns_project.util.Named.ALREADY_DONE;
 import static com.example.sns_project.util.Named.HOUR;
@@ -48,18 +62,19 @@ import static com.example.sns_project.util.Named.SEARCH_LIMIT;
 import static com.example.sns_project.util.Named.SEC;
 import static com.example.sns_project.util.Named.SUCCESS;
 import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
+import static com.example.sns_project.util.Named.WRITE_RESULT;
 
 /**
  * use this with my_utility for requesting posts
  * in recycler_init() after using my utility or in same time
  */
 
-public class PostControler {
+public final class PostControler {
 
     private String post_location;
     private final FirebaseFirestore Store = FirebaseFirestore.getInstance();
     private final DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-    public static FirebaseUser FIREBASE_USER = FirebaseAuth.getInstance().getCurrentUser();
+//    public static FirebaseUser FIREBASE_USER = FirebaseAuth.getInstance().getCurrentUser();
     private My_Utility my_utility;
     private RecyclerView recyclerView;
     private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
@@ -126,8 +141,9 @@ public class PostControler {
         void onDeleted(ChatRoomInfo room);
     }
 
-    public interface Listener_Get_Room {
-        void onGetRoom(ChatRoomInfo room);
+    public interface Listener_UpLoadPost {
+        void onComplete();
+        void onFail();
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts, String KeyWord, Listener_CompletePostInfos listener_completePostInfos) {
@@ -882,6 +898,57 @@ public class PostControler {
                 });
     }
 
+    public void Bring_MyPosts(String my_id,Listener_CompletePostInfos listener_completePostInfos){
+
+        Store.collection("USER").document(my_id).collection("MyPosts").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    ArrayList<My_Utility.Pair> pair = new ArrayList<>();
+                    ArrayList<PostInfo> posts = new ArrayList<>();
+
+                    for(Iterator<DocumentSnapshot> iter = task.getResult().getDocuments().iterator(); iter.hasNext(); ) {
+                        DocumentSnapshot doc = iter.next();
+                        String location = doc.getString("location");
+                        String Docid =  doc.getString("Docid");
+                        Log.d("zoz23",location+", "+Docid);
+                        pair.add(new My_Utility.Pair(location,Docid));
+                    }
+
+                    //firebase에서 한번에 데이터를 긁어올 수가 없는 구조로 되어 있어서(뷰,쿼리 지원x) 여기저기서 긁어오느라 rx자바도 못쓰고 어쩔 수 없이 재귀로..
+                    Bring_MyPosts_byRecursive(0, pair, posts, new Listener_CompletePostInfos() {
+                        @Override
+                        public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
+                            Log.d("zoz23","result: "+posts.size());
+                            listener_completePostInfos.onComplete_Get_PostsArrays(posts);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    public void Bring_MyPosts_byRecursive(int cnt,ArrayList<My_Utility.Pair> pair, ArrayList<PostInfo> posts,Listener_CompletePostInfos listener_completePostInfos){
+
+        if(pair.size() == cnt) {
+            listener_completePostInfos.onComplete_Get_PostsArrays(posts);
+            return;
+        }
+
+        String location = pair.get(cnt).getLocation();
+        String Docid =  pair.get(cnt).getDocid();
+
+        Store.collection(location).document(Docid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                PostInfo postInfo = task.getResult().toObject(PostInfo.class);
+                posts.add(postInfo);
+                Log.d("zoz23","size: "+posts.size());
+                Bring_MyPosts_byRecursive(cnt+1,pair,posts,listener_completePostInfos);
+            }
+        });
+    }
+
     public int Find_Comment(ArrayList<CommentInfo> comments, String Key){
         for(int x=0; x<comments.size(); x++){
             if(comments.get(x).getKey().equals(Key))
@@ -919,6 +986,35 @@ public class PostControler {
                 break;
             }
         }
+    }
+
+    public void Upload_Post_Store(DocumentReference documentReference, final PostInfo postInfo, Listener_UpLoadPost listener_upLoadPost) {
+        documentReference.set(postInfo.getPostInfo())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Map<String,String> map = new HashMap<>();
+                        map.put("Docid",postInfo.getDocid());
+                        map.put("location",postInfo.getLocation());
+                        Store.collection("USER").document(postInfo.getId()).collection("MyPosts").document(postInfo.getDocid()).set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                listener_upLoadPost.onComplete();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                listener_upLoadPost.onFail();
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                      listener_upLoadPost.onFail();
+                    }
+                });
     }
 
     public ArrayList<CommentInfo> Get_CommentArray_From_Store(DocumentSnapshot document){
@@ -1037,13 +1133,7 @@ public class PostControler {
             msg = "방금 전";
         } else if ((diffTime /= SEC) < MIN) {
             msg = diffTime + "분 전";
-//        } else if ((diffTime /= MIN) < HOUR) {
-//            msg = new SimpleDateFormat("HH:mm").format(postdate);
-//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
-//            msg = (diffTime) + "일 전";
-//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
-//            msg = (diffTime) + "달 전";
-        } else {
+        } else if ((diffTime /= MIN) < HOUR) {
             msg = new SimpleDateFormat("HH:mm").format(new Date(createdAt));
             int hour = (Character.getNumericValue(msg.charAt(0))*10 + Character.getNumericValue(msg.charAt(1)));
             int min = (Character.getNumericValue(msg.charAt(3))*10 + Character.getNumericValue(msg.charAt(4)));
@@ -1051,9 +1141,13 @@ public class PostControler {
                 msg = "오후 "+ (hour-12) + ":" + String.format("%02d", min);
             }else
                 msg = "오전 " + msg;
+//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
+//            msg = (diffTime) + "일 전";
+//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
+//            msg = (diffTime) + "달 전";
+        } else {
+            msg = new SimpleDateFormat("yyyy년MM월dd일").format(new Date(createdAt));
         }
-
-//        Log.d("acdksld",msg);
         return msg;
     }
 
@@ -1077,7 +1171,7 @@ public class PostControler {
 //        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
 //            msg = (diffTime) + "달 전";
         } else {
-            msg = new SimpleDateFormat("MM월dd일").format(postdate);
+            msg = new SimpleDateFormat("yyyy년MM월dd일").format(postdate);
         }
         return msg;
     }

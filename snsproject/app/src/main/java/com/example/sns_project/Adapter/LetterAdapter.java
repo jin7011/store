@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.CustomLibrary.PostControler;
@@ -35,9 +36,24 @@ public class LetterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     private PostControler postControler = new PostControler();
 
-    public LetterAdapter(Activity activity){
+    private boolean NoMore_Load = false;
+    private int visibleThreshold = 1;
+    int firstVisibleItem, visibleItemCount, totalItemCount, lastVisibleItem;
+    private LinearLayoutManager mLinearLayoutManager;
+    private OnLoadMoreListener_top onLoadMoreListener;
+
+    public interface OnLoadMoreListener_top{
+        void onLoadMore();
+    }
+
+    public void setLinearLayoutManager(LinearLayoutManager linearLayoutManager){
+        this.mLinearLayoutManager=linearLayoutManager;
+    }
+
+    public LetterAdapter(Activity activity,OnLoadMoreListener_top listener_top){
         this.activity = activity;
         this.letters = new ArrayList<>();
+        this.onLoadMoreListener = listener_top;
     }
 
     public void LetterInfoDiffUtil(ArrayList<LetterInfo> NewLetters) {
@@ -126,6 +142,31 @@ public class LetterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             return MINE;
         else
             return OTHER;
+    }
+
+    public void setRecyclerView(RecyclerView mView){
+        mView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                visibleItemCount = recyclerView.getChildCount();
+                totalItemCount = mLinearLayoutManager.getItemCount();
+                firstVisibleItem = mLinearLayoutManager.findFirstVisibleItemPosition();
+                lastVisibleItem = mLinearLayoutManager.findLastVisibleItemPosition();
+//                Log.d("total", totalItemCount + "");
+//                Log.d("visible", visibleItemCount + "");
+//                Log.d("first", firstVisibleItem + "");
+//                Log.d("last", lastVisibleItem + "");
+                if (!NoMore_Load && firstVisibleItem == 0 && totalItemCount != 0 && onLoadMoreListener != null) {
+                    onLoadMoreListener.onLoadMore();
+                    NoMore_Load = true;
+                }
+            }
+        });
+    }
+
+    public void Set_ReadMore(boolean b){
+        this.NoMore_Load = b;
     }
 
 }

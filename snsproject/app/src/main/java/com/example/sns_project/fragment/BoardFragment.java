@@ -182,7 +182,7 @@ public class BoardFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
 
         recyclerView = (RecyclerView)view.findViewById(R.id.RecyclerView_frag);
-        postAdapter = new PostAdapter(getActivity(), new PostAdapter.OnLoadMoreListener() { //아래로 스크롤 되었을 때에,
+        postAdapter = new PostAdapter(getActivity(), new PostAdapter.OnLoadMoreListener_bottom() { //아래로 스크롤 되었을 때에,
             @Override
             public void onLoadMore() {
                 postAdapter.setProgressMore(true);

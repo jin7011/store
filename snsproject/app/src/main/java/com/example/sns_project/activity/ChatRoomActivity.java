@@ -67,7 +67,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         binding = ActivityChatRoomBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        swipe = binding.SwipeLetters;
+//        swipe = binding.SwipeLetters;
         loaderView = findViewById(R.id.loaderLyaout);
 
         liveData_letters = new ViewModelProvider(this).get(LiveData_Letters.class);
@@ -89,7 +89,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         Set_Toolbar();
         CreateRoom();
         RecyclerViewInit(); //리사이클러뷰 셋팅해줘야함
-        Set_Swipe();
+//        Set_Swipe();
         binding.setChatRoomActivity(this);
     }
 
@@ -104,7 +104,25 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
 
     private void RecyclerViewInit(){
-        adapter = new LetterAdapter(this);
+        adapter = new LetterAdapter(this, new LetterAdapter.OnLoadMoreListener_top() {
+            @Override
+            public void onLoadMore() {
+                if(liveData_letters.get().getValue() != null) {
+                    ArrayList<LetterInfo> letters = new ArrayList<>(liveData_letters.get().getValue());
+
+                    postControler.Bring_Letters(RoomKey, my_id,letters.get(0).getCreatedAt(), new PostControler.Listener_Complete_Get_Letters() {
+                        @Override
+                        public void onComplete_Get_Letters(ArrayList<LetterInfo> Letters) {
+                            if(Letters.size() != 0) {
+                                letters.addAll(0, Letters);
+                                liveData_letters.get().setValue(letters);
+                                adapter.Set_ReadMore(false);
+                            }
+                        }
+                    });
+                }
+            }
+        });
         recyclerView = binding.LettersRecyclerView;
         my_utility = new My_Utility(this,recyclerView,adapter);
         my_utility.RecyclerInit(VERTICAL);
@@ -182,34 +200,6 @@ public class ChatRoomActivity extends AppCompatActivity {
             LetterInfo latest_letter = liveData_letters.get().getValue().get(liveData_letters.get().getValue().size()-1);
             postControler.Set_Before_Exit(RoomKey, my_id, latest_letter.getContents(), latest_letter.getCreatedAt()); //todo
         }
-    }
-
-    public void Set_Swipe() {
-        swipe.setColorSchemeResources(R.color.classicBlue);
-
-        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                recyclerView.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(liveData_letters.get().getValue() != null) {
-                            ArrayList<LetterInfo> letters = new ArrayList<>(liveData_letters.get().getValue());
-                            postControler.Bring_Letters(RoomKey, my_id,
-                                    letters.get(0).getCreatedAt(), new PostControler.Listener_Complete_Get_Letters() {
-                                @Override
-                                public void onComplete_Get_Letters(ArrayList<LetterInfo> Letters) {
-                                    letters.addAll(0,Letters);
-                                    liveData_letters.get().setValue(letters);
-                                }
-                            });
-                        }
-                        swipe.setRefreshing(false);
-                    }
-                }, 500);
-            }
-        });
-
     }
 
     public void Set_Toolbar(){

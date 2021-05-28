@@ -97,7 +97,7 @@ public class SearchActivity extends AppCompatActivity {
 
     public void set_recycler(){
         recyclerView = binding.SearchRecyclerView;
-        adapter = new PostAdapter(this, new PostAdapter.OnLoadMoreListener() {
+        adapter = new PostAdapter(this, new PostAdapter.OnLoadMoreListener_bottom() {
             @Override
             public void onLoadMore() {
                 adapter.setProgressMore(true);
