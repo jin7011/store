@@ -227,7 +227,7 @@ public class SignActivity extends AppCompatActivity {
     public void request(String str){
 
         //JSON형식으로 데이터 통신
-        String url = "https://jinlab.herokuapp.com/";
+        String url = "https://sdjkhskjrtw.herokuapp.com/";
         JSONObject testjson = new JSONObject();
 
         try {

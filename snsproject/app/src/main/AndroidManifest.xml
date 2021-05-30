@@ -66,6 +66,15 @@
         <activity
             android:name=".activity.LoginActivity"
             android:theme="@style/Theme.Snsproject" />
-    </application>
 
+        <service
+            android:name=".fcm.MyFirebaseMessagingService"
+            android:directBootAware="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+    </application>
 </manifest>

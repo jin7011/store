@@ -5,22 +5,19 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
-
 import com.example.sns_project.CustomLibrary.PostControler;
-import com.example.sns_project.activity.MainActivity;
 import com.example.sns_project.R;
-import com.example.sns_project.databinding.FragmentNotificationBinding;
+import com.example.sns_project.fcm.SendServer;
 import com.example.sns_project.info.MyAccount;
 import com.example.sns_project.util.My_Utility;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 public class NotificationFragment extends Fragment {
 
@@ -30,6 +27,7 @@ public class NotificationFragment extends Fragment {
     private String location;
     private My_Utility my_utility;
     private PostControler postControler;
+    private Button button;
 
 
     public NotificationFragment() {
@@ -50,6 +48,15 @@ public class NotificationFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
+        button = view.findViewById(R.id.noti);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SendServer sendServer = new SendServer();
+                sendServer.Send("제발요..","제발..",getActivity());
+
+            }
+        });
 
         super.onViewCreated(view, savedInstanceState);
     }
