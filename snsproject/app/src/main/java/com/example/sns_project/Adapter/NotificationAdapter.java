@@ -1,5 +1,6 @@
 package com.example.sns_project.Adapter;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,12 +49,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return noti_holder;
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Noti_holder noti_holder  = (Noti_holder)holder;
         NotificationInfo noti = notis.get(position);
 
-        noti_holder.sender_nick.setText(noti.getSender());
+        noti_holder.sender_nick.setText(noti.getSender()+" "+noti.getType());
         noti_holder.content.setText(noti.getContents());
         noti_holder.date.setText(MessageTime_to_String(noti.getCreatedAt(),new Date()));
     }

@@ -71,6 +71,7 @@ public class NotificationFragment extends Fragment {
     }
 
     public void RecyclerView_init(View view){
+        //todo 노티리스너를 달아줘야함
         FirebaseFirestore.getInstance().collection("USER").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).collection("Notification").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {

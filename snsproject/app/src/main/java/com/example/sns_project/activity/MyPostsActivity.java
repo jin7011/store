@@ -81,10 +81,12 @@ public class MyPostsActivity extends AppCompatActivity {
         postControler.Bring_MyPosts(user.getUid(), new PostControler.Listener_CompletePostInfos() {
             @Override
             public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
-                for(PostInfo p : NewPostInfos)
-                    Log.d("zoz23",p.getContents()+"");
-                Log.d("zoz23",user.getUid()+"");
-                liveData_postList.get().setValue(NewPostInfos);
+                if(NewPostInfos.size() == 0) {
+                    binding.NoExistMyPostsLayout.setVisibility(View.VISIBLE);
+                    loaderView.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.GONE);
+                }else
+                    liveData_postList.get().setValue(NewPostInfos);
             }
         });
     }

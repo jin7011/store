@@ -44,6 +44,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -921,7 +922,7 @@ public final class PostControler {
                     ArrayList<My_Utility.Pair> pair = new ArrayList<>();
                     ArrayList<PostInfo> posts = new ArrayList<>();
 
-                    for(Iterator<DocumentSnapshot> iter = task.getResult().getDocuments().iterator(); iter.hasNext(); ) {
+                    for(Iterator<DocumentSnapshot> iter = Objects.requireNonNull(task.getResult()).getDocuments().iterator(); iter.hasNext(); ) {
                         DocumentSnapshot doc = iter.next();
                         String location = doc.getString("location");
                         String Docid =  doc.getString("Docid");
@@ -955,9 +956,10 @@ public final class PostControler {
         Store.collection(location).document(Docid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                PostInfo postInfo = task.getResult().toObject(PostInfo.class);
+                PostInfo postInfo = Objects.requireNonNull(task.getResult()).toObject(PostInfo.class);
                 posts.add(postInfo);
                 Log.d("zoz23","size: "+posts.size());
+                Log.d("zoz23","size: "+postInfo);
                 Bring_MyPosts_byRecursive(cnt+1,pair,posts,listener_completePostInfos);
             }
         });

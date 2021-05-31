@@ -154,7 +154,6 @@ public class WritePostActivity extends AppCompatActivity {
         addImageAdapter = new AddImageAdapter(this,Postmodel);
         my_utility = new My_Utility(this,binding.ImageRecycler,addImageAdapter);
         my_utility.RecyclerInit(HORIZEN);
-
     }
 
     public void UploadStorage(String uid, String nickname, String title, String content) {
