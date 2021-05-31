@@ -17,8 +17,11 @@ public class MyAccount implements Parcelable {
     private String phone;
     private String businessNum;
     private ArrayList<String> RoomKeys;
+    private String token;
 
-    public MyAccount(String id, String nickname, String image, String location, String store, String phone, String businessNum,ArrayList<String> RoomKeys) {
+    public MyAccount(){}
+
+    public MyAccount(String id, String nickname, String image, String location, String store, String phone, String businessNum,ArrayList<String> RoomKeys,String token) {
         this.id = id;
         this.nickname = nickname;
         this.image = image;
@@ -27,6 +30,7 @@ public class MyAccount implements Parcelable {
         this.phone = phone;
         this.businessNum = businessNum;
         this.RoomKeys = RoomKeys;
+        this.token = token;
     }
 
     protected MyAccount(Parcel in) {
@@ -38,6 +42,7 @@ public class MyAccount implements Parcelable {
         phone = in.readString();
         businessNum = in.readString();
         RoomKeys = in.createStringArrayList();
+        token = in.readString();
     }
 
 
@@ -51,6 +56,7 @@ public class MyAccount implements Parcelable {
         dest.writeString(phone);
         dest.writeString(businessNum);
         dest.writeStringList(RoomKeys);
+        dest.writeString(token);
     }
 
     public static final Creator<MyAccount> CREATOR = new Creator<MyAccount>() {
@@ -74,6 +80,7 @@ public class MyAccount implements Parcelable {
         docData.put("phone",phone);
         docData.put("businessNum",businessNum);
         docData.put("RoomKeys", RoomKeys);
+        docData.put("token",token);
         return  docData;
     }
 
@@ -118,6 +125,14 @@ public class MyAccount implements Parcelable {
     }
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public ArrayList<String> getRoomKeys() {

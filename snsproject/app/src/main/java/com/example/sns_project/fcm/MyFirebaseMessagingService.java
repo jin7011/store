@@ -14,6 +14,8 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 import com.example.sns_project.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -29,10 +31,9 @@ public class MyFirebaseMessagingService  extends FirebaseMessagingService {
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
-            Log.d("zxcza123",remoteMessage.getNotification().getTitle()+"이랑 "+remoteMessage.getNotification().getBody());
-            if(isAppRunning(getApplicationContext()))
+            Log.d("zxcza123",remoteMessage.getNotification().getTitle()+"이랑 "+remoteMessage.getNotification().getBody()+" key: "+remoteMessage.getData().get("my_key"));
+//            if(!isAppRunning(getApplicationContext()))
                 sendNotification(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
-
             if (/* Check if data needs to be processed by long running job */ true) {
                 // For long-running tasks (10 seconds or more) use WorkManager.
 //                scheduleJob();

@@ -5,12 +5,25 @@ import android.os.Parcelable;
 
 public class NotificationInfo implements Parcelable {
 
+    private String type;
     private String Docid;
     private String location;
     private String contents;
     private Long createdAt;
+    private String token;
+    private String sender;
+
 
     public NotificationInfo(){}
+
+    public NotificationInfo(String type,String token,String sender,String contents,String Docid,Long createdAt){
+        this.type = type;
+        this.token = token;
+        this.sender = sender;
+        this.contents = contents;
+        this.Docid = Docid;
+        this.createdAt = createdAt;
+    }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
@@ -78,4 +91,27 @@ public class NotificationInfo implements Parcelable {
         this.createdAt = createdAt;
     }
 
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

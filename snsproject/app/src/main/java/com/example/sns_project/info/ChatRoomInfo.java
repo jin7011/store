@@ -17,8 +17,10 @@ public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
     private Long user2_OutDate;
     private int user1_count;
     private int user2_count;
+    private String user1_token;
+    private String user2_token;
+    private Boolean isNew;
     private String key;
-
     private Long latestDate;
     private String latestMessage;
 
@@ -28,11 +30,15 @@ public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
                         String User1_id,
                         Long User1_OutDate,
                         int user1_count,
+                        String user1_token,
                         String User2,
                         String User2_id,
                         Long User2_OutDate,
                         int user2_count,
-                        String key){
+                        String user2_token,
+                        String key,
+                        Boolean isNew
+                        ){
         this.user1 = User1;
         this.user2 = User2;
         this.user1_id = User1_id;
@@ -43,19 +49,9 @@ public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
         this.user2_count = user2_count;
 //        this.latestDate = latestDate;
         this.key = key;
-    }
-
-    public ChatRoomInfo(ChatRoomInfo p){
-        this.user1 = p.getUser1();
-        this.user2 = p.getUser2();
-        this.user1_id = p.getUser1_id();
-        this.user2_id = p.getUser2_id();
-        this.user1_OutDate = p.getUser1_OutDate();
-        this.user2_OutDate = p.getUser2_OutDate();
-        this.user1_count = p.getUser1_count();
-        this.user2_count = p.getUser2_count();
-        this.latestDate = p.getLatestDate();
-        this.key = p.getKey();
+        this.user1_token = user1_token;
+        this.user2_token = user2_token;
+        this.isNew = isNew;
     }
 
     public ChatRoomInfo(Map<String,Object> map){
@@ -67,6 +63,7 @@ public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
         this.user2_OutDate = (Long)map.get("user2_OutDate");
         this.latestDate = (Long)map.get("createdAt");
         this.key =  (String)map.get("key");
+        this.user1_token = (String)map.get("token");
     }
 
     public Map<String,Object> Get_ChatRoomInfo(){
@@ -79,6 +76,7 @@ public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
         docData.put("User2_OutDate", user2_OutDate);
         docData.put("createdAt", latestDate);
         docData.put("key", key);
+        docData.put("token", user1_token);
 
         return docData;
     }
@@ -149,6 +147,24 @@ public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
     public void setLatestMessage(String latestMessage) {
         this.latestMessage = latestMessage;
     }
+    public String getUser1_token() {
+        return user1_token;
+    }
+    public void setUser1_token(String user1_token) {
+        this.user1_token = user1_token;
+    }
+    public Boolean getNew() {
+        return isNew;
+    }
+    public void setNew(Boolean aNew) {
+        isNew = aNew;
+    }
+    public String getUser2_token() {
+        return user2_token;
+    }
+    public void setUser2_token(String user2_token) {
+        this.user2_token = user2_token;
+    }
 
     protected ChatRoomInfo(Parcel in) {
         user1 = in.readString();
@@ -162,6 +178,7 @@ public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
         latestDate = in.readLong();
         latestMessage = in.readString();
         key = in.readString();
+        user1_token = in.readString();
     }
 
     @Override
@@ -177,6 +194,7 @@ public class ChatRoomInfo implements Parcelable, Comparator<ChatRoomInfo> {
         dest.writeLong(latestDate);
         dest.writeString(latestMessage);
         dest.writeString(key);
+        dest.writeString(user1_token);
     }
 
     public static final Creator<ChatRoomInfo> CREATOR = new Creator<ChatRoomInfo>() {

@@ -160,7 +160,8 @@ public class BoardFragment extends Fragment {
                 ISUPSCROLL = true;
                 postAdapter.NoMore_Load(false); //새로고침하면 false처리해서 포스트를 받을수 있게 하자(downscrol)
                 PostListModel.get().setValue(NewPostInfos);
-                Toast.makeText(getActivity(),"새로고침 되었습니다.",Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getActivity(),"새로고침 되었습니다.",Toast.LENGTH_SHORT).show();
+                my_utility.Toast("새로고침 되었습니다.");
             }
         });
     }

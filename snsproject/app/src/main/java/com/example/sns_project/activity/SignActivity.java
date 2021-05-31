@@ -32,6 +32,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -158,14 +159,20 @@ public class SignActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.getText().toString(),
-                                    binding.phoneNum.getText().toString(),BUSINESSNUMBER,new ArrayList<>());
-                            db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
                                 @Override
-                                public void onSuccess(Void aVoid) {
-                                    Log.d("updateUserProfile", "User profile updated.");
-                                    loader.setVisibility(View.GONE);
-                                    MainActivity(myAccount);
+                                public void onComplete(@NonNull Task<String> task) {
+                                    String token = task.getResult();
+                                    myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.getText().toString(),
+                                            binding.phoneNum.getText().toString(),BUSINESSNUMBER,new ArrayList<>(),token);
+                                    db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Log.d("updateUserProfile", "User profile updated.");
+                                            loader.setVisibility(View.GONE);
+                                            MainActivity(myAccount);
+                                        }
+                                    });
                                 }
                             });
                         }

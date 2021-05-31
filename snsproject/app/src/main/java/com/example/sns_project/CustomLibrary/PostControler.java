@@ -656,7 +656,7 @@ public final class PostControler {
         });
     }
 
-    public void Update_letter(String Key, String my_id,String other_id,ChatRoomInfo NewRoom,LetterInfo NewLetter) {
+    public void Update_letter(String Key, String my_id,String my_token,String other_id,String other_token,ChatRoomInfo NewRoom,LetterInfo NewLetter) {
         Log.d("czo123","시작은했냐??");
 
         Store.collection("USER").document(other_id).collection("Rooms").document(Key).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -665,7 +665,7 @@ public final class PostControler {
                 if(task.isSuccessful()){
                     if(task.getResult().exists()){ //상대방에게 방이 존재한다면 (나간적이 없다면) 정상적으로 카운트
                         Log.d("czo123","이그지스트");
-                        Set_Latest_and_Count(Key,my_id,other_id,NewLetter.getContents(),NewLetter.getCreatedAt());
+                        Set_Latest_and_Count(Key,my_id,my_token,other_id,other_token,NewLetter.getContents(),NewLetter.getCreatedAt());
 
                         Store.collection("USER").document(my_id).collection("Rooms").document(Key).collection("Letters").add(NewLetter);
                         Store.collection("USER").document(other_id).collection("Rooms").document(Key).collection("Letters").add(NewLetter);
@@ -674,7 +674,7 @@ public final class PostControler {
                         Store.collection("USER").document(other_id).collection("Rooms").document(Key).set(NewRoom).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                Set_Latest_and_Count(Key,my_id,other_id,NewLetter.getContents(),NewLetter.getCreatedAt());
+                                Set_Latest_and_Count(Key,my_id,my_token,other_id,other_token,NewLetter.getContents(),NewLetter.getCreatedAt());
                                 Log.d("czo123","존재x");
                                 Store.collection("USER").document(my_id).collection("Rooms").document(Key).collection("Letters").add(NewLetter);
                                 Store.collection("USER").document(other_id).collection("Rooms").document(Key).collection("Letters").add(NewLetter);
@@ -687,7 +687,7 @@ public final class PostControler {
 
     }
 
-    public void Create_NewRoom(String Key, String my_nick, String my_id, String other_nick, String other_id, Listener_Check_Room listener_Check_room_) {
+    public void Create_NewRoom(String my_token,String Key, String my_nick, String my_id,String other_token,String other_nick, String other_id, Listener_Check_Room listener_Check_room_) {
 
         Store.collection("USER").document(my_id).collection("Rooms").document(Key).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
@@ -695,7 +695,7 @@ public final class PostControler {
                 if (documentSnapshot.exists()) { //이미 있는 방이라면, 방에서 나간적이 있는지 체크해서 시간을 넘겨라
                     listener_Check_room_.Done();
                 } else { //새로만들어야 한다면,
-                    ChatRoomInfo Room = new ChatRoomInfo(my_nick, my_id, new Date().getTime(), 0, other_nick, other_id, new Date().getTime(), 0, Key);
+                    ChatRoomInfo Room = new ChatRoomInfo(my_nick, my_id, new Date().getTime(), 0,my_token, other_nick, other_id, new Date().getTime(), 0,other_token, Key,false);
                     Store.collection("USER").document(my_id).collection("Rooms").document(Key).set(Room);
                     listener_Check_room_.Done();
                 }
@@ -737,7 +737,7 @@ public final class PostControler {
         });
     }
 
-    public void Set_Latest_and_Count(String Key, String my_id,String others_id, String latestMessage, Long latestDate) {
+    public void Set_Latest_and_Count(String Key, String my_id,String my_token,String others_id,String other_token, String latestMessage, Long latestDate) {
 
         Map<String, Object> map = new HashMap<>();
 
@@ -758,11 +758,19 @@ public final class PostControler {
                         map.put("user2_count", room.getUser2_count() + 1);
                         map.put("latestMessage", latestMessage);
                         map.put("latestDate", latestDate);
+                        map.put("token",room.getUser2_token());
+                        map.put("isNew",true);
+                        map.put("sender",room.getUser1());
+                        Log.d("zxkxk23","1qjs: "+room.getUser2_token());
                         transaction.update(doc, map);
                     } else {
                         map.put("user1_count", room.getUser1_count() + 1);
                         map.put("latestMessage", latestMessage);
                         map.put("latestDate", latestDate);
+                        map.put("token",room.getUser1_token());
+                        map.put("isNew",true);
+                        map.put("sender",room.getUser2());
+                        Log.d("zxkxk23","2qjs: "+room.getUser1_token());
                         transaction.update(doc, map);
                     }
                 }
@@ -786,11 +794,17 @@ public final class PostControler {
                         map.put("user2_count", room.getUser2_count() + 1);
                         map.put("latestMessage", latestMessage);
                         map.put("latestDate", latestDate);
+                        map.put("token",room.getUser2_token());
+                        map.put("isNew",true);
+                        map.put("sender",room.getUser1());
                         transaction.update(doc2, map);
                     } else {
                         map.put("user1_count", room.getUser1_count() + 1);
                         map.put("latestMessage", latestMessage);
                         map.put("latestDate", latestDate);
+                        map.put("token",room.getUser1_token());
+                        map.put("isNew",true);
+                        map.put("sender",room.getUser2());
                         transaction.update(doc2, map);
                     }
                 }

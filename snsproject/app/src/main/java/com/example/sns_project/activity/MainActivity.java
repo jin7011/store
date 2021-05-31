@@ -30,14 +30,17 @@ import com.example.sns_project.fragment.ChatRoomFragment;
 import com.example.sns_project.fragment.ProfileFragment;
 import com.example.sns_project.fragment.NotificationFragment;
 import com.example.sns_project.info.MyAccount;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 
@@ -253,15 +256,50 @@ public class MainActivity extends AppCompatActivity {
                         if(myAccount == null) {
                             //처음 어플 켰을 때
                             Log.d("dasdazz","null"+location);
-                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum,new ArrayList<>());
-                            liveDataMyDataMainModel.get().setValue(myAccount);
+                            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+                                @Override
+                                public void onComplete(@NonNull Task<String> task) {
+                                    String token = task.getResult();
+                                    Log.d("tokenzz","token: "+token);
+                                    FirebaseFirestore.getInstance().collection("USER").document(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            myAccount = task.getResult().toObject(MyAccount.class);
+                                            if(!token.equals(myAccount.getToken())) {
+                                                myAccount.setToken(token);
+                                                FirebaseFirestore.getInstance().collection("USER").document(user.getUid()).set(myAccount.getMap());
+                                                liveDataMyDataMainModel.get().setValue(myAccount);
+                                            }else{
+                                                liveDataMyDataMainModel.get().setValue(myAccount);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+
                         }else if(location != null && !myAccount.getLocation().equals(location)){
                             //지역변경을 하고 왔을 때의 처리
-                            Log.d("dasdazz","not_null: "+myAccount.getLocation()+", new: "+location);
-                            myAccount = new MyAccount(user.getUid(), user.getDisplayName(), image, location, store, phone, businessNum,new ArrayList<>());
-                            liveDataMyDataMainModel.get().setValue(myAccount);
-                        }
+                            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+                                @Override
+                                public void onComplete(@NonNull Task<String> task) {
+                                    String token = task.getResult();
+                                    FirebaseFirestore.getInstance().collection("USER").document(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            myAccount = task.getResult().toObject(MyAccount.class);
 
+                                            if(!token.equals(myAccount.getToken())) {
+                                                myAccount.setToken(token);
+                                                FirebaseFirestore.getInstance().collection("USER").document(user.getUid()).set(myAccount.getMap());
+                                                liveDataMyDataMainModel.get().setValue(myAccount);
+                                            }else{
+                                                liveDataMyDataMainModel.get().setValue(myAccount);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
                         if(location == null){
                             //비정상적인 경로임. auth에는 계정이 남아있고, user 스토리지에는 계정이 안지워진 상태.
                             Log.d("dasdazz","스토리지 널");

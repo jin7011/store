@@ -9,7 +9,6 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.RelativeLayout;
@@ -30,13 +29,18 @@ import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostInfo;
 import com.example.sns_project.databinding.ActivityPostBinding;
 import com.example.sns_project.info.CommentInfo;
+import com.example.sns_project.info.MyAccount;
+import com.example.sns_project.info.NotificationInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.My_Utility;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -192,8 +196,15 @@ public class PostActivity extends AppCompatActivity {
             @Override
             public void onComplete_Set_PostInfo(PostInfo NewPostInfo) {
                 liveData_postInfo.get().setValue(NewPostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
-
-                Loading(false);
+                FirebaseFirestore.getInstance().collection("USER").document(postInfo.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        MyAccount account = task.getResult().toObject(MyAccount.class);
+                        NotificationInfo noti = new NotificationInfo("에 댓글이 달렸습니다",account.getToken(),account.getNickname(),postInfo.getTitle(),postInfo.getDocid(),new Date().getTime());
+                        FirebaseFirestore.getInstance().collection("USER").document(postInfo.getId()).collection("Notification").document(postInfo.getDocid()).set(noti);
+                        Loading(false);
+                    }
+                });
             }
             @Override
             public void onFailed() {
@@ -201,7 +212,6 @@ public class PostActivity extends AppCompatActivity {
             Toast("댓글에 실패했습니다.");
             }
         });
-    }
 
     public void Add_and_Set_CommentRecyclerView(PostActivity activity){
 

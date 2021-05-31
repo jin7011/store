@@ -20,7 +20,7 @@ public class SendServer {
 
     public SendServer(){}
 
-    public void Send(String title, String body,Activity activity){
+    public void Send(String title, String body,Activity activity){ //todo 레트로핏이나 rx자바 single 사용하고 싶은걸
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
             @Override
             public void onComplete(@NonNull Task<String> task) {

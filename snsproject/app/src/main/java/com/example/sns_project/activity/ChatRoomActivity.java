@@ -25,9 +25,17 @@ import com.example.sns_project.data.LiveData_Letters;
 import com.example.sns_project.databinding.ActivityChatRoomBinding;
 import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.LetterInfo;
+import com.example.sns_project.info.MyAccount;
+import com.example.sns_project.info.NotificationInfo;
 import com.example.sns_project.util.My_Utility;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -60,6 +68,9 @@ public class ChatRoomActivity extends AppCompatActivity {
     private boolean Done = false;
     private int Bring_Size = 0;
     private boolean FIRST_CHAT = false;
+    private String my_token;
+    private String user_token;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,17 +95,32 @@ public class ChatRoomActivity extends AppCompatActivity {
             }
         });
 
-//        asd();
         Get_Intent();
         Set_Toolbar();
-        CreateRoom();
-        RecyclerViewInit(); //리사이클러뷰 셋팅해줘야함
-//        Set_Swipe();
+
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+            @Override
+            public void onComplete(@NonNull Task<String> task) {
+                my_token = task.getResult();
+                FirebaseFirestore.getInstance().collection("USER").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        MyAccount user_Account = task.getResult().toObject(MyAccount.class);
+                        user_token = user_Account.getToken();
+                        Log.d("Room_token", "my: "+my_token+" others: "+user_token);
+
+                        CreateRoom();
+                        RecyclerViewInit(); //리사이클러뷰 셋팅해줘야함
+                    }
+                });
+            }
+        });
+
         binding.setChatRoomActivity(this);
     }
 
     private void CreateRoom() {
-        postControler.Create_NewRoom(RoomKey, my_nick, my_id, user_nick, user_id, new PostControler.Listener_Check_Room() {
+        postControler.Create_NewRoom(my_token,RoomKey, my_nick, my_id, user_token,user_nick, user_id, new PostControler.Listener_Check_Room() {
             @Override
             public void Done() {
                 Set_Listener_And_Bring(); // 대화내용 있으면 -> 가져와서 셋하고 리스너달고 없으면 -> 리스너 바로 달고
@@ -138,8 +164,11 @@ public class ChatRoomActivity extends AppCompatActivity {
         String content = binding.AddLetterT.getText().toString();
         LetterInfo letter = new LetterInfo(user.getDisplayName(),user.getUid(),user_nick,user_id,content,new Date().getTime());
 
-        ChatRoomInfo Room = new ChatRoomInfo(my_nick, my_id, new Date().getTime(), 0, user_nick, user_id, new Date().getTime(), 0, RoomKey);
-        postControler.Update_letter(RoomKey,my_id,user_id,Room,letter);
+        ChatRoomInfo Room = new ChatRoomInfo(my_nick, my_id, new Date().getTime(), 0,my_token, user_nick, user_id, new Date().getTime(), 0,user_token, RoomKey,true);
+        postControler.Update_letter(RoomKey,my_id,my_token,user_id,user_token,Room,letter);
+
+        NotificationInfo noti = new NotificationInfo("님에게 메시지가 도착했습니다.",user_token,user_nick,content,RoomKey,new Date().getTime());
+        FirebaseFirestore.getInstance().collection("USER").document(user_id).collection("Notification").document(RoomKey).set(noti);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////대화내용을 읽기
     private void Set_Listener_And_Bring(){
