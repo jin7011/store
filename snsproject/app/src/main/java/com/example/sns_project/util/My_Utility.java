@@ -12,6 +12,7 @@ import com.example.sns_project.Adapter.ChatRoomAdapter;
 import com.example.sns_project.Adapter.LetterAdapter;
 import com.example.sns_project.Adapter.PostAdapter;
 import com.example.sns_project.info.ChatRoomInfo;
+import com.example.sns_project.info.NotificationInfo;
 import com.example.sns_project.info.PostInfo;
 
 import java.util.ArrayList;
@@ -177,7 +178,7 @@ public class My_Utility {
         return result;
     }
 
-    public static HashMap<String, ChatRoomInfo> List_To_Map(ArrayList<ChatRoomInfo> rooms){
+    public static HashMap<String, ChatRoomInfo> List_To_Map_Room(ArrayList<ChatRoomInfo> rooms){
 
         HashMap<String, ChatRoomInfo> map = new HashMap<>();
 
@@ -188,7 +189,18 @@ public class My_Utility {
         return map;
     }
 
-    public static ArrayList<ChatRoomInfo> Map_to_List(HashMap<String, ChatRoomInfo> map){
+    public static HashMap<String, NotificationInfo> List_To_Map_Noti(ArrayList<NotificationInfo> notis){
+
+        HashMap<String, NotificationInfo> map = new HashMap<>();
+
+        for(NotificationInfo noti : notis){
+            map.put(noti.getDocid(),noti);
+        }
+        return map;
+    }
+
+
+    public static ArrayList<ChatRoomInfo> Map_to_List_Room(HashMap<String, ChatRoomInfo> map){
 
         ArrayList<ChatRoomInfo> rooms = new ArrayList<>();
 
@@ -204,5 +216,22 @@ public class My_Utility {
         });
 
         return rooms;
+    }
+    public static ArrayList<NotificationInfo> Map_to_List_Noti(HashMap<String, NotificationInfo> map){
+
+        ArrayList<NotificationInfo> notis = new ArrayList<>();
+
+        for(Map.Entry e : map.entrySet()){
+            notis.add((NotificationInfo)e.getValue());
+        }
+
+        notis.sort(new Comparator<NotificationInfo>() {
+            @Override
+            public int compare(NotificationInfo o1, NotificationInfo o2) {
+                return o2.getCreatedAt().compareTo(o1.getCreatedAt());
+            }
+        });
+
+        return notis;
     }
 }

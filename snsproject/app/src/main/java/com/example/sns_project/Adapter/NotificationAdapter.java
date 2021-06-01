@@ -7,11 +7,14 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.R;
 import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.NotificationInfo;
+import com.example.sns_project.util.ChatRoomInfo_DiffUtil;
+import com.example.sns_project.util.NotificationInfo_DiffUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,11 +23,20 @@ import static com.example.sns_project.CustomLibrary.PostControler.MessageTime_to
 
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
-    ArrayList<NotificationInfo> notis;
+    ArrayList<NotificationInfo> notis = new ArrayList<>();
 
-    public NotificationAdapter(ArrayList<NotificationInfo> notis){
-        this.notis = notis;
+
+    public void NotificationInfo_DiffUtil(ArrayList<NotificationInfo> Newnotis) {
+        final NotificationInfo_DiffUtil diffCallback = new NotificationInfo_DiffUtil(this.notis,Newnotis);
+        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
+
+        this.notis.clear();
+        this.notis.addAll(Newnotis);
+
+        diffResult.dispatchUpdatesTo(this);
     }
+
+    public NotificationAdapter(){ }
 
     //holder
     public static class Noti_holder extends RecyclerView.ViewHolder {

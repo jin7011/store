@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.LetterInfo;
+import com.example.sns_project.info.NotificationInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.My_Utility;
@@ -142,9 +143,19 @@ public final class PostControler {
         void onDeleted(ChatRoomInfo room);
     }
 
+    public interface Listener_Noti {
+        void onAdded(NotificationInfo noti);
+        void onModified(NotificationInfo noti);
+        void onDeleted(NotificationInfo noti);
+    }
+
     public interface Listener_UpLoadPost {
         void onComplete();
         void onFail();
+    }
+
+    public interface Listener_Delete_Noti{
+        void onComplete();
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts, String KeyWord, Listener_CompletePostInfos listener_completePostInfos) {
@@ -627,8 +638,6 @@ public final class PostControler {
 
     public void Set_Listener_Room(String id,Listener_Room get_roomKeys) {
 
-        ArrayList<ChatRoomInfo> rooms = new ArrayList<>();
-
         Store.collection("USER").document(id).collection("Rooms")
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -653,6 +662,46 @@ public final class PostControler {
                         }
                     }
                 }
+            }
+        });
+    }
+
+    public void Set_Listener_Noti(String id,Listener_Noti listener_noti){
+        Store.collection("USER").document(id).collection("Notification").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                for (DocumentChange dc : value.getDocumentChanges()) {
+
+                    NotificationInfo noti = dc.getDocument().toObject(NotificationInfo.class);
+
+                    if (dc.getType() == DocumentChange.Type.ADDED) {
+                        if (noti.getDocid() != null) {
+                            listener_noti.onAdded(noti);
+                            Log.d("clzl12", "added: " + noti.getType() + "");
+                        }
+                    }
+                    if (dc.getType() == DocumentChange.Type.MODIFIED) {
+                        if (noti.getDocid() != null) {
+                            listener_noti.onModified(noti);
+                            Log.d("clzl12", "modified: " +noti.getType() + "");
+                        }
+                    }
+                    if (dc.getType() == DocumentChange.Type.REMOVED) {
+                        if (noti.getDocid() != null) {
+                            listener_noti.onDeleted(noti);
+                            Log.d("clzl12", "modified: " + noti.getType() + "");
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    public void Delete_Noti(String id,String docid,Listener_Delete_Noti listener_delete_noti){
+        Store.collection("USER").document(id).collection("Notification").document(docid).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                listener_delete_noti.onComplete();
             }
         });
     }

@@ -25,9 +25,8 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.example.sns_project.util.My_Utility.List_To_Map;
-import static com.example.sns_project.util.My_Utility.Map_to_List;
-import static com.example.sns_project.util.My_Utility.Sort_Map_ByValue;
+import static com.example.sns_project.util.My_Utility.List_To_Map_Room;
+import static com.example.sns_project.util.My_Utility.Map_to_List_Room;
 import static com.example.sns_project.util.Named.VERTICAL;
 
 public class ChatRoomFragment extends Fragment {
@@ -87,15 +86,15 @@ public class ChatRoomFragment extends Fragment {
         postControler.Set_Listener_Room(user.getUid(), new PostControler.Listener_Room() {
             @Override
             public void onAdded(ChatRoomInfo room) {
-                HashMap<String,ChatRoomInfo> newmap = List_To_Map(liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : liveData_chatRooms.get().getValue());
+                HashMap<String,ChatRoomInfo> newmap = List_To_Map_Room(liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : liveData_chatRooms.get().getValue());
                 newmap.put(room.getKey(),room);
-                liveData_chatRooms.get().setValue(Map_to_List(newmap));
+                liveData_chatRooms.get().setValue(Map_to_List_Room(newmap));
             }
             @Override
             public void onModified(ChatRoomInfo room) {
-                HashMap<String,ChatRoomInfo> newmap = List_To_Map(liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : liveData_chatRooms.get().getValue());
+                HashMap<String,ChatRoomInfo> newmap = List_To_Map_Room(liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : liveData_chatRooms.get().getValue());
                 newmap.put(room.getKey(),room);
-                liveData_chatRooms.get().setValue(Map_to_List(newmap));
+                liveData_chatRooms.get().setValue(Map_to_List_Room(newmap));
 
                 for(int x=0; x<liveData_chatRooms.get().getValue().size(); x++){
                     Log.d("zkk13",liveData_chatRooms.get().getValue().get(x).getLatestMessage());
@@ -103,9 +102,9 @@ public class ChatRoomFragment extends Fragment {
             }
             @Override
             public void onDeleted(ChatRoomInfo room) {
-                HashMap<String,ChatRoomInfo> newmap = List_To_Map(liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : liveData_chatRooms.get().getValue());
+                HashMap<String,ChatRoomInfo> newmap = List_To_Map_Room(liveData_chatRooms.get().getValue() == null ? new ArrayList<>() : liveData_chatRooms.get().getValue());
                 newmap.remove(room.getKey());
-                liveData_chatRooms.get().setValue(Map_to_List(newmap));
+                liveData_chatRooms.get().setValue(Map_to_List_Room(newmap));
             }
         });
 

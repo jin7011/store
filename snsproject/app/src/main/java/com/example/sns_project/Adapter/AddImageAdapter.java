@@ -25,13 +25,20 @@ import java.util.ArrayList;
 public class AddImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Activity activity;
-    private ArrayList<Uri> UriFormats;
-    private LiveData_WritePost liveData_writePost;
+    private ArrayList<Uri> UriFormats = new ArrayList<>();
+    private Listener_Delete listener_delete;
 
-    public AddImageAdapter(Activity activity,LiveData_WritePost liveData_writePost) {
+    public interface Listener_Delete{
+        void onDelete(int position);
+    }
+
+    public AddImageAdapter(Activity activity,Listener_Delete listener_delete) {
+        this.listener_delete = listener_delete;
         this.activity = activity;
-        this.UriFormats = liveData_writePost.get().getValue();
-        this.liveData_writePost = liveData_writePost;
+    }
+
+    public void Set_Uri( ArrayList<Uri> UriFormats){
+        this.UriFormats = UriFormats;
     }
 
     //holder
@@ -49,8 +56,8 @@ public class AddImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { //비어있는 홀더에 비어있는 이미지뷰를 만들어줌
 
         ImageView imageView = (ImageView)LayoutInflater.from(parent.getContext()).inflate(R.layout.item_addimage,parent,false);
-        RecyclerView.ViewHolder addImageHolder = new AddImageHolder(imageView);
-        setClickListenerOnHolder((AddImageHolder)addImageHolder, addImageHolder.getAbsoluteAdapterPosition());
+        AddImageHolder addImageHolder = new AddImageHolder(imageView);
+        setClickListenerOnHolder(addImageHolder);
         return addImageHolder;
     }
 
@@ -62,7 +69,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    private void setClickListenerOnHolder(AddImageHolder holder, int position) {
+    private void setClickListenerOnHolder(AddImageHolder holder) {
 
         holder.imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -74,12 +81,7 @@ public class AddImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 builder.setPositiveButton("예",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-
-                                UriFormats.remove(position); //해당 포지션의 공용데이터리스트를 제거
-                                notifyItemRemoved(position);
-                                notifyItemRangeChanged(position, UriFormats.size());
-                                liveData_writePost.get().setValue(UriFormats);
-
+                                listener_delete.onDelete(holder.getAbsoluteAdapterPosition());
                             }
                         });
                 builder.setNegativeButton("아니오",

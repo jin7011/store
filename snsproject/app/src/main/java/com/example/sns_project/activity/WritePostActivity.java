@@ -45,6 +45,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Objects;
 
 import static com.example.sns_project.util.Named.HORIZEN;
 import static com.example.sns_project.util.Named.WRITE_RESULT;
@@ -82,6 +83,9 @@ public class WritePostActivity extends AppCompatActivity {
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference();
 
+        //리사이클러뷰
+        Add_and_SetRecyclerView();
+
         //라이브데이터
         Postmodel = new ViewModelProvider(WritePostActivity.this).get(LiveData_WritePost.class);
         Postmodel.get().observe(this, new Observer<ArrayList<Uri>>() {
@@ -90,11 +94,8 @@ public class WritePostActivity extends AppCompatActivity {
                 long sum = getFileSize(uris);
                 filesize = Double.parseDouble(String.valueOf(sum));
                 set_filesizeT(filesize);
-
-                if(addImageAdapter == null)
-                    Add_and_SetRecyclerView();
-                else
-                    addImageAdapter.notifyDataSetChanged();
+                addImageAdapter.Set_Uri(uris);
+                addImageAdapter.notifyDataSetChanged();
             }
         });
 
@@ -151,7 +152,15 @@ public class WritePostActivity extends AppCompatActivity {
     }
 
     public void Add_and_SetRecyclerView(){
-        addImageAdapter = new AddImageAdapter(this,Postmodel);
+        addImageAdapter = new AddImageAdapter(this, new AddImageAdapter.Listener_Delete() {
+            @Override
+            public void onDelete(int position) {
+                ArrayList<Uri> uris = new ArrayList<>(Objects.requireNonNull(Postmodel.get().getValue()));
+                uris.remove(position);
+                Postmodel.get().setValue(uris);
+                Log.d("Remove_Uri","position: "+position);
+            }
+        });
         my_utility = new My_Utility(this,binding.ImageRecycler,addImageAdapter);
         my_utility.RecyclerInit(HORIZEN);
     }
