@@ -131,9 +131,10 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void onComplete_Get_PostsArrays(ArrayList<PostInfo> NewPostInfos) {
 
-                if(NewPostInfos.size() == 0) {
+                if(NewPostInfos.size() == 0) { //찾은 게시물이 없다면,
                     binding.SearchRecyclerView.setVisibility(View.GONE);
                     binding.cannotfindConstranint.setVisibility(View.VISIBLE);
+                    PostListModel.get().setValue(NewPostInfos);
                     adapter.NoMore_Load(true);
                 }
                 else {

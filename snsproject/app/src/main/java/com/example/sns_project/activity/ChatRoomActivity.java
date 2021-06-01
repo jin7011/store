@@ -167,7 +167,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         ChatRoomInfo Room = new ChatRoomInfo(my_nick, my_id, new Date().getTime(), 0,my_token, user_nick, user_id, new Date().getTime(), 0,user_token, RoomKey,true);
         postControler.Update_letter(RoomKey,my_id,my_token,user_id,user_token,Room,letter);
 
-        NotificationInfo noti = new NotificationInfo("님의 메시지가 도착했습니다.",user_token,user_nick,content,RoomKey,new Date().getTime());
+        NotificationInfo noti = new NotificationInfo("님의 메시지가 도착했습니다.",user_token,my_nick,content,RoomKey,new Date().getTime());
         FirebaseFirestore.getInstance().collection("USER").document(user_id).collection("Notification").document(RoomKey).set(noti);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////대화내용을 읽기

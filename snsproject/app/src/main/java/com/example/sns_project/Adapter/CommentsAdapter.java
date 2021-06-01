@@ -234,7 +234,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
     public void OthersDialog(){
-        final String[] items = {"알림설정","쪽지보내기","신고"};
+        final String[] items = {"쪽지보내기","신고"};
         AlertDialog.Builder alert = new AlertDialog.Builder(activity);
 
         alert.setItems(items, new DialogInterface.OnClickListener() {
@@ -243,12 +243,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 //todo 기능추가해줘야함.
                 switch (which){
                     case 0:
-                        Toast.makeText(activity,"알림설정이 되었습니다.",Toast.LENGTH_SHORT).show();
-                        break;
-                    case 1:
                         Toast.makeText(activity,"쪽지를 보냅시당",Toast.LENGTH_SHORT).show();
                         break;
-                    case 2:
+                    case 1:
                         Toast.makeText(activity,"신고 접수되었습니다.",Toast.LENGTH_SHORT).show();
                         break;
                     default:
@@ -301,30 +298,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         else
             return false;
 
-    }
-
-    public static String formatTimeString(Date postdate,Date nowDate){
-
-        long ctime = nowDate.getTime();
-        long regTime = postdate.getTime();
-
-        long diffTime = (ctime - regTime) / 1000;
-        String msg = null;
-
-        if (diffTime < SEC) {
-            msg = "방금 전";
-        } else if ((diffTime /= SEC) < MIN) {
-            msg = diffTime + "분 전";
-        } else if ((diffTime /= MIN) < HOUR) {
-            msg = new SimpleDateFormat("HH:mm").format(postdate);
-//        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
-//            msg = (diffTime) + "일 전";
-//        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
-//            msg = (diffTime) + "달 전";
-        } else {
-            msg = new SimpleDateFormat("MM월dd일").format(postdate);
-        }
-        return msg;
     }
 
     public void Toast(String str){
