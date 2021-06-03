@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -35,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
 
         Button login = findViewById(R.id.login_btn);
         Button gosignup  = findViewById(R.id.gosignup_btn);
-        Button findpass = findViewById(R.id.Findpass);
+        TextView findpass = findViewById(R.id.findpass);
 
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,7 +112,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void PasswordActivity(){
-        Intent intent = new Intent(this, Password_resetActivity.class);
+        Intent intent = new Intent(this, FindPassActivity.class);
         startActivity(intent);
     }
 }

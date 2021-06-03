@@ -21,9 +21,15 @@
         android:roundIcon="@drawable/ic_launcher_background"
         android:supportsRtl="true">
         <activity
-            android:name=".activity.MyPostsActivity"
+            android:name=".activity.Check_NotificationActivity"
             android:theme="@style/Theme.Snsproject"
             />
+        <activity
+            android:name=".activity.FindPassActivity"
+            android:theme="@style/Theme.Snsproject" />
+        <activity
+            android:name=".activity.MyPostsActivity"
+            android:theme="@style/Theme.Snsproject" />
         <activity
             android:name=".activity.ChatRoomActivity"
             android:theme="@style/Theme.Snsproject"
@@ -75,6 +81,6 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
     </application>
+
 </manifest>

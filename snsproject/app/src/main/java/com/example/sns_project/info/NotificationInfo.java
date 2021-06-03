@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 public class NotificationInfo implements Parcelable {
 
-    private String type;
+    private String topic;
     private String Docid;
     private String location;
     private String contents;
@@ -16,8 +16,8 @@ public class NotificationInfo implements Parcelable {
 
     public NotificationInfo(){}
 
-    public NotificationInfo(String type,String token,String sender,String contents,String Docid,Long createdAt){
-        this.type = type;
+    public NotificationInfo(String topic, String token, String sender, String contents, String Docid, Long createdAt){
+        this.topic = topic;
         this.token = token;
         this.sender = sender;
         this.contents = contents;
@@ -95,6 +95,7 @@ public class NotificationInfo implements Parcelable {
         return token;
     }
 
+
     public void setToken(String token) {
         this.token = token;
     }
@@ -107,11 +108,11 @@ public class NotificationInfo implements Parcelable {
         this.sender = sender;
     }
 
-    public String getType() {
-        return type;
+    public String getTopic() {
+        return topic;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setTopic(String topic) {
+        this.topic = topic;
     }
 }

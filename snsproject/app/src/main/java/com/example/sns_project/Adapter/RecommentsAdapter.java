@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,17 +18,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
+import com.example.sns_project.activity.ChatRoomActivity;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
-import com.example.sns_project.util.CommentInfo_DiffUtil;
-import com.example.sns_project.util.Named;
 import com.example.sns_project.util.RecommentInfo_DiffUtil;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,11 +42,13 @@ import static com.example.sns_project.util.Named.SEC;
 public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final Activity activity;
+    private final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     private final ArrayList<RecommentInfo> recomments = new ArrayList<>();
-    private final CommentInfo Parent_CommentInfo;
+    private final CommentInfo comment;
     private final PostControler postControler;
     private final Listener_Pressed_goodbtn listener_pressed_goodbtn;
-    PostInfo postInfo;
+    private final Listener_Recomment_Delete listener_recomment_delete;
+    private final PostInfo postInfo;
 
     public void RecommentInfo_DiffUtil(ArrayList<RecommentInfo> newcomments) {
         final RecommentInfo_DiffUtil diffCallback = new RecommentInfo_DiffUtil(this.recomments, newcomments);
@@ -56,16 +59,21 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public RecommentsAdapter(Activity activity,PostInfo postInfo,CommentInfo Parent_CommentInfo,Listener_Pressed_goodbtn listener_pressed_goodbtn) {
+    public RecommentsAdapter(Activity activity, PostInfo postInfo, CommentInfo comment, Listener_Pressed_goodbtn listener_pressed_goodbtn, Listener_Recomment_Delete listener_recomment_delete) {
         this.postInfo = postInfo;
         this.activity = activity;
-        this.Parent_CommentInfo = Parent_CommentInfo;
+        this.comment = comment;
         this.postControler = new PostControler(postInfo.getLocation());
+        this.listener_recomment_delete = listener_recomment_delete;
         this.listener_pressed_goodbtn = listener_pressed_goodbtn;
     }
 
     public interface Listener_Pressed_goodbtn{
         void onClicked_goodbtn(PostInfo NewPostInfo);
+    }
+
+    public interface Listener_Recomment_Delete{
+        void onClick_Delete(RecommentInfo recomment,CommentInfo comment);
     }
 
     //holder
@@ -101,7 +109,7 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         recommentsHolder.good_btn.setOnClickListener(new View.OnClickListener() { //좋아요
             @Override
             public void onClick(View v) {
-                postControler.Press_Good_ReComment(postInfo, Parent_CommentInfo, Parent_CommentInfo.getRecomments().get(recommentsHolder.getAbsoluteAdapterPosition()), new PostControler.Listener_Complete_GoodPress() {
+                postControler.Press_Good_ReComment(postInfo, comment, comment.getRecomments().get(recommentsHolder.getAbsoluteAdapterPosition()), new PostControler.Listener_Complete_GoodPress() {
                     @Override
                     public void onComplete_Good_Press(PostInfo NewPostInfo) {
                         listener_pressed_goodbtn.onClicked_goodbtn(NewPostInfo);
@@ -120,10 +128,10 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         recommentsHolder.option_btn.setOnClickListener(new View.OnClickListener() { //옵션
             @Override
             public void onClick(View v) {
-                if(isposter(recommentsHolder.getAbsoluteAdapterPosition())){ //포지션 넘겨주려고 좀 지저분해도 어쩔수 없이 내부에 온클릭을 정의했음
-                    DeleteDialog();
+                if(recomments.get(recommentsHolder.getAbsoluteAdapterPosition()).getId().equals(user.getUid())){ //포지션 넘겨주려고 좀 지저분해도 어쩔수 없이 내부에 온클릭을 정의했음
+                    DeleteDialog(recomments.get(recommentsHolder.getAbsoluteAdapterPosition()),comment);
                 }else{
-                    OthersDialog();
+                    OthersDialog(recomments.get(recommentsHolder.getAbsoluteAdapterPosition()));
                 }
             }
         });
@@ -168,14 +176,14 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         return recomments.size();
     }
 
-    public void DeleteDialog(){
+    public void DeleteDialog(RecommentInfo recomment,CommentInfo comment){
         final String[] items = {"삭제"};
         AlertDialog.Builder alert = new AlertDialog.Builder(activity);
         alert.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if(which == 0){
-                    Toast.makeText(activity,"삭제",Toast.LENGTH_SHORT).show();
+                    listener_recomment_delete.onClick_Delete(recomment,comment);
                     dialog.dismiss();
                 }
             }
@@ -185,8 +193,8 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         alertDialog.show();
     }
 
-    public void OthersDialog(){
-        final String[] items = {"알림설정","쪽지보내기","신고"};
+    public void OthersDialog(RecommentInfo recomment){
+        final String[] items = {"쪽지보내기","신고"};
         AlertDialog.Builder alert = new AlertDialog.Builder(activity);
         alert.setItems(items, new DialogInterface.OnClickListener() {
             @Override
@@ -194,12 +202,9 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 //todo 기능추가해줘야함.
                 switch (which){
                     case 0:
-                        Toast.makeText(activity,"알림설정이 되었습니다.",Toast.LENGTH_SHORT).show();
+                        StartActivity(activity,recomment.getPublisher(),recomment.getId());
                         break;
                     case 1:
-                        Toast.makeText(activity,"쪽지를 보냅시당",Toast.LENGTH_SHORT).show();
-                        break;
-                    case 2:
                         Toast.makeText(activity,"신고 접수되었습니다.",Toast.LENGTH_SHORT).show();
                         break;
                     default:
@@ -248,6 +253,12 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         Toast.makeText(activity,str,Toast.LENGTH_SHORT).show();
     }
 
-
+    public void StartActivity (Activity activity, String receiver_publisher, String receiver_id)
+    {
+        Intent intent = new Intent(activity, ChatRoomActivity.class);
+        intent.putExtra("user_nick", receiver_publisher);
+        intent.putExtra("user_id", receiver_id);
+        activity.startActivity(intent);
+    }
 }
 

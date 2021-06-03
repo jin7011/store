@@ -11,9 +11,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sns_project.R;
-import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.NotificationInfo;
-import com.example.sns_project.util.ChatRoomInfo_DiffUtil;
 import com.example.sns_project.util.NotificationInfo_DiffUtil;
 
 import java.util.ArrayList;
@@ -67,7 +65,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         Noti_holder noti_holder  = (Noti_holder)holder;
         NotificationInfo noti = notis.get(position);
 
-        noti_holder.sender_nick.setText(noti.getSender()+" "+noti.getType());
+        noti_holder.sender_nick.setText(noti.getSender()+" "+noti.getTopic());
         noti_holder.content.setText(noti.getContents());
         noti_holder.date.setText(MessageTime_to_String(noti.getCreatedAt(),new Date()));
     }

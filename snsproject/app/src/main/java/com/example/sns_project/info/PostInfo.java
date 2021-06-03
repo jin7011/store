@@ -209,6 +209,7 @@ public class PostInfo implements Parcelable{
         How_Long = how_Long;
     }
 
+
     @Override
     public int describeContents() {
         return 0;

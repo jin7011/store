@@ -3,6 +3,9 @@ package com.example.sns_project.util;
 import java.util.Date;
 
 public class Named {
+    public static final int VERSION = 1;
+    public static boolean NOTIFICATION = true;
+
     public static final int HORIZEN = 400;
     public static final int VERTICAL= 401;
     public static final int GRID= 402;
@@ -18,6 +21,7 @@ public class Named {
     public static final int MINE = 1112;
     public static boolean FIRST_BRING = false;
     public static boolean NEW_MESSAGE = false;
+
     public static final int DELETE = 1113;
     public static final int CREATE = 1114;
     public static final int SET = 1115;

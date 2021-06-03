@@ -30,20 +30,15 @@ import com.example.sns_project.fragment.ChatRoomFragment;
 import com.example.sns_project.fragment.ProfileFragment;
 import com.example.sns_project.fragment.NotificationFragment;
 import com.example.sns_project.info.MyAccount;
+import com.example.sns_project.util.PreferenceManager;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import java.util.ArrayList;
-
+import static com.example.sns_project.util.Named.CHANGED_LOCATION;
 import static com.example.sns_project.util.Named.DELETE_RESULT;
 import static com.example.sns_project.util.Named.BOARD_FRAGMENT;
 import static com.example.sns_project.util.Named.LETTER_FRAGMENT;
@@ -55,9 +50,7 @@ import static com.example.sns_project.util.Named.WRITE_RESULT;
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
-    private FirebaseAuth mAuth;
-    private FirebaseUser user;
-    private FirebaseFirestore db;
+    private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     private long backKeyPressedTime = 0;
     private Toolbar toolbar;
     public LiveData_MyData_Main liveDataMyDataMainModel;
@@ -67,13 +60,12 @@ public class MainActivity extends AppCompatActivity {
     private ChatRoomFragment chatRoomFragment;
     private NotificationFragment notificationFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
-    private PostControler postControler;
+    private PostControler postControler = new PostControler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
-//        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(binding.getRoot());
         setToolbar(BOARD_FRAGMENT);
@@ -81,15 +73,32 @@ public class MainActivity extends AppCompatActivity {
         liveDataMyDataMainModel = new ViewModelProvider(MainActivity.this).get(LiveData_MyData_Main.class);
         liveDataMyDataMainModel.get().observe(this, new Observer<MyAccount>() {
             @Override
-            public void onChanged(MyAccount myAccount) { //개인프로필을 변경했을 경우 -> 게시판 지역이동 (툴바이름변경,게시판내용변경)
-                binding.setMyAccount(myAccount); //툴바에 해당 지역을 나타내는 textview를 데이터바인딩 하였음. (툴바이름변경)
+            public void onChanged(MyAccount NewAccount) { //개인프로필을 변경했을 경우 -> 게시판 지역이동 (툴바이름변경,게시판내용변경)
+                binding.setMyAccount(NewAccount); //툴바에 해당 지역을 나타내는 textview를 데이터바인딩 하였음. (툴바이름변경)
+                myAccount = NewAccount;
                 setFragment();
             }
         });
 
-        if(AccountInit()){}
-        else{Activity(SignActivity.class);}
+        Set_Account_First();
+    }
+    public void Set_Account_First(){
+        if(user.getUid() == null)
+            logout();
 
+        String id = user.getUid();
+
+        postControler.Get_Account(id, new PostControler.Listener_Get_Account() {
+            @Override
+            public void Get_Account(MyAccount myAccount) {
+                liveDataMyDataMainModel.get().setValue(myAccount);
+                FirebaseMessaging.getInstance().subscribeToTopic(myAccount.getNoti() ? "total_noti" : "null"); //맨처음 로그인이라면 기본값이 true이고, 이후에 알림변경을 했다면, 저장된 값에 맞게
+//                FirebaseMessaging.getInstance().subscribeToTopic(PreferenceManager.getBoolean(getApplicationContext(),"Post_noti") ? "Post_noti" : "null");
+                FirebaseMessaging.getInstance().subscribeToTopic(PreferenceManager.getBoolean(getApplicationContext(),"ChatRoom_noti") ? "Message"+myAccount.getId() : "null");
+                FirebaseMessaging.getInstance().subscribeToTopic(PreferenceManager.getBoolean(getApplicationContext(),"Comment_noti")? "Comment"+myAccount.getId() : "null");
+                FirebaseMessaging.getInstance().subscribeToTopic(PreferenceManager.getBoolean(getApplicationContext(),"Recomment_noti")? "Recomment"+myAccount.getId() : "null");
+            }
+        });
     }
 
     public void setFragment(){
@@ -220,103 +229,40 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-//        setToolbar(BOARD_FRAGMENT);
-
-        if(AccountInit()){ //계정이 있다면,
-            Log.d("resume_accountinit(): ",user.getEmail());
-        }
-        else{
-            Activity(SignActivity.class);
-        }
+        Check_Account_Changed();
+        Log.d("resume","");
     }
 
-    public boolean AccountInit() {
+    public void Check_Account_Changed() {
         // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
-        user = mAuth.getCurrentUser();
-        db = FirebaseFirestore.getInstance();
 
         if (user == null) //자동로그인 확인
-            return false;
+        {
+            Activity(SignActivity.class);
+        }
         else {
-            db.collection("USER").document(user.getUid()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            postControler.Get_Account(user.getUid(), new PostControler.Listener_Get_Account() {
                 @Override
-                public void onSuccess(DocumentSnapshot document) {
-                    if(document.exists()) {
-                        String location = document.getString("location");
-                        String image = document.getString("image");
-                        String store = document.getString("store");
-                        String phone = document.getString("phone");
-                        String businessNum = document.getString("businessNum");
+                public void Get_Account(MyAccount NewAccount) {
 
-                        postControler = new PostControler(location);
-
-                        Log.d("dasdazz",location);
-                        if(myAccount == null) {
-                            //처음 어플 켰을 때
-                            Log.d("dasdazz","null"+location);
-                            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
-                                @Override
-                                public void onComplete(@NonNull Task<String> task) {
-                                    String token = task.getResult();
-                                    Log.d("tokenzz","token: "+token);
-                                    FirebaseFirestore.getInstance().collection("USER").document(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                            myAccount = task.getResult().toObject(MyAccount.class);
-                                            if(!token.equals(myAccount.getToken())) {
-                                                myAccount.setToken(token);
-                                                FirebaseFirestore.getInstance().collection("USER").document(user.getUid()).set(myAccount.getMap());
-                                                liveDataMyDataMainModel.get().setValue(myAccount);
-                                            }else{
-                                                liveDataMyDataMainModel.get().setValue(myAccount);
-                                            }
-                                        }
-                                    });
-                                }
-                            });
-
-                        }else if(location != null && !myAccount.getLocation().equals(location)){
-                            //지역변경을 하고 왔을 때의 처리
-                            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
-                                @Override
-                                public void onComplete(@NonNull Task<String> task) {
-                                    String token = task.getResult();
-                                    FirebaseFirestore.getInstance().collection("USER").document(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                            myAccount = task.getResult().toObject(MyAccount.class);
-
-                                            if(!token.equals(myAccount.getToken())) {
-                                                myAccount.setToken(token);
-                                                FirebaseFirestore.getInstance().collection("USER").document(user.getUid()).set(myAccount.getMap());
-                                                liveDataMyDataMainModel.get().setValue(myAccount);
-                                            }else{
-                                                liveDataMyDataMainModel.get().setValue(myAccount);
-                                            }
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                        if(location == null){
-                            //비정상적인 경로임. auth에는 계정이 남아있고, user 스토리지에는 계정이 안지워진 상태.
-                            Log.d("dasdazz","스토리지 널");
-                            logout();
-                        }
-                    }else{
+                    if(NewAccount == null) //어떠한 이유에서 존재하지 않는 계정이라면 로그아웃상태로
                         logout();
-                    }
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.d("cccccccccaa","실패");
+
+                    FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull Task<String> task) {
+                            String token = task.getResult();
+                            String location = NewAccount.getLocation();
+                            Boolean Notification = NewAccount.getNoti();
+
+                            if(myAccount == null || !myAccount.getLocation().equals(location) || !myAccount.getNoti().equals(Notification) || !myAccount.getToken().equals(token)){
+                                Log.d("AccountChanged",NewAccount.getLocation());
+                                liveDataMyDataMainModel.get().setValue(NewAccount);
+                            }
+                        }
+                    });
                 }
             });
-
-            return true;
         }
     }
 
@@ -402,8 +348,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(resultCode == WRITE_RESULT){ //지역변경 리턴값
-            AccountInit();
+            Check_Account_Changed();
             Log.d("From PopupAct","myAccount location: "+myAccount.getLocation());
+        }
+
+        if(requestCode == CHANGED_LOCATION){
+            Check_Account_Changed();
+            Log.d("CHANGED_LOCATION","myAccount location: "+myAccount.getLocation());
         }
 
     }
@@ -427,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
     public void logout(){
         Intent i = new Intent(MainActivity.this, LoginActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        mAuth.signOut();
+        FirebaseAuth.getInstance().signOut();
         myAccount = null;
         startActivity(i);
         finish();

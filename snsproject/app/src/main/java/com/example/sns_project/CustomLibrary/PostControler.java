@@ -2,7 +2,6 @@ package com.example.sns_project.CustomLibrary;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sns_project.info.ChatRoomInfo;
 import com.example.sns_project.info.CommentInfo;
 import com.example.sns_project.info.LetterInfo;
+import com.example.sns_project.info.MyAccount;
 import com.example.sns_project.info.NotificationInfo;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
@@ -22,7 +22,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentChange;
@@ -36,9 +35,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Transaction;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,15 +42,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
-
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.core.Scheduler;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Function;
-import io.reactivex.rxjava3.functions.Predicate;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import static com.example.sns_project.util.Named.ALREADY_DONE;
 import static com.example.sns_project.util.Named.HOUR;
@@ -64,7 +51,6 @@ import static com.example.sns_project.util.Named.SEARCH_LIMIT;
 import static com.example.sns_project.util.Named.SEC;
 import static com.example.sns_project.util.Named.SUCCESS;
 import static com.example.sns_project.util.Named.UPLOAD_LIMIT;
-import static com.example.sns_project.util.Named.WRITE_RESULT;
 
 /**
  * use this with my_utility for requesting posts
@@ -106,7 +92,6 @@ public final class PostControler {
 
     public interface Listener_Complete_Set_PostInfo_Transaction {
         void onComplete_Set_PostInfo(PostInfo NewPostInfo);
-
         void onFailed();
     }
 
@@ -116,11 +101,8 @@ public final class PostControler {
 
     public interface Listener_Complete_GoodPress {
         void onComplete_Good_Press(PostInfo NewPostInfo);
-
         void onFailed();
-
         void AlreadyDone();
-
         void CannotSelf();
     }
 
@@ -128,7 +110,7 @@ public final class PostControler {
         void onComplete_Get_Letters(ArrayList<LetterInfo> Letters);
     }
 
-    public interface Test {
+    public interface Listener_Set_Letters {
         void onComplete_Get_Letters(ArrayList<LetterInfo> Letters);
         void NewLetters(LetterInfo letterInfo);
     }
@@ -156,6 +138,25 @@ public final class PostControler {
 
     public interface Listener_Delete_Noti{
         void onComplete();
+    }
+
+    public interface Listener_Get_Account{
+        void Get_Account(MyAccount myAccount);
+    }
+
+    public interface Listener_Delete_Comment{
+        void onComplete(PostInfo postInfo);
+        void onFail();
+    }
+
+    public void Get_Account(String id, Listener_Get_Account listener_get_account){
+        Store.collection("USER").document(id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                MyAccount myAccount = task.getResult().toObject(MyAccount.class);
+                listener_get_account.Get_Account(myAccount);
+            }
+        });
     }
 
     public void Search_Post(ArrayList<PostInfo> Loaded_Posts, String KeyWord, Listener_CompletePostInfos listener_completePostInfos) {
@@ -318,16 +319,6 @@ public final class PostControler {
                 } else {
                     my_utility.Toast("존재하지 않는 게시물입니다.");
                 }
-            }
-        });
-    }
-
-    public void Set_UniPost(PostInfo postInfo, Listener_Complete_Set_PostInfo listener_complete_set_postInfo) {
-
-        Store.collection(post_location).document(postInfo.getDocid()).update(postInfo.getPostInfo()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                listener_complete_set_postInfo.onComplete_Set_PostInfo();
             }
         });
     }
@@ -550,6 +541,64 @@ public final class PostControler {
         }
     }
 
+    public void Delete_Comment(PostInfo postInfo,CommentInfo commentInfo,Listener_Delete_Comment delete_comment){
+
+        DocumentReference docref = Store.collection(postInfo.getLocation()).document(postInfo.getDocid());
+        PostInfo p = new PostInfo(postInfo);
+        for(int x=0; x<p.getComments().size(); x++){
+            if( p.getComments().get(x).getCreatedAt().equals(commentInfo.getCreatedAt())) {
+                p.getComments().remove(x);
+                p.setComment(p.getComment()-1);
+                docref.set(p).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        delete_comment.onComplete(p);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        delete_comment.onFail();
+                    }
+                });
+                break;
+            }
+        }
+    }
+
+    public void Delete_Recomment(PostInfo postInfo,CommentInfo comment,RecommentInfo recomment,Listener_Delete_Comment delete_comment){
+
+        DocumentReference docref = Store.collection(postInfo.getLocation()).document(postInfo.getDocid());
+        PostInfo p = new PostInfo(postInfo);
+        CommentInfo NEWcomment;
+
+        for(int x=0; x<p.getComments().size();x++){
+            if(p.getComments().get(x).getCreatedAt().equals(comment.getCreatedAt())){
+                NEWcomment = p.getComments().get(x);
+                /////////////////////////////////////////////////////////////////
+                for(int y=0; y<NEWcomment.getRecomments().size(); y++){
+                    if(NEWcomment.getRecomments().get(y).getCreatedAt().equals(recomment.getCreatedAt())){
+                        NEWcomment.getRecomments().remove(y);
+                        p.setComment(p.getComment()-1);
+                        docref.set(p).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                delete_comment.onComplete(p);
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                delete_comment.onFail();
+                            }
+                        });
+
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+
     public void Press_Good_ReComment(PostInfo postInfo, CommentInfo Parent_Comment, RecommentInfo recomment, Listener_Complete_GoodPress complete_goodPress) {
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -677,19 +726,19 @@ public final class PostControler {
                     if (dc.getType() == DocumentChange.Type.ADDED) {
                         if (noti.getDocid() != null) {
                             listener_noti.onAdded(noti);
-                            Log.d("clzl12", "added: " + noti.getType() + "");
+                            Log.d("clzl12", "added: " + noti.getTopic() + "");
                         }
                     }
                     if (dc.getType() == DocumentChange.Type.MODIFIED) {
                         if (noti.getDocid() != null) {
                             listener_noti.onModified(noti);
-                            Log.d("clzl12", "modified: " +noti.getType() + "");
+                            Log.d("clzl12", "modified: " +noti.getTopic() + "");
                         }
                     }
                     if (dc.getType() == DocumentChange.Type.REMOVED) {
                         if (noti.getDocid() != null) {
                             listener_noti.onDeleted(noti);
-                            Log.d("clzl12", "modified: " + noti.getType() + "");
+                            Log.d("clzl12", "modified: " + noti.getTopic() + "");
                         }
                     }
                 }
@@ -901,7 +950,7 @@ public final class PostControler {
         Store.collection("USER").document(my_id).collection("Rooms").document(Key).delete();
     }
 
-    public void Set_Listener_Letters(String Key, String my_id, long latest_date, Test test){
+    public void Set_Listener_Letters(String Key, String my_id, long latest_date, Listener_Set_Letters listenerSetLetters){
 
         ArrayList<LetterInfo> letters = new ArrayList<>();
 
@@ -917,7 +966,7 @@ public final class PostControler {
                                 for(QueryDocumentSnapshot snapshot : task.getResult())
                                     letters.add(0,snapshot.toObject(LetterInfo.class));
                                 Log.d("ajdua",""+letters.size());
-                                test.onComplete_Get_Letters(letters);
+                                listenerSetLetters.onComplete_Get_Letters(letters);
                             }
                         }
                     }
@@ -931,7 +980,7 @@ public final class PostControler {
                     public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                         for (DocumentChange dc : value.getDocumentChanges()) {
                             if (dc.getType() == DocumentChange.Type.ADDED) { //추가된 채팅방
-                                test.NewLetters(dc.getDocument().toObject(LetterInfo.class));
+                                listenerSetLetters.NewLetters(dc.getDocument().toObject(LetterInfo.class));
                             }
                         }
                     }

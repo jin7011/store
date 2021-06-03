@@ -1,8 +1,10 @@
 package com.example.sns_project.Adapter;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sns_project.activity.ChatRoomActivity;
 import com.example.sns_project.activity.PostActivity;
 import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
@@ -29,14 +32,10 @@ import com.example.sns_project.util.My_Utility;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 import static com.example.sns_project.CustomLibrary.PostControler.Time_to_String;
-import static com.example.sns_project.util.Named.HOUR;
-import static com.example.sns_project.util.Named.MIN;
-import static com.example.sns_project.util.Named.SEC;
 import static com.example.sns_project.util.Named.VERTICAL;
 
 public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
@@ -47,6 +46,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final ArrayList<CommentInfo> comments;      //postinfo에 있는 것을 쓰지않는 이유는 diffutil을 쓰기 위함임 (같은 주소같을 할당하면 변화를 찾을 수 없어서)
     private final Listener_CommentHolder listener_commentHolder;
     private final Listener_Pressed_goodbtn listener_pressed_goodbtn;
+    private final Listener_Comment_Delete listener_comment_delete;
     private PostInfo postInfo;
     private final PostControler postControler;
 
@@ -64,17 +64,21 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public interface Listener_CommentHolder{
         void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder);
     }
-
     public interface Listener_Pressed_goodbtn{
         void onClicked_goodbtn(PostInfo NewPostInfo);
     }
+    public interface Listener_Comment_Delete{
+        void onClick_Delete_Comment(CommentInfo comment);
+        void onClick_Delete_Recomment(RecommentInfo recomment,CommentInfo comment);
+    }
 
-    public CommentsAdapter(PostActivity activity,PostInfo postInfo,Listener_CommentHolder listener_commentHolder,Listener_Pressed_goodbtn listener_pressed_goodbtn) {
+    public CommentsAdapter(PostActivity activity,PostInfo postInfo,Listener_CommentHolder listener_commentHolder,Listener_Pressed_goodbtn listener_pressed_goodbtn,Listener_Comment_Delete listener_comment_delete) {
         this.postInfo = postInfo;
         this.activity = activity;
         this.comments = new ArrayList<>();
         this.listener_commentHolder = listener_commentHolder;
         this.listener_pressed_goodbtn = listener_pressed_goodbtn;
+        this.listener_comment_delete = listener_comment_delete;
         this.postControler = new PostControler(postInfo.getLocation());
     }
 
@@ -147,10 +151,10 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         commentsHolder.option_btn.setOnClickListener(new View.OnClickListener() { //옵션
             @Override
             public void onClick(View v) {
-                if(isposter(commentsHolder.getAbsoluteAdapterPosition())){ //포지션 넘겨주려고 좀 지저분해도 어쩔수 없이 내부에 온클릭을 정의했음
-                    DeleteDialog();
+                if(comments.get(commentsHolder.getAbsoluteAdapterPosition()).getId().equals(user.getUid())){ //포지션 넘겨주려고 좀 지저분해도 어쩔수 없이 내부에 온클릭을 정의했음
+                    DeleteDialog(comments.get(commentsHolder.getAbsoluteAdapterPosition()));
                 }else{
-                    OthersDialog();
+                    OthersDialog(comments.get(commentsHolder.getAbsoluteAdapterPosition()));
                 }
             }
         });
@@ -185,12 +189,17 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             RecommentsAdapter recommentsAdapter = new RecommentsAdapter(activity, postInfo, commentInfo, new RecommentsAdapter.Listener_Pressed_goodbtn() {
                 @Override
                 public void onClicked_goodbtn(PostInfo NewPostInfo) {
-//                    recommentsAdapter.RecommentInfo_DiffUtil(NewPostInfo.getComments().get(holder.getAbsoluteAdapterPosition()).getRecomments());
                     listener_pressed_goodbtn.onClicked_goodbtn(NewPostInfo);
                 }
+            }, new RecommentsAdapter.Listener_Recomment_Delete() {
+                @Override
+                public void onClick_Delete(RecommentInfo recomment, CommentInfo comment) {
+                    listener_comment_delete.onClick_Delete_Recomment(recomment,comment);
+                }
             });
+
 //            Log.d("asss",commentInfo.getRecomments().size()+"");
-            holder.recyclerView.setVisibility(View.VISIBLE);
+                    holder.recyclerView.setVisibility(View.VISIBLE);
 
             My_Utility my_utility = new My_Utility(activity, holder.recyclerView, recommentsAdapter);
             my_utility.RecyclerInit(VERTICAL);
@@ -215,14 +224,14 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return comments.size();
     }
 
-    public void DeleteDialog(){
+    public void DeleteDialog(CommentInfo comment){
         final String[] items = {"삭제"};
         AlertDialog.Builder alert = new AlertDialog.Builder(activity);
         alert.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if(which == 0){
-                    Toast.makeText(activity,"삭제",Toast.LENGTH_SHORT).show();
+                    listener_comment_delete.onClick_Delete_Comment(comment);
                     dialog.dismiss();
                 }
             }
@@ -233,7 +242,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
 
-    public void OthersDialog(){
+    public void OthersDialog(CommentInfo comment){
         final String[] items = {"쪽지보내기","신고"};
         AlertDialog.Builder alert = new AlertDialog.Builder(activity);
 
@@ -243,7 +252,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 //todo 기능추가해줘야함.
                 switch (which){
                     case 0:
-                        Toast.makeText(activity,"쪽지를 보냅시당",Toast.LENGTH_SHORT).show();
+                        StartActivity(activity,comment.getPublisher(),comment.getId());
                         break;
                     case 1:
                         Toast.makeText(activity,"신고 접수되었습니다.",Toast.LENGTH_SHORT).show();
@@ -293,7 +302,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public boolean isposter(int position){
 
-        if(comments.get(position).getId().equals(postInfo.getId()))
+        if(comments.get(position).getId().equals(postInfo.getId())) //게시글 작성자가 본인의 게시그에 댓글을 달았을 때,
             return true;
         else
             return false;
@@ -302,6 +311,14 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public void Toast(String str){
         Toast.makeText(activity,str,Toast.LENGTH_SHORT).show();
+    }
+
+    public void StartActivity (Activity activity, String receiver_publisher, String receiver_id)
+    {
+        Intent intent = new Intent(activity, ChatRoomActivity.class);
+        intent.putExtra("user_nick", receiver_publisher);
+        intent.putExtra("user_id", receiver_id);
+        activity.startActivity(intent);
     }
 
 }

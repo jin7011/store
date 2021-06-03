@@ -173,19 +173,22 @@ public class PostActivity extends AppCompatActivity {
                 {
                     liveData_postInfo.get().setValue(NewPostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
 
-                    if(!user.getUid().equals(commentInfo.getId())) //내가 댓글단게 아니라면 해당 댓글에 노티를 준다.
-                    FirebaseFirestore.getInstance().collection("USER").document(commentInfo.getId())
-                            .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            MyAccount account = task.getResult().toObject(MyAccount.class);
-                            NotificationInfo noti = new NotificationInfo("님이 대댓글을 달았습니다", account.getToken(), user.getDisplayName(), comment,
-                                    commentInfo.getId(), new Date().getTime());
-                            FirebaseFirestore.getInstance().collection("USER").document(commentInfo.getId()).collection("Notification")
-                                    .document(commentInfo.getId()).set(noti);
-                            Loading(false);
-                        }
-                    });
+                    if(!user.getUid().equals(commentInfo.getId())) {//내가 댓글단게 아니라면 해당 댓글에 노티를 준다.
+                        FirebaseFirestore.getInstance().collection("USER").document(commentInfo.getId())
+                                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                MyAccount account = task.getResult().toObject(MyAccount.class);
+                                NotificationInfo noti = new NotificationInfo("Recomment", account.getToken(), user.getDisplayName(), comment,
+                                        commentInfo.getId(), new Date().getTime());
+                                FirebaseFirestore.getInstance().collection("USER").document(commentInfo.getId()).collection("Notification")
+                                        .document(commentInfo.getId()).set(noti);
+                                Loading(false);
+                            }
+                        });
+                    }else{
+                        Loading(false);
+                    }
                 }
                 else {
                     Toast("삭제된 게시물/댓글입니다.");
@@ -219,16 +222,21 @@ public class PostActivity extends AppCompatActivity {
             public void onComplete_Set_PostInfo(PostInfo NewPostInfo) {
                 if(NewPostInfo != null) {
                     liveData_postInfo.get().setValue(NewPostInfo); //최신 게시판 상태를 모델에 셋시켜줌.
-                    if(!user.getUid().equals(postInfo.getId())) //내 글에 내가 댓글 다는 경우가 아니라면 노티를 준다.
-                    FirebaseFirestore.getInstance().collection("USER").document(postInfo.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            MyAccount account = task.getResult().toObject(MyAccount.class);
-                            NotificationInfo noti = new NotificationInfo("에 댓글이 달렸습니다", account.getToken(), postInfo.getTitle(), comment[0], postInfo.getDocid(), new Date().getTime());
-                            FirebaseFirestore.getInstance().collection("USER").document(postInfo.getId()).collection("Notification").document(postInfo.getDocid()).set(noti);
-                            Loading(false);
-                        }
-                    });
+
+                    if(!user.getUid().equals(postInfo.getId())) { //내 글에 내가 댓글 다는 경우가 아니라면 노티를 준다.
+                        FirebaseFirestore.getInstance().collection("USER").document(postInfo.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                MyAccount account = task.getResult().toObject(MyAccount.class);
+                                NotificationInfo noti = new NotificationInfo("Comment", account.getToken(), postInfo.getTitle(),
+                                        comment[0], postInfo.getDocid(), new Date().getTime());
+                                FirebaseFirestore.getInstance().collection("USER").document(postInfo.getId()).collection("Notification").document(postInfo.getDocid()).set(noti);
+                                Loading(false);
+                            }
+                        });
+                    }else{
+                        Loading(false);
+                    }
                 }else{
                     Loading(false);
                     Toast("삭제된 게시물/댓글입니다.");
@@ -248,6 +256,7 @@ public class PostActivity extends AppCompatActivity {
 
             commentsAdapter = new CommentsAdapter(activity, postInfo,
                     new CommentsAdapter.Listener_CommentHolder() { //대댓글을 위해서 확인을 누르고 대댓글을 달려는 순간 나오는 리스너
+
                         @Override
                         public void onClickedholder(CommentsAdapter.CommentsHolder commentsHolder) {
                             CommentInfo commentInfo = postInfo.getComments().get(commentsHolder.getAbsoluteAdapterPosition());
@@ -260,11 +269,47 @@ public class PostActivity extends AppCompatActivity {
                             Toast("" + commentInfo.getContents());
                         }
                     }, new CommentsAdapter.Listener_Pressed_goodbtn() { //댓글의 좋아요 버튼을 눌러서 나온 리스너
+
                 @Override
-                public void onClicked_goodbtn(PostInfo NewPostInfo) {
+                public void onClicked_goodbtn(PostInfo NewPostInfo) { //좋아요 버튼
                     liveData_postInfo.get().setValue(NewPostInfo);
                 }
+            }, new CommentsAdapter.Listener_Comment_Delete() {
+
+                @Override
+                public void onClick_Delete_Comment(CommentInfo commentInfo) { //댓글삭제
+                    loader.setVisibility(View.VISIBLE);
+                    postControler.Delete_Comment(postInfo, commentInfo, new PostControler.Listener_Delete_Comment() {
+                        @Override
+                        public void onComplete(PostInfo postInfo) {
+                            liveData_postInfo.get().setValue(postInfo);
+                            loader.setVisibility(View.GONE);
+                        }
+                        @Override
+                        public void onFail() {
+                            Toast("삭제에 실패하였습니다.");
+                            loader.setVisibility(View.GONE);
+                        }
+                    });
+                }
+                @Override
+                public void onClick_Delete_Recomment(RecommentInfo recomment,CommentInfo comment) { //대댓글삭제
+                    loader.setVisibility(View.VISIBLE);
+                    postControler.Delete_Recomment(postInfo, comment, recomment, new PostControler.Listener_Delete_Comment() {
+                        @Override
+                        public void onComplete(PostInfo postInfo) {
+                            liveData_postInfo.get().setValue(postInfo);
+                            loader.setVisibility(View.GONE);
+                        }
+                        @Override
+                        public void onFail() {
+                            Toast("삭제에 실패하였습니다.");
+                            loader.setVisibility(View.GONE);
+                        }
+                    });
+                }
             });
+
             my_utility = new My_Utility(this, binding.commentRecycler, commentsAdapter);
             my_utility.RecyclerInit(VERTICAL);
             postControler = new PostControler(postInfo.getLocation(), my_utility);

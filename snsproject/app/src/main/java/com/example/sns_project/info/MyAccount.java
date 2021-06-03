@@ -3,7 +3,6 @@ package com.example.sns_project.info;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,23 +13,21 @@ public class MyAccount implements Parcelable {
     private String image;
     private String location;
     private String store;
-    private String phone;
     private String businessNum;
-    private ArrayList<String> RoomKeys;
     private String token;
+    private Boolean noti;
 
     public MyAccount(){}
 
-    public MyAccount(String id, String nickname, String image, String location, String store, String phone, String businessNum,ArrayList<String> RoomKeys,String token) {
+    public MyAccount(String id, String nickname, String image, String location, String store, String businessNum,String token,Boolean noti) {
         this.id = id;
         this.nickname = nickname;
         this.image = image;
         this.location = location;
         this.store = store;
-        this.phone = phone;
         this.businessNum = businessNum;
-        this.RoomKeys = RoomKeys;
         this.token = token;
+        this.noti = noti;
     }
 
     protected MyAccount(Parcel in) {
@@ -39,10 +36,9 @@ public class MyAccount implements Parcelable {
         image = in.readString();
         location = in.readString();
         store = in.readString();
-        phone = in.readString();
         businessNum = in.readString();
-        RoomKeys = in.createStringArrayList();
         token = in.readString();
+        noti = in.readBoolean();
     }
 
 
@@ -53,10 +49,9 @@ public class MyAccount implements Parcelable {
         dest.writeString(image);
         dest.writeString(location);
         dest.writeString(store);
-        dest.writeString(phone);
         dest.writeString(businessNum);
-        dest.writeStringList(RoomKeys);
         dest.writeString(token);
+        dest.writeBoolean(noti);
     }
 
     public static final Creator<MyAccount> CREATOR = new Creator<MyAccount>() {
@@ -77,10 +72,9 @@ public class MyAccount implements Parcelable {
         docData.put("image",image);
         docData.put("location",location);
         docData.put("store",store);
-        docData.put("phone",phone);
         docData.put("businessNum",businessNum);
-        docData.put("RoomKeys", RoomKeys);
         docData.put("token",token);
+        docData.put("noti", noti);
         return  docData;
     }
 
@@ -89,12 +83,6 @@ public class MyAccount implements Parcelable {
     }
     public void setStore(String store) {
         this.store = store;
-    }
-    public String getPhone() {
-        return phone;
-    }
-    public void setPhone(String phone) {
-        this.phone = phone;
     }
     public String getBusinessNum() {
         return businessNum;
@@ -126,21 +114,17 @@ public class MyAccount implements Parcelable {
     public void setLocation(String location) {
         this.location = location;
     }
-
     public String getToken() {
         return token;
     }
-
     public void setToken(String token) {
         this.token = token;
     }
-
-    public ArrayList<String> getRoomKeys() {
-        return RoomKeys;
+    public Boolean getNoti() {
+        return noti;
     }
-
-    public void setRoomKeys(ArrayList<String> roomKeys) {
-        RoomKeys = roomKeys;
+    public void setNoti(Boolean noti) {
+        this.noti = noti;
     }
 
     @Override

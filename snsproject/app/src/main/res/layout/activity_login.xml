@@ -39,28 +39,46 @@
             android:id="@+id/pass"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:ems="10"
             android:hint="비밀번호"
             android:inputType="textPassword" />
 
-        <Button
-            android:id="@+id/login_btn"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Log in" />
+            android:layout_height="match_parent"
+            android:layout_margin="5dp"
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/gosignup_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="#15315C"
-            android:text="sign up" />
+            <Button
+                android:id="@+id/login_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/classicBlue"
+                android:text="로그인" />
 
-        <Button
-            android:id="@+id/Findpass"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="비밀번호 찾기" />
+            <Button
+                android:id="@+id/gosignup_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#CE93D8"
+                android:text="회원가입"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/findpass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp"
+                android:clickable="true"
+                android:gravity="center"
+                android:inputType="textPersonName"
+                android:text="비밀번호 찾기 >"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>

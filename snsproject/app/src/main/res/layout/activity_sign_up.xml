@@ -66,16 +66,6 @@
                 android:textSize="20sp" />
 
             <EditText
-                android:id="@+id/phoneNum"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:ems="10"
-                android:hint="휴대폰번호"
-                android:inputType="textPersonName"
-                android:textSize="20sp" />
-
-            <EditText
                 android:id="@+id/storeName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -105,6 +95,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.3"
+                    android:backgroundTint="@color/classicBlue"
                     android:text="확인" />
             </LinearLayout>
 
@@ -131,15 +122,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:backgroundTint="#15315C"
-                android:text="sign up" />
+                android:backgroundTint="@color/classicBlue"
+                android:text="회원가입" />
 
             <Button
                 android:id="@+id/gologin_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="로그인하러" />
+                android:backgroundTint="#B39DDB"
+                android:text="로그인하러"
+                android:textColor="@color/black" />
 
             <CheckBox
                 android:id="@+id/checkBox_agree"

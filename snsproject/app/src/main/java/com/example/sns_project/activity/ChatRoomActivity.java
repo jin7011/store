@@ -167,9 +167,10 @@ public class ChatRoomActivity extends AppCompatActivity {
         ChatRoomInfo Room = new ChatRoomInfo(my_nick, my_id, new Date().getTime(), 0,my_token, user_nick, user_id, new Date().getTime(), 0,user_token, RoomKey,true);
         postControler.Update_letter(RoomKey,my_id,my_token,user_id,user_token,Room,letter);
 
-        NotificationInfo noti = new NotificationInfo("님의 메시지가 도착했습니다.",user_token,my_nick,content,RoomKey,new Date().getTime());
+        NotificationInfo noti = new NotificationInfo("Message",user_token,my_nick,content,RoomKey,new Date().getTime());
         FirebaseFirestore.getInstance().collection("USER").document(user_id).collection("Notification").document(RoomKey).set(noti);
     }
+
     //////////////////////////////////////////////////////////////////////////////////////////////대화내용을 읽기
     private void Set_Listener_And_Bring(){
 
@@ -178,7 +179,7 @@ public class ChatRoomActivity extends AppCompatActivity {
 
         long latest_date = liveData_letters.get().getValue() == null ? new Date().getTime() : liveData_letters.get().getValue().get(liveData_letters.get().getValue().size()-1).getCreatedAt();
 
-        postControler.Set_Listener_Letters(RoomKey, my_id, latest_date, new PostControler.Test() {
+        postControler.Set_Listener_Letters(RoomKey, my_id, latest_date, new PostControler.Listener_Set_Letters() {
             @Override
             public void onComplete_Get_Letters(ArrayList<LetterInfo> Letters) {
                 FIRST_BRING = true;
@@ -204,6 +205,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         Intent intent = getIntent();
         user_nick = intent.getStringExtra("user_nick");
         user_id = intent.getStringExtra("user_id");
+        Log.d("RoomGetIntent","receiver_nick: "+user_nick+" id:"+user_id);
         my_id = user.getUid();
         my_nick = user.getDisplayName();
 

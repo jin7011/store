@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 
+import com.example.sns_project.activity.Check_NotificationActivity;
 import com.example.sns_project.activity.MainActivity;
 import com.example.sns_project.activity.MyPostsActivity;
 import com.example.sns_project.activity.Password_resetActivity;
@@ -24,11 +26,13 @@ import com.example.sns_project.activity.PopupActivity;
 import com.example.sns_project.R;
 import com.example.sns_project.databinding.FragmentProfileBinding;
 import com.example.sns_project.info.MyAccount;
+import com.example.sns_project.util.PreferenceManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class ProfileFragment extends Fragment {
 
@@ -74,6 +78,12 @@ public class ProfileFragment extends Fragment {
 
         binding.setMyaccount(myAccount);
         binding.setProfileFragment(this);
+    }
+
+    public void Notification(View view){
+        Intent intent = new Intent(getActivity(), Check_NotificationActivity.class);
+        intent.putExtra("Myaccount",myAccount);
+        startActivity(intent);
     }
 
     public void withdraw(View view){

@@ -1,5 +1,7 @@
 package com.example.sns_project.activity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
@@ -39,6 +41,11 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.SingleObserver;
+import io.reactivex.rxjava3.disposables.Disposable;
+
 public class SignActivity extends AppCompatActivity {
     private String BUSINESSNUMBER = "";
     final String[] ANSWER = new String[1];
@@ -73,14 +80,8 @@ public class SignActivity extends AppCompatActivity {
                 String businessNum = binding.businessNum.getText().toString();
 
                 if(businessNum.length() == 10) {
+                    loader.setVisibility(View.VISIBLE);
                     request(businessNum);
-                    if (ANSWER[0] != null) {
-                        if (BN_CheckString(ANSWER[0])) {
-                            businessNumCheck = true;
-                            binding.businessNum.setEnabled(false); //사업자번호가 제대로 등록됬다면 수정불가능하게 만듬.
-                            BUSINESSNUMBER = businessNum;
-                        }
-                    }
                 }
                 else{
                     Tost("사업자등록번호를 입력해주세요.");
@@ -96,7 +97,6 @@ public class SignActivity extends AppCompatActivity {
                 String p = binding.pass.getText().toString();
                 String pc = binding.passCheck.getText().toString();
                 String nickname = binding.nickname.getText().toString();
-                String phonNum = binding.phoneNum.getText().toString();
                 String storename = binding.storeName.getText().toString();
 
                 if(!binding.checkBoxAgree.isChecked()){
@@ -109,7 +109,7 @@ public class SignActivity extends AppCompatActivity {
                     return;
                 }
 
-                if(inputcheck(m,p,pc,nickname,phonNum,storename,location) && binding.checkBoxAgree.isChecked())
+                if(inputcheck(m,p,pc,nickname,storename,location) && binding.checkBoxAgree.isChecked())
                     join(m,p);
             }
         });
@@ -117,15 +117,28 @@ public class SignActivity extends AppCompatActivity {
         binding.gologinBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LoginActivity();
+                Dialog();
             }
         });
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+    public void Dialog(){
+        AlertDialog.Builder oDialog = new AlertDialog.Builder(this,
+                android.R.style.Theme_DeviceDefault_Dialog);
+
+        oDialog.setMessage("로그인하러 가시겠습니까?").setPositiveButton("예", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                LoginActivity();
+            }
+        }).setNeutralButton("아니오", new DialogInterface.OnClickListener()
+        {
+            public void onClick(DialogInterface dialog, int which)
+            {
+            }
+        }).show();
     }
 
     public void join(String m, String p) {
@@ -163,8 +176,9 @@ public class SignActivity extends AppCompatActivity {
                                 @Override
                                 public void onComplete(@NonNull Task<String> task) {
                                     String token = task.getResult();
-                                    myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.getText().toString(),
-                                            binding.phoneNum.getText().toString(),BUSINESSNUMBER,new ArrayList<>(),token);
+                                    myAccount = new MyAccount(user.getUid(),user.getDisplayName(),"no",location,binding.storeName.getText().toString()
+                                            ,BUSINESSNUMBER,token,true);
+
                                     db.collection("USER").document(user.getUid()).set(myAccount.getMap(), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void aVoid) {
@@ -180,20 +194,18 @@ public class SignActivity extends AppCompatActivity {
                 });
     }
 
-    public boolean inputcheck(String m, String p, String pc, String nickname, String phone, String store,String location){
-        boolean[] flag = {false,false,false,false,false,false,false};
+    public boolean inputcheck(String m, String p, String pc, String nickname, String store,String location){
+        boolean[] flag = {false,false,false,false,false,false};
         if(nickname.length() >= 1 && m.length() >= 1)
             flag[0] = true;
         if(p.length() >= 6)
             flag[1] = true;
         if (p.equals(pc))
             flag[2] = true;
-        if(phone.length() >= 8)
-            flag[3] = true;
         if(store.length() >= 1)
-            flag[4] = true;
+            flag[3] = true;
         if(location.length() >= 1)
-            flag[5] = true;
+            flag[4] = true;
         for(int x=0; x<flag.length; x++){
             switch (x){
                 case 0:
@@ -213,15 +225,10 @@ public class SignActivity extends AppCompatActivity {
                     }
                 case 3:
                     if(!flag[x]) {
-                        Tost("번호 입력해주세요.");
-                        return false;
-                    }
-                case 4:
-                    if(!flag[x]) {
                         Tost("사업장명을 입력해주세요.");
                         return false;
                     }
-                case 5:
+                case 4:
                     if(!flag[x]) {
                         Tost("장소를 선택해주세요.");
                         return false;
@@ -255,8 +262,20 @@ public class SignActivity extends AppCompatActivity {
                         String res = jsonObject.getString("approve_id");
 
                         if(res != null){
-                            ANSWER[0] = res;
-                            Tost(res);
+
+                            if (BN_CheckString(res)) {
+                                businessNumCheck = true;
+                                binding.businessNum.setEnabled(false); //사업자번호가 제대로 등록됬다면 수정불가능하게 만듬.
+                                BUSINESSNUMBER = str;
+                                loader.setVisibility(View.GONE);
+                                ANSWER[0] = res;
+                                Tost(res);
+                            }else{
+                                businessNumCheck = false;
+                                loader.setVisibility(View.GONE);
+                                Tost(res);
+                            }
+
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
