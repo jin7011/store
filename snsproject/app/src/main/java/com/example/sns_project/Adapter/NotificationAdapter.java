@@ -1,6 +1,7 @@
 package com.example.sns_project.Adapter;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,6 @@ import static com.example.sns_project.CustomLibrary.PostControler.MessageTime_to
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     ArrayList<NotificationInfo> notis = new ArrayList<>();
-
 
     public void NotificationInfo_DiffUtil(ArrayList<NotificationInfo> Newnotis) {
         final NotificationInfo_DiffUtil diffCallback = new NotificationInfo_DiffUtil(this.notis,Newnotis);
@@ -65,7 +65,15 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         Noti_holder noti_holder  = (Noti_holder)holder;
         NotificationInfo noti = notis.get(position);
 
-        noti_holder.sender_nick.setText(noti.getSender()+" "+noti.getTopic());
+        if(noti.getTopic().equals("Message"))
+            noti_holder.sender_nick.setText(noti.getSender()+" "+"님이 쪽지를 보냈습니다.");
+        if(noti.getTopic().equals("Comment"))
+            noti_holder.sender_nick.setText(noti.getSender()+" "+"게시물에 댓글이 달렸습니다.");
+        if(noti.getTopic().equals("Recommnet"))
+            noti_holder.sender_nick.setText(noti.getSender()+" "+"님이 대댓글을 남겼습니다.");
+
+        Log.d("zxczxc123123",noti.getTopic());
+        Log.d("zxczxc123123",noti.getTopic().equals("Message")+"");
         noti_holder.content.setText(noti.getContents());
         noti_holder.date.setText(MessageTime_to_String(noti.getCreatedAt(),new Date()));
     }

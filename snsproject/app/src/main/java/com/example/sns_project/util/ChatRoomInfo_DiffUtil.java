@@ -39,7 +39,8 @@ public class ChatRoomInfo_DiffUtil extends DiffUtil.Callback{
                     && oldroom.getUser2_OutDate().equals(newroom.getUser2_OutDate())
                     && MessageTime_to_String(oldroom.getLatestDate(),new Date()).equals(MessageTime_to_String(newroom.getLatestDate(),new Date()))
                     && oldroom.getUser1_count() == newroom.getUser1_count()
-                    && oldroom.getLatestMessage().equals(newroom.getLatestMessage());
+                    && oldroom.getLatestMessage().equals(newroom.getLatestMessage())
+                    ;
         }else{
             return  oldroom.getUser2_id().equals(newroom.getUser2_id())
                     && oldroom.getUser1_id().equals(newroom.getUser1_id())
@@ -47,7 +48,8 @@ public class ChatRoomInfo_DiffUtil extends DiffUtil.Callback{
                     &&oldroom.getUser2_OutDate().equals(newroom.getUser2_OutDate())
                     && MessageTime_to_String(oldroom.getLatestDate(),new Date()).equals(MessageTime_to_String(newroom.getLatestDate(),new Date()))
                     && oldroom.getUser2_count() == newroom.getUser2_count()
-                    && oldroom.getLatestMessage().equals(newroom.getLatestMessage());
+                    && oldroom.getLatestMessage().equals(newroom.getLatestMessage())
+                    ;
         }
 
     }

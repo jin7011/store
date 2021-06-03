@@ -30,6 +30,7 @@ import com.example.sns_project.R;
 import com.example.sns_project.data.LiveData_PostInfo;
 import com.example.sns_project.databinding.ActivityPostBinding;
 import com.example.sns_project.info.CommentInfo;
+import com.example.sns_project.info.Declaration;
 import com.example.sns_project.info.MyAccount;
 import com.example.sns_project.info.NotificationInfo;
 import com.example.sns_project.info.PostInfo;
@@ -463,10 +464,12 @@ public class PostActivity extends AppCompatActivity {
                     PostDelete(0);
                     break;
                 case R.id.scrap:
-                    Toast("스크랩되었습니다.");
+                    Toast("스크랩되었습니다.(아직 미구현)");
                     break;
                 case R.id.submission:
                     Toast("신고되었습니다.");
+                    Declaration declaration = new Declaration(postInfo.getDocid(),postInfo.getId(),postInfo.getContents());
+                    FirebaseFirestore.getInstance().collection("Declaration").document().set(declaration);
                     break;
                 case R.id.Letter:
 //                Toast("쪽지를 보냅니다. (to_"+postInfo.getPublisher()+")");

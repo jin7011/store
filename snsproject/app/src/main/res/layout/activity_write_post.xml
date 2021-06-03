@@ -52,6 +52,7 @@
             android:ems="10"
             android:hint="제목"
             android:inputType="textPersonName"
+            android:maxLength="20"
             android:textColorHighlight="#15315C"
             android:textColorLink="#15315C"
             android:textSize="20sp" />
@@ -85,11 +86,21 @@
                 android:backgroundTint="#15315C"
                 android:ems="10"
                 android:gravity="start|top"
-                android:hint="안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'안녕하세요'\n'"
+                android:hint="캡스톤 G조의 SNS_Project의 결과물입니다.
+                 \n아직 미구현되거나 사소한 문제가 발생할 수도 있습니다.
+\n이용하시는 동안 에러나 불편한 점이 발생한다면 010-3482-0575로 연락부탁드립니다.
+\n\n이 앱의 궁극적인 목표는 사업자간의 지역커뮤니티 활성화이며,
+\n그로인한 개인 소상공인들의 정보공유와 공감대형성입니다.
+\n\n작은 앱이지만, 이용하는 동안 서로 불편함이 없도록
+\n주의 바라며, 위반 시 게시물이 삭제되거나 이용이 제한될 수 있습니다.
+\n* 정치/종교/사회/홍보/판매 행위를 금지하며 공격적인 언행 및
+\n 비난은 이용에 제한이 되오니 참고바랍니다.
+\n\n명지대 졸업작품 캡스톤1 G조 -전성진-"
                 android:inputType="textMultiLine"
+                android:maxLength="200"
                 android:textColorHighlight="#15315C"
                 android:textColorLink="#FFFFFF"
-                android:textSize="15sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/imageContainerLayout"

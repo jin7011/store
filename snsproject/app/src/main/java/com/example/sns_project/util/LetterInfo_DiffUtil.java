@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static com.example.sns_project.CustomLibrary.PostControler.MessageTime_to_String;
 import static com.example.sns_project.util.Named.MIN;
 import static com.example.sns_project.util.Named.SEC;
 
@@ -40,17 +41,12 @@ public class LetterInfo_DiffUtil extends DiffUtil.Callback{
         String olddate = formatTimeString(oldletter.getCreatedAt(),new Date());
         String newdate = formatTimeString(newletter.getCreatedAt(),new Date());
 
-//        Log.d(
-//                "elvm","old: " + olddate+" new: "+ newdate+" nowdate: "+new Date().getTime()
-//               + " zxc: "+formatTimeString(oldletter.getCreatedAt(),new Date())
-//                +" oldCreatedat: "+oldletter.getCreatedAt() + " new: "+newletter.getCreatedAt()
-//                +" contetnt : "+oldletter.getContents()
-//        );
-
         return oldletter.getSender_id().equals(newletter.getSender_id())
                 && olddate.equals(newdate)
                 && oldletter.getReciever_id().equals(newletter.getReciever_id())
-                && oldletter.getContents().equals(newletter.getContents());
+                && MessageTime_to_String(oldletter.getCreatedAt(),new Date()).equals(MessageTime_to_String(newletter.getCreatedAt(),new Date()))
+                && oldletter.getContents().equals(newletter.getContents())
+                ;
     }
 
     @Override

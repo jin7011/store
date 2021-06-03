@@ -44,6 +44,7 @@ public class NotificationInfo_DiffUtil extends DiffUtil.Callback {
 
         return  MessageTime_to_String(oldnoti.getCreatedAt(),new Date()).equals(MessageTime_to_String(newnoti.getCreatedAt(),new Date()))
                 && oldnoti.getContents().equals(newnoti.getContents())
+                && oldnoti.getTopic().equals(newnoti.getTopic())
                 ;
 
     }

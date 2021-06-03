@@ -24,11 +24,13 @@ import com.example.sns_project.CustomLibrary.PostControler;
 import com.example.sns_project.R;
 import com.example.sns_project.activity.ChatRoomActivity;
 import com.example.sns_project.info.CommentInfo;
+import com.example.sns_project.info.Declaration;
 import com.example.sns_project.info.PostInfo;
 import com.example.sns_project.info.RecommentInfo;
 import com.example.sns_project.util.RecommentInfo_DiffUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -206,6 +208,8 @@ public class RecommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                         break;
                     case 1:
                         Toast.makeText(activity,"신고 접수되었습니다.",Toast.LENGTH_SHORT).show();
+                        Declaration declaration = new Declaration(postInfo.getDocid(),comment.getId(),comment.getContents());
+                        FirebaseFirestore.getInstance().collection("Declaration").document().set(declaration);
                         break;
                     default:
                         break;
