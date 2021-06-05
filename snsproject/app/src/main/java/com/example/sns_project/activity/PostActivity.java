@@ -78,7 +78,6 @@ public class PostActivity extends AppCompatActivity {
     private PostControler postControler;
     private RelativeLayout loader;
 
-    //todo 댓글에 좋아요 기능추가해야함.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -434,7 +433,7 @@ public class PostActivity extends AppCompatActivity {
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            //내가 쓴 글의 목록에서도 삭제해준다.
+                            //내가 쓴 글의 목록에서도 삭제해준다. 올~ 안까먹고 해놨구나 기특한 내 과거
                             db.collection("USER").document(postInfo.getId()).collection("MyPosts").document(postInfo.getDocid()).delete();
                             Toast("삭제되었습니다.");
                             GoBack(DELETE_RESULT, postInfo.getDocid());
@@ -463,9 +462,9 @@ public class PostActivity extends AppCompatActivity {
                 case R.id.delete:
                     PostDelete(0);
                     break;
-                case R.id.scrap:
-                    Toast("스크랩되었습니다.(아직 미구현)");
-                    break;
+//                case R.id.scrap:
+//                    Toast("스크랩되었습니다.(아직 미구현)");
+//                    break;
                 case R.id.submission:
                     Toast("신고되었습니다.");
                     Declaration declaration = new Declaration(postInfo.getDocid(),postInfo.getId(),postInfo.getContents());

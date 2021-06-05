@@ -62,7 +62,7 @@
     <ScrollView
         android:id="@+id/contentLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         app:layout_constrainedHeight="true"
         app:layout_constrainedWidth="true"
         app:layout_constraintBottom_toTopOf="@id/addImageLayout"
@@ -84,7 +84,6 @@
                 android:layout_marginEnd="10dp"
                 android:layout_weight="15"
                 android:backgroundTint="#15315C"
-                android:ems="10"
                 android:gravity="start|top"
                 android:hint="캡스톤 G조의 SNS_Project의 결과물입니다.
                  \n아직 미구현되거나 사소한 문제가 발생할 수도 있습니다.
@@ -95,7 +94,7 @@
 \n주의 바라며, 위반 시 게시물이 삭제되거나 이용이 제한될 수 있습니다.
 \n* 정치/종교/사회/홍보/판매 행위를 금지하며 공격적인 언행 및
 \n 비난은 이용에 제한이 되오니 참고바랍니다.
-\n\n명지대 졸업작품 캡스톤1 G조 -전성진-"
+\n\n명지대학교 최성철 교수님의 캡스톤1 G조 -전성진- \n\n\n\n\n\n\n\n\n\n\n\n\n "
                 android:inputType="textMultiLine"
                 android:maxLength="200"
                 android:textColorHighlight="#15315C"
@@ -107,6 +106,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="start"
+                android:visibility="visible"
                 app:layout_constrainedWidth="true">
 
                 <androidx.recyclerview.widget.RecyclerView

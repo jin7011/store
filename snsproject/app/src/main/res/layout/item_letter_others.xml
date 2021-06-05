@@ -12,10 +12,8 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginEnd="5dp"
-        android:src="@drawable/ic_person_24"
-        app:civ_border_color="@color/ultra_gray"
-        app:civ_border_width="0.8dp"
-        />
+        android:background="@drawable/image_bubble"
+        android:src="@drawable/ic_person_24" />
 
     <TextView
         android:id="@+id/other_nick"

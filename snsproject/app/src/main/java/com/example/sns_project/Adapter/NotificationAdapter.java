@@ -5,9 +5,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -41,12 +43,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         TextView sender_nick ;
         TextView content ;
         TextView date;
+        ImageView image;
 
         public Noti_holder (@NonNull View itemView) {
             super(itemView);
             sender_nick = itemView.findViewById(R.id.Notification_LocationT);
             content = itemView.findViewById(R.id.Notification_content);
             date = itemView.findViewById(R.id.Notification_date);
+            image = itemView.findViewById(R.id.noti_image);
         }
     }
 
@@ -65,11 +69,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         Noti_holder noti_holder  = (Noti_holder)holder;
         NotificationInfo noti = notis.get(position);
 
-        if(noti.getTopic().equals("Message"))
-            noti_holder.sender_nick.setText(noti.getSender()+" "+"님이 쪽지를 보냈습니다.");
+        if(noti.getTopic().equals("Message")) {
+            noti_holder.sender_nick.setText(noti.getSender() + " " + "님이 쪽지를 보냈습니다.");
+            noti_holder.image.setBackgroundResource(R.drawable.noti_message_bubble);
+            noti_holder.image.setImageResource(R.drawable.noti_foot);
+        }
         if(noti.getTopic().equals("Comment"))
             noti_holder.sender_nick.setText(noti.getSender()+" "+"게시물에 댓글이 달렸습니다.");
-        if(noti.getTopic().equals("Recommnet"))
+        if(noti.getTopic().equals("Recomment"))
             noti_holder.sender_nick.setText(noti.getSender()+" "+"님이 대댓글을 남겼습니다.");
 
         Log.d("zxczxc123123",noti.getTopic());

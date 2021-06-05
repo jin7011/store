@@ -11,8 +11,8 @@
 
     <item android:id="@+id/Letter"
         android:title="쪽지"/>
-    <item android:id="@+id/scrap"
-        android:title="스크랩"/>
+<!--    <item android:id="@+id/scrap"-->
+<!--        android:title="스크랩"/>-->
     <item android:id="@+id/submission"
         android:title="신고" />
 

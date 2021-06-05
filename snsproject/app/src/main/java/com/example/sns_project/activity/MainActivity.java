@@ -83,8 +83,10 @@ public class MainActivity extends AppCompatActivity {
         Set_Account_First();
     }
     public void Set_Account_First(){
-        if(user.getUid() == null)
+        if(user == null) {
             logout();
+            return;
+        }
 
         String id = user.getUid();
 

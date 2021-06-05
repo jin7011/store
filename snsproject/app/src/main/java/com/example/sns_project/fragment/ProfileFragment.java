@@ -102,22 +102,10 @@ public class ProfileFragment extends Fragment {
                 oDialog.setMessage("진짜..?").setPositiveButton("예", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
-                        db.collection("USER").document(myAccount.getId()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                if(task.isSuccessful()) {
-                                    user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
-                                                logout();
-                                            }
-                                        }
-                                    });
-                                }
-                                else
-                                    Log.d("asdzzzxcccaa","스토리지 제거 실패");
+                                logout();
                             }
                         });
                     }

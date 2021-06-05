@@ -18,11 +18,11 @@
         android:orientation="horizontal">
 
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/imageView_post"
+            android:id="@+id/noti_image"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_gravity="center"
-            android:background="@drawable/image_bubble"
+            android:background="@drawable/noti_other_bubble"
             android:src="@drawable/zz" />
         <!--                app:civ_border_color="@color/ultra_gray"-->
         <!--                app:civ_border_width="0.8dp" -->

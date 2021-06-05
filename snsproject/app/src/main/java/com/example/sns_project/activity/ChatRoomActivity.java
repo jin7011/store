@@ -11,12 +11,14 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.RelativeLayout;
 import com.example.sns_project.Adapter.LetterAdapter;
 import com.example.sns_project.CustomLibrary.PostControler;
@@ -117,6 +119,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         });
 
         binding.setChatRoomActivity(this);
+        asd();
     }
 
     private void CreateRoom() {
@@ -159,6 +162,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         Write_Letter();
         binding.AddLetterT.setText(null);
     }
+    
 
     private void Write_Letter(){ //글을 보내는 입장
         String content = binding.AddLetterT.getText().toString();
@@ -265,42 +269,45 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
 
     //todo adjustPan하면 댓글창이 가려지고, adjustResize하면 리사이클러뷰가 안보이고 해서 생각해봐야하고, USER DB 생각해서 fragment만들어야함
-//    public void asd(){
-//
-//        View rootView = binding.ChatReFrame;
-//
-//        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-//            public void onGlobalLayout() {
-//                //뷰가 불러지고 나서 처리할 코드 입력
-//                Rect r = new Rect(); // 키보드 위로 보여지는 공간
-//                rootView.getWindowVisibleDisplayFrame(r);
-//                int screenHeight = rootView.getRootView().getHeight(); // rootView에 대한 전체 높이
-//
-//                // 키보드가 보여지면 현재 보여지는 rootView의 범위가 전체 rootView의 범위보다 작아지므로 전체 크기에서 현재 보여지는 크기를 빼면 키보드의 크기가 됨.
-//
-//                int keypadHeight = screenHeight - r.bottom;
-//                if (keypadBaseHeight == 0) { // 기기마다 소프트 키보드가 구현되는 방식이 다름. 화면 아래에 숨어있거나 invisible로 구현되어 있음. 그차이로 인해 기기마다 약간씩 레이아웃이 틀어지는데 그것을 방지하기 위해 필요함.
-//                    keypadBaseHeight = keypadHeight;
-//                }
-//                if (keypadHeight > screenHeight * 0.15) { // 키보드가 대략 전체 화면의 15% 정도 높이 이상으로 올라온다.
-//                    // 키보드 열렸을 때
-//                    if (!isKeyboardShowing) {
-//                        isKeyboardShowing = true;
-////                        params.height = keypadHeight;
-////                        onKeyboardVisibilityChanged(true);
-//                        int height = keypadHeight - keypadBaseHeight;
-//                        rootView.setMinimumHeight(height);
-//                        Log.d("Asdzxc",keypadBaseHeight+"");
-//                    }
-//                } else {
-//                    // 키보드가 닫혔을 때
-//                    if (isKeyboardShowing) {
-//                        isKeyboardShowing = false;
-//                        rootView.setPadding(0, 0, 0, 0);
-//                    }
-//                }
-//
-//            }
-//        });
-//    }
+    public void asd(){
+
+        View rootView = binding.KeyView;
+
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            public void onGlobalLayout() {
+                //뷰가 불러지고 나서 처리할 코드 입력
+                Rect r = new Rect(); // 키보드 위로 보여지는 공간
+                rootView.getWindowVisibleDisplayFrame(r);
+                int screenHeight = rootView.getRootView().getHeight(); // rootView에 대한 전체 높이
+
+                // 키보드가 보여지면 현재 보여지는 rootView의 범위가 전체 rootView의 범위보다 작아지므로 전체 크기에서 현재 보여지는 크기를 빼면 키보드의 크기가 됨.
+
+                int keypadHeight = screenHeight - r.bottom;
+                if (keypadBaseHeight == 0) {
+                    // 기기마다 소프트 키보드가 구현되는 방식이 다름. 화면 아래에 숨어있거나 invisible로 구현되어 있음. 그차이로 인해 기기마다 약간씩 레이아웃이 틀어지는데 그것을 방지하기 위해 필요함.
+                    keypadBaseHeight = keypadHeight;
+                }
+                if (keypadHeight > screenHeight * 0.15) { // 키보드가 대략 전체 화면의 15% 정도 높이 이상으로 올라온다.
+                    // 키보드 열렸을 때
+                    if (!isKeyboardShowing) {
+                        isKeyboardShowing = true;
+//                        params.height = keypadHeight;
+//                        onKeyboardVisibilityChanged(true);
+                        rootView.setVisibility(View.VISIBLE);
+                        int height = keypadHeight - keypadBaseHeight;
+                        rootView.setMinimumHeight(1000);
+                        Log.d("Asdzxc",keypadBaseHeight+"");
+                    }
+                } else {
+                    // 키보드가 닫혔을 때
+                    if (isKeyboardShowing) {
+                        isKeyboardShowing = false;
+                        rootView.setVisibility(View.GONE);
+                        rootView.setPadding(0, 0, 0, 0);
+                    }
+                }
+
+            }
+        });
+    }
 }
